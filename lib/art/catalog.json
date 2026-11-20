@@ -1,0 +1,119 @@
+[
+ {
+  "id": "kar-mandala",
+  "title": "Kar Tanesi Mandala",
+  "category": "Mandala",
+  "w": 1000,
+  "h": 1000,
+  "regions": 575,
+  "sections": 32
+ },
+ {
+  "id": "gul-mandala",
+  "title": "Gül Mandala",
+  "category": "Mandala",
+  "w": 1000,
+  "h": 1000,
+  "regions": 562,
+  "sections": 32
+ },
+ {
+  "id": "gunes-mandala",
+  "title": "Kış Güneşi Mandala",
+  "category": "Mandala",
+  "w": 1000,
+  "h": 1000,
+  "regions": 471,
+  "sections": 32
+ },
+ {
+  "id": "kis-kasabasi",
+  "title": "Kış Kasabası",
+  "category": "Kış",
+  "w": 1000,
+  "h": 1250,
+  "regions": 454,
+  "sections": 32
+ },
+ {
+  "id": "cicekli-pencere",
+  "title": "Çiçekli Pencere",
+  "category": "Çiçekler",
+  "w": 1000,
+  "h": 1250,
+  "regions": 378,
+  "sections": 32
+ },
+ {
+  "id": "deniz-feneri",
+  "title": "Kar Altında Deniz Feneri",
+  "category": "Şehir",
+  "w": 1000,
+  "h": 1250,
+  "regions": 295,
+  "sections": 32
+ },
+ {
+  "id": "kitaplik",
+  "title": "Sıcak Kitaplık",
+  "category": "Sıcak Köşeler",
+  "w": 1000,
+  "h": 1250,
+  "regions": 303,
+  "sections": 32
+ },
+ {
+  "id": "cay-kosesi",
+  "title": "Çay Köşesi",
+  "category": "Sıcak Köşeler",
+  "w": 1000,
+  "h": 1250,
+  "regions": 322,
+  "sections": 32
+ },
+ {
+  "id": "somine-kedi",
+  "title": "Şömine Başında Kedi",
+  "category": "Hayvanlar",
+  "w": 1000,
+  "h": 1250,
+  "regions": 346,
+  "sections": 32
+ },
+ {
+  "id": "orman-evi",
+  "title": "Ormandaki Ev",
+  "category": "Kış",
+  "w": 1000,
+  "h": 1250,
+  "regions": 367,
+  "sections": 32
+ },
+ {
+  "id": "cicek-buketi",
+  "title": "Kış Buketi",
+  "category": "Çiçekler",
+  "w": 1000,
+  "h": 1250,
+  "regions": 336,
+  "sections": 32
+ },
+ {
+  "id": "baykus",
+  "title": "Ay Işığında Baykuş",
+  "category": "Hayvanlar",
+  "w": 1000,
+  "h": 1250,
+  "regions": 181,
+  "sections": 32
+ },
+ {
+  "id": "kis-celengi",
+  "title": "Kapıdaki Çelenk",
+  "category": "Kış",
+  "w": 1000,
+  "h": 1250,
+  "regions": 319,
+  "sections": 32
+ }
+]
