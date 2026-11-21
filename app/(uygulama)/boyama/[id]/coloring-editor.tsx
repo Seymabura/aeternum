@@ -392,7 +392,11 @@ export function ColoringEditor({
                     pointerEvents="none"
                   />
                 )}
-                <path d={layers.outline} fill="none" stroke="#2e2019" strokeWidth={sw} strokeLinejoin="round" pointerEvents="none" />
+                {art.ink ? (
+                  <path d={art.ink} fill="#1d1620" fillRule="evenodd" pointerEvents="none" />
+                ) : (
+                  <path d={layers.outline} fill="none" stroke="#2e2019" strokeWidth={sw} strokeLinejoin="round" pointerEvents="none" />
+                )}
                 {art.lines && (
                   <path d={art.lines} fill="none" stroke="#2e2019" strokeWidth={sw * 0.8} strokeLinecap="round" pointerEvents="none" />
                 )}

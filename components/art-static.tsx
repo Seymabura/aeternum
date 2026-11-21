@@ -30,7 +30,11 @@ export function ArtStatic({
       <rect width={art.w} height={art.h} fill="#fffaf1" />
       {art.regions.map((d, i) => (fills[i] ? <path key={i} d={d} fill={fills[i]} /> : null))}
       {locked && <path d={locked} fill={`url(#hatch-${art.id})`} fillRule="evenodd" opacity={0.75} />}
-      <path d={art.regions.join("")} fill="none" stroke="#2e2019" strokeWidth={sw} strokeLinejoin="round" />
+      {art.ink ? (
+        <path d={art.ink} fill="#1d1620" fillRule="evenodd" />
+      ) : (
+        <path d={art.regions.join("")} fill="none" stroke="#2e2019" strokeWidth={sw} strokeLinejoin="round" />
+      )}
       {art.lines && <path d={art.lines} fill="none" stroke="#2e2019" strokeWidth={sw * 0.8} strokeLinecap="round" />}
     </svg>
   );

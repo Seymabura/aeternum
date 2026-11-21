@@ -19,11 +19,35 @@ export default async function ColoringIndex() {
   }
   return (
     <div>
-      <h1 className="display text-4xl sm:text-5xl">Emek boyama</h1>
-      <p className="mt-2 max-w-xl text-ink-soft">
-        Her görev, her resimde yeni bir bölüm açar. Şu an <b className="text-ink">{p.effort}/32</b> bölüm açık. İstediğin resmi
-        seç, istediğin kadar resme başla.
-      </p>
+      <section className="rise">
+        <p className="label !tracking-[0.3em]">emek boyama</p>
+        <h1 className="display mt-2 text-4xl sm:text-6xl">
+          Emeğin <em className="gold-shine">renge</em> dönüşsün
+        </h1>
+        <p className="mt-3 max-w-xl text-ink-soft">
+          Her görev, her resimde yeni bir bölüm açar. Bitirdiğin resim telefonunun duvar kağıdı olur.
+        </p>
+        <div className="sheet mt-6 max-w-xl p-4">
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm text-ink-soft">Açık bölüm</span>
+            <span className="display text-2xl">
+              {p.effort}
+              <span className="text-base text-ink-soft">/32</span>
+            </span>
+          </div>
+          <div className="mt-3 grid grid-cols-[repeat(32,1fr)] gap-[3px]">
+            {Array.from({ length: 32 }, (_, i) => (
+              <span
+                key={i}
+                className={
+                  "h-2.5 rounded-full " +
+                  (i < p.effort ? "bg-gradient-to-b from-[#ffd59a] to-[#d96f35] shadow-[0_0_8px_rgba(242,162,74,.6)]" : "bg-ink/10")
+                }
+              />
+            ))}
+          </div>
+        </div>
+      </section>
       <Gallery items={ART} progress={progress} last={last} />
     </div>
   );

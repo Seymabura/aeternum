@@ -20,6 +20,8 @@ export type ArtData = {
   regions: string[];
   sections: number[];
   lines: string;
+  /** potrace ile vektörleştirilmiş mürekkep (evenodd dolgu) */
+  ink?: string;
 };
 
 export const ART: ArtMeta[] = catalog as ArtMeta[];

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f3e7d1",
+  themeColor: "#07060c",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -32,17 +32,18 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="tr" className="h-full antialiased">
-      <body className="paper-grain min-h-full flex flex-col">
-        {children}
+      <body className="relative min-h-full flex flex-col">
         <Ambience />
+        {children}
         <Toaster
           position="top-center"
           toastOptions={{
             style: {
-              background: "#fbf5ea",
-              color: "#2e2019",
-              border: "1px solid rgba(46,32,25,.15)",
-              fontFamily: "var(--font-serif)",
+              background: "rgba(24,18,30,.92)",
+              color: "#f4ead9",
+              border: "1px solid rgba(232,201,138,.18)",
+              backdropFilter: "blur(16px)",
+              fontFamily: "var(--font-sans)",
             },
           }}
         />
