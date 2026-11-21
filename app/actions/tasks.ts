@@ -23,10 +23,10 @@ function cleanAnswer(kind: string, a: TaskAnswer): TaskAnswer | null {
     }
     case "photo":
       return { caption: clip(a.caption, 240) };
-    case "letter": {
-      const text = clip(a.text, 6000);
-      return text ? { text } : null;
-    }
+    case "letter":
+      return { done: true };
+    case "do":
+      return { done: true, note: clip(a.note, 600) };
     default: {
       const text = clip(a.text, 2000);
       return text ? { text } : null;
@@ -56,8 +56,8 @@ export async function saveTask(day: number, answer: TaskAnswer, photoPath?: stri
     return { ok: false as const, error: "Kaydedilemedi, tekrar dener misin?" };
   }
   revalidatePath("/takvim");
-  revalidatePath("/boyama");
-  return { ok: true as const, first: !existing };
+  revalidatePath("/kure");
+  return { ok: true as const, first: !existing, gift: task.gift };
 }
 
 export async function saveBonus(id: number, answer: string) {
@@ -69,10 +69,9 @@ export async function saveBonus(id: number, answer: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("bonus_entries").upsert({ user_id: user.id, bonus_id: id, answer: text });
   if (error) {
-    if (error.message?.includes("açılmadı")) return { ok: false as const, error: "Bu küçük emek henüz açılmadı." };
+    if (error.message?.includes("açılmadı")) return { ok: false as const, error: "Bu küçük ritüel henüz açılmadı." };
     return { ok: false as const, error: "Kaydedilemedi." };
   }
   revalidatePath("/takvim");
-  revalidatePath("/boyama");
   return { ok: true as const };
 }

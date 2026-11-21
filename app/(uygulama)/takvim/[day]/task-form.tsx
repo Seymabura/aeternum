@@ -10,6 +10,7 @@ import { saveTask } from "@/app/actions/tasks";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/image";
 import type { Task, TaskAnswer } from "@/lib/tasks";
+import { GlobeHero } from "@/components/globe-hero";
 
 export function TaskForm({
   task,
@@ -17,7 +18,9 @@ export function TaskForm({
   initial,
   initialPhoto,
   initialPath,
+  days,
 }: {
+  days: number[];
   task: Task;
   userId: string;
   initial: TaskAnswer | null;
@@ -60,6 +63,7 @@ export function TaskForm({
       const r = await saveTask(task.day, a, path);
       if (!r.ok) return void toast.error(r.error);
       if (r.first) setCelebrate(true);
+      if (task.kind === "do") set({ done: true });
       else toast.success("Güncellendi");
       router.refresh();
     });
@@ -67,15 +71,24 @@ export function TaskForm({
 
   return (
     <>
-      <form onSubmit={submit} className="mt-6 space-y-4">
-        {(task.kind === "text" || task.kind === "letter") && (
+      <form onSubmit={submit} className="mt-10 space-y-5">
+        {task.kind === "letter" && (
+          <div className="rounded-[14px] border border-champagne/15 bg-[rgba(18,26,46,0.55)] p-5 text-center">
+            <p className="text-ink-soft">Mektubunu kürenin içine kapatıyorsun. 31 Aralık 2027&apos;de açılacak.</p>
+            <Link href="/kure" className="btn btn-primary mt-4">
+              Küreye git ve yaz
+            </Link>
+            <p className="mt-3 text-xs text-ink-soft">Mektubu kapattıysan aşağıdan günü tamamla.</p>
+          </div>
+        )}
+        {task.kind === "text" && (
           <textarea
             className="field min-h-48"
-            rows={task.kind === "letter" ? 12 : 6}
-            maxLength={task.kind === "letter" ? 6000 : 2000}
+            rows={6}
+            maxLength={2000}
             value={a.text ?? ""}
             onChange={(e) => set({ text: e.target.value })}
-            placeholder={task.kind === "letter" ? "Sevgili 2027'deki ben..." : "Buraya yaz..."}
+            placeholder="Buraya yaz..."
           />
         )}
         {task.kind === "list3" &&
@@ -94,27 +107,17 @@ export function TaskForm({
               />
             </div>
           ))}
-        {task.kind === "song" && (
+        {task.kind === "do" && (
           <>
-            <div>
-              <label className="label">Şarkı</label>
-              <input className="field" maxLength={120} value={a.title ?? ""} onChange={(e) => set({ title: e.target.value })} />
+            <div className="rounded-[14px] border border-champagne/15 bg-[rgba(18,26,46,0.55)] p-4 text-sm text-ink-soft">
+              Yaptığında aşağıdaki düğmeye bas. Kürene yeni bir süs eklenecek: <span className="text-gold">{task.gift}</span>.
             </div>
-            <div>
-              <label className="label">Sanatçı</label>
-              <input className="field" maxLength={120} value={a.artist ?? ""} onChange={(e) => set({ artist: e.target.value })} />
-            </div>
-            <div>
-              <label className="label">Link (isteğe bağlı)</label>
-              <input
-                className="field"
-                type="url"
-                maxLength={300}
-                placeholder="https://open.spotify.com/..."
-                value={a.link ?? ""}
-                onChange={(e) => set({ link: e.target.value })}
-              />
-            </div>
+            {task.ask && (
+              <div>
+                <label className="label">{task.ask} (isteğe bağlı)</label>
+                <textarea className="field" rows={3} maxLength={600} value={a.note ?? ""} onChange={(e) => set({ note: e.target.value })} />
+              </div>
+            )}
           </>
         )}
         {task.kind === "word" && (
@@ -147,7 +150,7 @@ export function TaskForm({
                   <Loader2 className="h-8 w-8 animate-spin text-latte" />
                 ) : (
                   <span className="flex flex-col items-center gap-2 text-ink-soft">
-                    <Camera className="h-8 w-8" /> Fotoğraf seç
+                    <Camera className="h-7 w-7" strokeWidth={1.5} /> Fotoğraf seç
                   </span>
                 )}
               </div>
@@ -163,55 +166,68 @@ export function TaskForm({
             <p className="text-xs text-ink-soft">Fotoğrafın gizli kalır, sadece sen görürsün.</p>
           </>
         )}
-        <button className="btn btn-primary w-full py-3.5 text-base" disabled={pending || uploading}>
+        <button className="btn btn-primary w-full sm:w-auto sm:min-w-56" disabled={pending || uploading}>
           {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-          {initial ? "Güncelle" : task.kind === "letter" ? "Mektubu kilitle" : "Kavanoza at"}
+          {initial ? "Güncelle" : task.kind === "do" ? "Yaptım ✦" : "Tamamla ✦"}
         </button>
       </form>
 
-      <AnimatePresence>{celebrate && <Celebration onClose={() => setCelebrate(false)} />}</AnimatePresence>
+      <AnimatePresence>{celebrate && <Celebration day={task.day} gift={task.gift} days={days} onClose={() => setCelebrate(false)} />}</AnimatePresence>
     </>
   );
 }
 
-function Celebration({ onClose }: { onClose: () => void }) {
+function Celebration({ day, gift, days, onClose }: { day: number; gift: string; days: number[]; onClose: () => void }) {
+  const all = Array.from(new Set([...days, day]));
+  // hafif altın parçacıklar (sabit tohumlu, render saf kalsın)
+  const sparks = Array.from({ length: 22 }, (_, i) => ({
+    x: (i * 37) % 100,
+    d: 2.6 + ((i * 13) % 10) / 4,
+    delay: ((i * 7) % 20) / 10,
+    s: 2 + (i % 3),
+  }));
   return (
     <motion.div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/40 px-6 backdrop-blur-sm"
+      className="fixed inset-0 z-[90] flex flex-col items-center justify-center overflow-hidden bg-[rgba(4,6,12,0.92)] px-6 backdrop-blur-md"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Kürene ${gift} eklendi`}
     >
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        {sparks.map((p, i) => (
+          <motion.span
+            key={i}
+            className="absolute top-[-2%] rounded-full bg-gold"
+            style={{ left: `${p.x}%`, width: p.s, height: p.s, boxShadow: "0 0 8px rgba(233,220,192,.8)" }}
+            initial={{ y: 0, opacity: 0 }}
+            animate={{ y: "105vh", opacity: [0, 1, 1, 0] }}
+            transition={{ duration: p.d * 2, delay: 0.8 + p.delay, ease: "linear" }}
+          />
+        ))}
+      </div>
       <motion.div
-        className="sheet relative w-full max-w-sm overflow-hidden p-7 text-center"
-        initial={{ y: 30, scale: 0.95 }}
-        animate={{ y: 0, scale: 1 }}
-        transition={{ type: "spring", damping: 18 }}
+        className="relative w-full max-w-md text-center"
+        initial={{ y: 24, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* kavanoz ve düşen kağıt */}
-        <div className="relative mx-auto h-36 w-28">
-          <motion.div
-            className="absolute left-1/2 top-0 h-6 w-9 -translate-x-1/2 rounded-sm bg-[#fdf3c8] shadow"
-            initial={{ y: -40, rotate: -20, opacity: 0 }}
-            animate={{ y: 78, rotate: 14, opacity: 1 }}
-            transition={{ duration: 1.1, ease: [0.3, 0.6, 0.3, 1] }}
-          />
-          <svg viewBox="0 0 100 130" className="absolute inset-0 h-full w-full">
-            <rect x="26" y="6" width="48" height="14" rx="4" fill="#a9835f" stroke="#2e2019" strokeWidth="2" />
-            <path d="M22 26h56c6 0 10 5 10 11v76c0 8-6 13-13 13H25c-7 0-13-5-13-13V37c0-6 4-11 10-11Z" fill="rgba(255,250,241,.55)" stroke="#2e2019" strokeWidth="2.2" />
-            <path d="M24 44c-2 18-2 40 0 62" stroke="#fff" strokeWidth="4" strokeLinecap="round" opacity=".7" />
-          </svg>
-        </div>
-        <h2 className="display mt-3 text-2xl">Kavanoza düştü</h2>
-        <p className="mt-2 text-ink-soft">Boyama resminde yeni bir bölüm açıldı. Notun 31 Aralık gecesine kadar kavanozda saklı.</p>
-        <div className="mt-6 grid gap-2">
-          <Link href="/boyama" className="btn btn-primary py-3">
-            Boyamaya git 🎨
-          </Link>
-          <Link href="/takvim" className="btn btn-ghost py-3">
+        <GlobeHero days={all} fresh={day} autoRotate className="max-w-[340px]" />
+        <h2 className="display mt-2 text-[2.5rem] sm:text-[3rem]">
+          Kürene <em className="gold-shine italic">{gift}</em> eklendi.
+        </h2>
+        <p className="num mt-4 text-ink-soft">{all.length}/31 süs. Her gün biraz daha dolu.</p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link href="/takvim" className="btn btn-primary">
             Takvime dön
+          </Link>
+          <Link href="/kure" className="btn btn-ghost">
+            Küremi gör
           </Link>
         </div>
       </motion.div>

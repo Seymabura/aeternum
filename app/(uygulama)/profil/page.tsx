@@ -12,34 +12,39 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profil">
   const supabase = await createClient();
   const { data: prof } = await supabase.from("profiles").select("display_name,email_reminders").eq("id", user.id).maybeSingle();
   return (
-    <div className="mx-auto max-w-xl space-y-6">
+    <div className="mx-auto max-w-xl space-y-10">
       <div>
-        <h1 className="display text-5xl sm:text-6xl">Ben</h1>
-        <p className="mt-2 text-ink-soft">Defterin bu cihazda saklanıyor. Tarayıcı verilerini silersen defterin de silinir.</p>
+        <p className="eyebrow">Profil</p>
+        <h1 className="display mt-5 text-[2.75rem] sm:text-[3.5rem]">Defterin</h1>
+        <p className="mt-4 text-ink-soft">Defterin bu cihazda saklanıyor. Tarayıcı verilerini silersen defterin de silinir.</p>
       </div>
-      <div className="grid grid-cols-3 gap-3">
-        <Stat n={p.entries.length} label="kutu" />
-        <Stat n={p.streak} label="seri 🔥" />
-        <Stat n={p.effort} label="emek" />
-      </div>
+      <dl className="sheet grid grid-cols-3 py-6">
+        <Stat n={p.entries.length} total="/31" label="süs" first />
+        <Stat n={p.streak} label="gün seri" />
+        <Stat n={p.bonusIds.length} total="/17" label="ışık" />
+      </dl>
       <ProfileForm
         name={prof?.display_name ?? ""}
         reminders={prof?.email_reminders ?? false}
         resetPassword={sp.sifre === "1"}
       />
-      <p className="text-center text-sm text-ink-soft">
-        <Link href="/gizlilik" className="underline">Gizlilik</Link> ·{" "}
-        <Link href="/kvkk" className="underline">KVKK Aydınlatma Metni</Link>
+      <p className="flex justify-center gap-6 text-sm">
+        <Link href="/gizlilik" className="link-line !text-ink-soft hover:!text-ink">Gizlilik</Link>
+        <Link href="/kvkk" className="link-line !text-ink-soft hover:!text-ink">KVKK Aydınlatma Metni</Link>
       </p>
     </div>
   );
 }
 
-function Stat({ n, label }: { n: number; label: string }) {
+function Stat({ n, total, label, first }: { n: number; total?: string; label: string; first?: boolean }) {
   return (
-    <div className="sheet p-4 text-center">
-      <p className="display text-3xl">{n}</p>
-      <p className="text-xs text-ink-soft">{label}</p>
+    <div className="relative text-center">
+      {!first && <span aria-hidden className="hairline-v absolute inset-y-0 left-0" />}
+      <dd className="display num text-[2.25rem] leading-none">
+        {n}
+        {total && <span className="text-base text-ink-mute">{total}</span>}
+      </dd>
+      <dt className="mt-2 text-xs text-ink-soft">{label}</dt>
     </div>
   );
 }

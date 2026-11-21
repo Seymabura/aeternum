@@ -21,9 +21,9 @@ export default async function TaskPage({ params }: PageProps<"/takvim/[day]">) {
 
   if (day > p.today) {
     return (
-      <div className="mx-auto max-w-md py-16 text-center">
-        <Lock className="mx-auto h-10 w-10 text-latte" />
-        <h1 className="display mt-4 text-3xl">{day} Aralık henüz kilitli</h1>
+      <div className="mx-auto max-w-md py-20 text-center">
+        <Lock className="mx-auto h-8 w-8 text-champagne" strokeWidth={1.5} />
+        <h1 className="display mt-6 text-[2.5rem]">{day} Aralık henüz kilitli</h1>
         <p className="mt-2 text-ink-soft">
           {day === p.today + 1 ? (
             <>
@@ -34,7 +34,7 @@ export default async function TaskPage({ params }: PageProps<"/takvim/[day]">) {
           )}
         </p>
         <Link href="/takvim" className="btn btn-ghost mt-8">
-          <ArrowLeft className="h-4 w-4" /> Takvime dön
+          <ArrowLeft className="h-4 w-4" strokeWidth={1.5} /> Takvime dön
         </Link>
       </div>
     );
@@ -50,21 +50,23 @@ export default async function TaskPage({ params }: PageProps<"/takvim/[day]">) {
   const late = !entry && day < p.today;
 
   return (
-    <div className="mx-auto max-w-xl">
-      <Link href="/takvim" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-champagne">
-        <ArrowLeft className="h-4 w-4" /> Takvim
+    <div className="mx-auto max-w-2xl">
+      <Link href="/takvim" className="link-line inline-flex items-center gap-1.5 text-sm !text-ink-soft hover:!text-ink">
+        <ArrowLeft className="h-4 w-4" strokeWidth={1.5} /> Takvim
       </Link>
-      <article className="sheet relative overflow-hidden p-6 sm:p-8">
-        
-        <p className="eyebrow">{day} Aralık</p>
-        <h1 className="display mt-3 text-4xl leading-tight sm:text-5xl">{task.title}</h1>
-        <p className="mt-2 text-ink-soft">{task.hint}</p>
+      <article className="relative mt-10 sm:mt-14">
+        <p className="eyebrow rise">Gün {String(day).padStart(2, "0")}</p>
+        <h1 className="display mt-5 text-[2.75rem] sm:text-[4.25rem]">
+          <span className="mask-line"><span style={{ animationDelay: "80ms" }}>{task.title}</span></span>
+        </h1>
+        <p className="rise mt-6 max-w-lg text-[1.0625rem] text-ink-soft" style={{ animationDelay: "300ms" }}>{task.hint}</p>
+        <p className="rise mt-6 inline-flex items-center gap-2 rounded-full border border-champagne/20 px-4 py-2 text-sm text-gold" style={{ animationDelay: "380ms" }}>✦ Bugünün süsü: {task.gift}</p>
         {late && (
-          <p className="mt-4 rounded-lg bg-champagne/10 px-3 py-2 text-sm text-ink">
-            Bu günü kaçırmışsın. Şimdi yapabilirsin, resmin açılır ama seri 🔥 için sayılmaz.
+          <p className="mt-6 rounded-[14px] border border-champagne/15 bg-champagne/[.06] px-4 py-3 text-sm text-ink">
+            Bu günü kaçırmışsın. Şimdi yapabilirsin, süsün yine eklenir ama seriye sayılmaz.
           </p>
         )}
-        <TaskForm task={task} userId={p.userId} initial={entry?.answer ?? null} initialPhoto={photoUrl} initialPath={entry?.photo_path ?? null} />
+        <TaskForm days={p.entries.map((e) => e.day)} task={task} userId={p.userId} initial={entry?.answer ?? null} initialPhoto={photoUrl} initialPath={entry?.photo_path ?? null} />
       </article>
     </div>
   );

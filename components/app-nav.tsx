@@ -1,15 +1,26 @@
 "use client";
 
+function Globe({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" className={className}>
+      <circle cx="12" cy="10" r="7.5" />
+      <path d="M6.5 19.5h11M8 17l-1 2.5M16 17l1 2.5" />
+      <path d="M9 11.5l1.5-2.5 1.5 2.5M11 8.5l1.2-2 1.3 2" opacity=".7" />
+    </svg>
+  );
+}
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, Images, ListChecks, Palette, Smartphone } from "lucide-react";
+import { CalendarDays, Gift, Images, Smartphone } from "lucide-react";
+import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 export const NAV = [
   { href: "/takvim", label: "Takvim", icon: CalendarDays },
-  { href: "/boyama", label: "Boyama", icon: Palette },
+  { href: "/kure", label: "Küre", icon: Globe },
   { href: "/pano", label: "Stüdyo", icon: Smartphone },
-  { href: "/liste", label: "Wishlist", icon: ListChecks },
+  { href: "/liste", label: "Wishlist", icon: Gift },
   { href: "/vision", label: "Vision", icon: Images },
 ] as const;
 
@@ -17,20 +28,28 @@ export function BottomNav() {
   const path = usePathname();
   return (
     <nav className="safe-bottom fixed inset-x-3 bottom-3 z-50 md:hidden" aria-label="Ana menü">
-      <ul className="sheet mx-auto grid max-w-md grid-cols-5 !rounded-[26px] px-1.5 py-1.5">
+      <ul className="mx-auto grid max-w-md grid-cols-5 rounded-full border border-champagne/12 bg-[rgba(10,15,28,0.78)] px-1 py-1 shadow-[0_20px_50px_-20px_rgba(0,0,0,.9)] backdrop-blur-xl backdrop-saturate-150">
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = path === href || path.startsWith(href + "/");
           return (
             <li key={href}>
               <Link
                 href={href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex flex-col items-center gap-0.5 rounded-[20px] py-2 text-[0.64rem] font-medium tracking-wide transition-colors",
-                  active ? "bg-champagne/12 text-gold" : "text-ink-soft",
+                  "relative flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-full text-[0.625rem] font-medium transition-colors duration-300",
+                  active ? "text-champagne" : "text-ink-soft",
                 )}
               >
-                <Icon className="h-[1.15rem] w-[1.15rem]" strokeWidth={active ? 2 : 1.6} />
-                {label}
+                <Icon className="h-5 w-5" strokeWidth={1.5} />
+                <span>{label}</span>
+                {active && (
+                  <motion.span
+                    layoutId="nav-dot"
+                    transition={{ type: "spring", stiffness: 380, damping: 34 }}
+                    className="absolute bottom-0.5 h-1 w-1 rounded-full bg-champagne"
+                  />
+                )}
               </Link>
             </li>
           );
@@ -51,11 +70,14 @@ export function TopLinks() {
             <Link
               href={href}
               className={cn(
-                "rounded-full px-3.5 py-2 text-sm transition-colors",
-                active ? "bg-champagne/12 text-gold" : "text-ink-soft hover:text-ink",
+                "relative rounded-full px-3.5 py-2 text-sm transition-colors",
+                active ? "text-champagne" : "text-ink-soft hover:text-ink",
               )}
             >
               {label}
+              {active && (
+                <motion.span layoutId="top-dot" className="absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-champagne" />
+              )}
             </Link>
           </li>
         );

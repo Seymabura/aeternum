@@ -2,6 +2,8 @@ import { requireUser } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import type { VisionItem } from "@/app/actions/extras";
 import { VisionBoard } from "./vision-board";
+import { Goals } from "./goals";
+import type { WishItem } from "@/app/actions/extras";
 
 export const metadata = { title: "Vision board" };
 
@@ -16,5 +18,15 @@ export default async function VisionPage() {
     const { data: signed } = await supabase.storage.from("uploads").createSignedUrls(own, 60 * 60 * 6);
     for (const s of signed ?? []) if (s.path && s.signedUrl) urls[s.path] = s.signedUrl;
   }
-  return <VisionBoard initial={items} urls={urls} userId={user.id} />;
+  const { data: goals } = await supabase
+    .from("wish_items")
+    .select("id,kind,title,note,url,price,category,done,image_url,store,fav")
+    .eq("kind", "hedef")
+    .order("position", { ascending: true });
+  return (
+    <>
+      <VisionBoard initial={items} urls={urls} userId={user.id} />
+      <Goals initial={(goals ?? []) as WishItem[]} />
+    </>
+  );
 }

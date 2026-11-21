@@ -73,34 +73,35 @@ export function VisionBoard({ initial, urls: initialUrls, userId }: { initial: V
     <div>
       <section className="rise flex flex-wrap items-end justify-between gap-6">
         <div>
-          <p className="eyebrow">vision board</p>
-          <h1 className="display mt-3 text-5xl sm:text-6xl">
+          <p className="eyebrow">Vision board</p>
+          <h1 className="display mt-5 text-[2.75rem] sm:text-[4rem]">
             2027&apos;yi <em className="gold-shine italic">gör</em>
           </h1>
-          <p className="mt-3 max-w-lg text-ink-soft">Hayal ettiğin yılı görsellerle, kelimelerle kur. Bitince telefonuna duvar kağıdı yap.</p>
+          <p className="mt-5 max-w-lg text-ink-soft">Hayal ettiğin yılı görsellerle, kelimelerle kur. Bitince telefonuna duvar kağıdı yap.</p>
         </div>
         <button onClick={exportWallpaper} disabled={busy || items.length === 0} className="btn btn-primary">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Duvar kağıdı yap
         </button>
       </section>
 
-      <div className="sheet mt-7 flex flex-wrap gap-2 !rounded-full p-1.5">
+      <div className="mt-12 inline-flex max-w-full flex-wrap items-center gap-1 rounded-full border border-champagne/12 bg-[rgba(18,26,46,0.55)] p-1 backdrop-blur-xl">
         <Tool icon={Library} label="Kütüphane" onClick={() => setPanel("lib")} />
         <Tool icon={ImagePlus} label="Fotoğraf yükle" onClick={() => fileRef.current?.click()} />
         <Tool icon={Type} label="Kelime" onClick={() => setPanel("word")} />
-        <span className="ml-auto self-center pr-3 text-xs text-ink-soft">{items.length}/60</span>
+        <span className="num px-3 text-xs text-ink-mute">{items.length}/60</span>
         <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => upload(e.target.files?.[0])} />
       </div>
 
       {items.length === 0 ? (
         <div className="mt-10 grid gap-4 text-center">
-          <p className="display text-3xl italic text-ink-soft">Panon boş, hayal etmeye başla</p>
+          <p className="display text-[2rem]">Panon boş</p>
+          <p className="-mt-2 text-ink-soft">Kütüphaneden bir görselle ya da tek bir kelimeyle başla.</p>
           <button onClick={() => setPanel("lib")} className="btn btn-ghost mx-auto">
             <Library className="h-4 w-4" /> Kütüphaneden seç
           </button>
         </div>
       ) : (
-        <div className="mt-6 columns-2 gap-3 sm:gap-4 md:columns-3 lg:columns-4">
+        <div className="mt-8 columns-2 gap-3 sm:gap-4 md:columns-3 lg:columns-4">
           <AnimatePresence initial={false}>
             {items.map((it) => {
               const tone = TONES[it.tone ?? "gece"] ?? TONES.gece;
@@ -117,9 +118,9 @@ export function VisionBoard({ initial, urls: initialUrls, userId }: { initial: V
                   <button
                     onClick={() => setSel(sel === it.id ? null : it.id)}
                     className={cn(
-                      "relative block w-full overflow-hidden rounded-[18px] border shadow-[0_20px_40px_-24px_rgba(0,0,0,.9)] transition-all",
+                      "relative block w-full overflow-hidden rounded-[14px] border shadow-[0_24px_50px_-24px_rgba(0,0,0,.9)] transition-all duration-300",
                       ASPECT[it.size],
-                      sel === it.id ? "border-champagne/70 ring-2 ring-champagne/30" : "border-white/[.08]",
+                      sel === it.id ? "border-champagne/70 ring-2 ring-champagne/25" : "border-champagne/10",
                     )}
                     style={it.kind === "word" ? { background: tone.bg } : undefined}
                   >
@@ -128,7 +129,7 @@ export function VisionBoard({ initial, urls: initialUrls, userId }: { initial: V
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={s} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
                       ) : (
-                        <span className="absolute inset-0 animate-pulse bg-white/5" />
+                        <span className="shimmer absolute inset-0" />
                       )
                     ) : (
                       <span className="absolute inset-0 flex items-center justify-center p-4 text-center">
@@ -139,7 +140,7 @@ export function VisionBoard({ initial, urls: initialUrls, userId }: { initial: V
                     )}
                   </button>
                   {sel === it.id && (
-                    <div className="absolute inset-x-2 bottom-2 flex justify-center gap-1 rounded-full border border-white/10 bg-black/60 p-1 backdrop-blur">
+                    <div className="absolute inset-x-2 bottom-2 flex justify-center gap-1 rounded-full border border-white/10 bg-[rgba(4,6,12,.7)] p-1 backdrop-blur-md">
                       <IconBtn
                         label="Boyut"
                         onClick={async () => {
@@ -179,7 +180,7 @@ export function VisionBoard({ initial, urls: initialUrls, userId }: { initial: V
         />
       )}
       {busy && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(4,6,12,0.6)] backdrop-blur-sm">
           <Loader2 className="h-8 w-8 animate-spin text-champagne" />
         </div>
       )}
@@ -197,7 +198,7 @@ function LibraryPanel({ onClose, onPick }: { onClose: () => void; onPick: (src: 
           <button
             key={c}
             onClick={() => setCat(c)}
-            className={cn("shrink-0 rounded-full border px-3.5 py-1.5 text-sm", cat === c ? "border-champagne/50 bg-champagne/15 text-gold" : "border-white/10 text-ink-soft")}
+            className={cn("min-h-10 shrink-0 rounded-full border px-4 text-sm transition-colors", cat === c ? "border-champagne/50 text-champagne" : "border-champagne/10 text-ink-soft hover:text-ink")}
           >
             {VISION_CATS[c]}
           </button>
@@ -211,10 +212,10 @@ function LibraryPanel({ onClose, onPick }: { onClose: () => void; onPick: (src: 
               onPick(v.src);
               setAdded((s) => new Set(s).add(v.src));
             }}
-            className="relative aspect-[3/4] overflow-hidden rounded-xl border border-white/10"
+            className="relative aspect-[3/4] overflow-hidden rounded-[14px] border border-champagne/10"
           >
-            <Image src={v.src} alt={v.alt} fill sizes="160px" className="object-cover transition-transform hover:scale-105" />
-            {added.has(v.src) && <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-sm font-medium text-gold">eklendi ✦</span>}
+            <Image src={v.src} alt={v.alt} fill sizes="160px" className="object-cover transition-transform duration-700 hover:scale-105" />
+            {added.has(v.src) && <span className="absolute inset-0 flex items-center justify-center bg-[rgba(4,6,12,.6)] text-sm font-medium text-gold">eklendi ✦</span>}
           </button>
         ))}
       </div>
@@ -238,7 +239,7 @@ function WordPanel({ onClose, onAdd }: { onClose: () => void; onAdd: (text: stri
       <input className="field" value={text} onChange={(e) => setText(e.target.value)} maxLength={80} placeholder="Bir kelime ya da kısa bir cümle" autoFocus />
       <div className="mt-3 flex flex-wrap gap-2">
         {ideas.map((i) => (
-          <button key={i} onClick={() => setText(i)} className="rounded-full border border-white/10 px-3 py-1 text-sm text-ink-soft hover:text-ink">
+          <button key={i} onClick={() => setText(i)} className="min-h-9 rounded-full border border-champagne/12 px-3.5 text-sm text-ink-soft hover:text-ink">
             {i}
           </button>
         ))}
@@ -263,17 +264,17 @@ function WordPanel({ onClose, onAdd }: { onClose: () => void; onAdd: (text: stri
 
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 backdrop-blur-sm sm:items-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-[rgba(4,6,12,0.72)] backdrop-blur-sm sm:items-center" onClick={onClose}>
       <div
-        className="safe-bottom max-h-[82dvh] w-full max-w-lg overflow-y-auto rounded-t-[28px] border border-white/10 bg-[#0d1426] p-5 shadow-[var(--shadow-lift)] sm:rounded-[28px]"
+        className="safe-bottom max-h-[82dvh] w-full max-w-lg overflow-y-auto rounded-t-[28px] border border-champagne/12 bg-[#0d1426] p-6 shadow-[var(--shadow-lift)] sm:rounded-[28px] sm:p-8"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label={title}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="display text-3xl">{title}</h2>
-          <button onClick={onClose} className="rounded-full p-1.5 hover:bg-white/5" aria-label="Kapat">
-            <X className="h-5 w-5" />
+          <h2 className="display text-[2rem]">{title}</h2>
+          <button onClick={onClose} className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft hover:bg-white/5 hover:text-ink" aria-label="Kapat">
+            <X className="h-5 w-5" strokeWidth={1.5} />
           </button>
         </div>
         {children}
@@ -284,7 +285,7 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
 
 function Tool({ icon: Icon, label, onClick }: { icon: React.ComponentType<{ className?: string }>; label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="flex items-center gap-2 rounded-full px-4 py-2 text-sm text-ink-soft transition-colors hover:bg-white/5 hover:text-ink">
+    <button onClick={onClick} className="flex min-h-10 items-center gap-2 rounded-full px-4 text-sm text-ink-soft transition-colors hover:bg-white/5 hover:text-ink">
       <Icon className="h-4 w-4" /> {label}
     </button>
   );

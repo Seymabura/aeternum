@@ -1,24 +1,26 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { GlobeProps } from "./snow-globe";
+import { cn } from "@/lib/utils";
 
 const SnowGlobe = dynamic(() => import("./snow-globe"), {
   ssr: false,
+  // 3D yüklenene kadar küre fotoğrafı
   loading: () => (
-    <div className="flex h-full w-full items-center justify-center">
-      <div className="h-56 w-56 animate-pulse rounded-full bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,.25),rgba(185,205,242,.08)_45%,transparent_70%)] ring-1 ring-white/10" />
-    </div>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/showcase/kure.webp" alt="" className="h-full w-full scale-[0.92] object-contain opacity-60 blur-[1px]" />
   ),
 });
 
-export function GlobeHero() {
+export function GlobeHero({ className, ...props }: GlobeProps) {
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[560px]">
+    <div className={cn("relative mx-auto aspect-square w-full max-w-[560px]", className)}>
       <div
         className="pointer-events-none absolute inset-[12%] rounded-full opacity-80 blur-3xl"
         style={{ background: "radial-gradient(circle, rgba(185,205,242,.22), rgba(220,199,161,.10) 45%, transparent 70%)" }}
       />
-      <SnowGlobe className="relative h-full w-full cursor-grab active:cursor-grabbing" />
+      <SnowGlobe {...props} className="relative h-full w-full cursor-grab active:cursor-grabbing" />
     </div>
   );
 }

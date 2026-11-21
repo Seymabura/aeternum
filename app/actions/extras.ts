@@ -18,9 +18,75 @@ export type WishItem = {
   price: string | null;
   category: string | null;
   done: boolean;
+  image_url?: string | null;
+  store?: string | null;
+  fav?: boolean;
 };
 
-export async function addWish(input: { kind: WishKind; title: string; url?: string; price?: string; note?: string; category?: string }) {
+const WISH_COLS = "id,kind,title,note,url,price,category,done,image_url,store,fav";
+
+/** Ürün linkinden başlık, görsel ve fiyatı okur (Open Graph). */
+export async function previewLink(raw: string) {
+  const user = await getUser();
+  if (!user) return { ok: false as const };
+  let u: URL;
+  try {
+    u = new URL(clip(raw, 500));
+  } catch {
+    return { ok: false as const };
+  }
+  if (!/^https?:$/.test(u.protocol)) return { ok: false as const };
+  // iç ağlara istek yok (SSRF koruması)
+  const h = u.hostname.toLowerCase();
+  if (h === "localhost" || h.endsWith(".local") || h.endsWith(".internal") || /^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.|\[|::)/.test(h) || !h.includes("."))
+    return { ok: false as const };
+  try {
+    const res = await fetch(u.toString(), {
+      headers: { "user-agent": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)", accept: "text/html" },
+      redirect: "follow",
+      signal: AbortSignal.timeout(7000),
+    });
+    const html = (await res.text()).slice(0, 400_000);
+    const meta = (k: string) => {
+      const re = new RegExp(`<meta[^>]+(?:property|name|itemprop)=["']${k}["'][^>]*content=["']([^"']+)["']|<meta[^>]+content=["']([^"']+)["'][^>]*(?:property|name|itemprop)=["']${k}["']`, "i");
+      const m = html.match(re);
+      return m ? decode(m[1] ?? m[2]) : "";
+    };
+    let title = meta("og:title") || meta("twitter:title") || decode(html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] ?? "");
+    title = title.replace(/\s+/g, " ").trim().slice(0, 140);
+    let image = meta("og:image") || meta("og:image:secure_url") || meta("twitter:image") || meta("image");
+    if (image && image.startsWith("//")) image = "https:" + image;
+    else if (image && image.startsWith("/")) image = u.origin + image;
+    const amount = meta("product:price:amount") || meta("og:price:amount") || meta("price");
+    const cur = meta("product:price:currency") || meta("og:price:currency") || meta("priceCurrency");
+    const price = amount ? `${Number(amount.replace(",", ".")) ? Number(amount.replace(",", ".")).toLocaleString("tr-TR") : amount} ${cur === "TRY" || !cur ? "TL" : cur}` : "";
+    const store = (meta("og:site_name") || h.replace(/^www\./, "")).slice(0, 60);
+    return { ok: true as const, title, image: /^https:\/\//.test(image) ? image.slice(0, 800) : "", price: price.slice(0, 40), store };
+  } catch {
+    return { ok: false as const };
+  }
+}
+
+function decode(s: string) {
+  return s
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&#039;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
+}
+
+export async function addWish(input: {
+  kind: WishKind;
+  title: string;
+  url?: string;
+  price?: string;
+  note?: string;
+  category?: string;
+  image_url?: string;
+  store?: string;
+}) {
   const user = await getUser();
   if (!user) return { ok: false as const, error: "Oturum yok" };
   const title = clip(input.title, 140);
@@ -37,8 +103,13 @@ export async function addWish(input: { kind: WishKind; title: string; url?: stri
       price: clip(input.price, 40) || null,
       note: clip(input.note, 500) || null,
       category: clip(input.category, 30) || null,
+      image_url: (() => {
+        const im = clip(input.image_url, 800);
+        return /^https:\/\//.test(im) || im.startsWith(`${user.id}/`) ? im : null;
+      })(),
+      store: clip(input.store, 60) || null,
     })
-    .select("id,kind,title,note,url,price,category,done")
+    .select(WISH_COLS)
     .single();
   if (error) return { ok: false as const, error: error.message.includes("dolu") ? "Liste dolu (300 madde)." : "Eklenemedi." };
   revalidatePath("/liste");
@@ -48,6 +119,12 @@ export async function addWish(input: { kind: WishKind; title: string; url?: stri
 export async function toggleWish(id: string, done: boolean) {
   const supabase = await createClient();
   const { error } = await supabase.from("wish_items").update({ done }).eq("id", id);
+  return { ok: !error };
+}
+
+export async function favWish(id: string, fav: boolean) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("wish_items").update({ fav }).eq("id", id);
   return { ok: !error };
 }
 

@@ -10,7 +10,7 @@ export default async function BoardPage() {
   const supabase = await createClient();
   const { data } = await supabase.from("boards").select("data").maybeSingle();
   const board = data?.data && (data.data as Board).items ? (data.data as Board) : null;
-  const paths = (board?.items ?? []).flatMap((i) => (i.type === "photo" ? [i.path] : []));
+  const paths = (board?.items ?? []).flatMap((i) => (i.type === "photo" && !i.path.startsWith("/") ? [i.path] : []));
   const urls: Record<string, string> = {};
   if (paths.length) {
     const { data: signed } = await supabase.storage.from("uploads").createSignedUrls(paths, 60 * 60 * 6);

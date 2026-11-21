@@ -14,13 +14,13 @@ export default function Kvkk() {
       <h2>2. İşlenen kişisel veriler</h2>
       <ul>
         <li>Kimlik ve iletişim: ad (isteğe bağlı), e-posta adresi.</li>
-        <li>Kullanıcı içeriği: görev cevapları, notlar, mektuplar, boyamalar, dilek panosu, yüklenen fotoğraflar.</li>
+        <li>Kullanıcı içeriği: görev cevapları, notlar, mektuplar, wishlist, vision board, duvar kağıdı tasarımları, yüklenen fotoğraflar.</li>
         <li>İşlem güvenliği: oturum bilgileri, giriş zamanları.</li>
       </ul>
       <h2>3. İşleme amaçları</h2>
       <ul>
         <li>Hesabının oluşturulması ve oturumunun yönetilmesi,</li>
-        <li>Günlük görev takvimi, boyama, dilek panosu ve yıl sonu özeti hizmetlerinin sunulması,</li>
+        <li>Günlük görev takvimi, kar küresi, wishlist, vision board, duvar kağıdı stüdyosu ve yıl sonu özeti hizmetlerinin sunulması,</li>
         <li>İstemen halinde hatırlatma ve zaman kapsülü e-postalarının gönderilmesi,</li>
         <li>Sitenin güvenliğinin sağlanması ve kötüye kullanımın önlenmesi.</li>
       </ul>

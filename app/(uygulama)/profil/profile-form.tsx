@@ -38,7 +38,7 @@ export function ProfileForm({ name, reminders, resetPassword }: { name: string; 
       )}
 
       <form
-        className="sheet space-y-4 p-5"
+        className="sheet space-y-5 p-6 sm:p-8"
         onSubmit={(e) => {
           e.preventDefault();
           start(async () => {
@@ -59,17 +59,17 @@ export function ProfileForm({ name, reminders, resetPassword }: { name: string; 
         </button>
       </form>
 
-      <details className="sheet p-5">
-        <summary className="cursor-pointer text-sm text-bordo">Hesabımı ve tüm verilerimi sil</summary>
+      <details className="rounded-[28px] border border-bordo/35 p-6 sm:p-8">
+        <summary className="cursor-pointer text-sm text-bordo marker:text-bordo/60">Defterimi ve tüm verilerimi sil</summary>
         <p className="mt-3 text-sm text-ink-soft">
-          Görev cevapların, boyamaların, dilek panon ve yüklediğin tüm fotoğraflar kalıcı olarak silinir. Bu işlem geri
+          Görev cevapların, kar küren, wishlist, vision board, duvar kağıtların ve yüklediğin tüm fotoğraflar kalıcı olarak silinir. Bu işlem geri
           alınamaz. Onaylamak için kutuya <b>SİL</b> yaz.
         </p>
         <div className="mt-3 flex gap-2">
           <input className="field" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="SİL" />
           <button
             type="button"
-            className="btn shrink-0 bg-bordo text-white"
+            className="btn shrink-0 border border-bordo/60 text-bordo hover:bg-bordo/10"
             disabled={pending || confirm.trim().toLocaleLowerCase("tr") !== "sil"}
             onClick={() =>
               start(async () => {
@@ -98,7 +98,7 @@ function Toggle({ checked, onChange, title, desc }: { checked: boolean; onChange
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={"relative mt-1 h-7 w-12 shrink-0 rounded-full transition-colors " + (checked ? "bg-gradient-to-b from-[#fbf5e8] to-[#c9b089]" : "bg-white/15")}
+        className={"relative mt-1 h-7 w-12 shrink-0 rounded-full transition-colors " + (checked ? "bg-[linear-gradient(180deg,#f3e6c8,#dcc7a1_55%,#a88a5c)]" : "bg-white/15")}
       >
         <span className={"absolute top-1 h-5 w-5 rounded-full bg-midnight shadow transition-all " + (checked ? "left-6" : "left-1")} />
       </button>

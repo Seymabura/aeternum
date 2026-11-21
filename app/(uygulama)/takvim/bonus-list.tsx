@@ -19,7 +19,7 @@ export function BonusList({ items, done }: { items: Bonus[]; done: number[] }) {
       setDone((s) => new Set(s).add(id));
       setOpenId(null);
       setText("");
-      toast.success("Boyamanda yeni bir bölüm açıldı 🎨");
+      toast.success("Kürende bir ışık daha yandı");
     });
   }
 

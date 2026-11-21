@@ -180,7 +180,7 @@ function ItemNode({ item, urls, onSelect, onChange, onEdit }: ItemProps) {
     case "photo":
       return (
         <Group {...common}>
-          <PhotoBody item={item} url={urls[item.path]} />
+          <PhotoBody item={item} url={item.path.startsWith("/") ? item.path : urls[item.path]} />
         </Group>
       );
     case "sticker":
@@ -321,7 +321,7 @@ export default function BoardEditor({
   const [future, setFuture] = useState<Board[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [urls, setUrls] = useState(initialUrls);
-  const [panel, setPanel] = useState<null | "sticker" | "bg" | "export" | "edit">(null);
+  const [panel, setPanel] = useState<null | "sticker" | "bg" | "export" | "edit" | "art">(null);
   const [guide, setGuide] = useState(false);
   const [saveState, setSaveState] = useState<"saved" | "saving" | "dirty">("saved");
   const [busy, setBusy] = useState(false);
@@ -347,7 +347,7 @@ export default function BoardEditor({
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const scale = Math.min((box.w - 16) / BOARD_W, (box.h - 16) / BOARD_H);
+  const scale = Math.min((box.w - 48) / BOARD_W, (box.h - 48) / BOARD_H);
   const sw = BOARD_W * scale;
   const sh = BOARD_H * scale;
 
@@ -491,7 +491,7 @@ export default function BoardEditor({
 
   function removeSelected() {
     if (!sel) return;
-    if (sel.type === "photo") createClient().storage.from("uploads").remove([sel.path]).catch(() => null);
+    if (sel.type === "photo" && !sel.path.startsWith("/")) createClient().storage.from("uploads").remove([sel.path]).catch(() => null);
     commit({ ...board, items: board.items.filter((i) => i.id !== sel.id) });
     setSelected(null);
   }
@@ -547,36 +547,46 @@ export default function BoardEditor({
   const dark = board.bg === "gece" || board.bg === "cam";
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-paper">
+    <div className="fixed inset-0 z-[60] flex flex-col bg-night">
       {/* üst çubuk */}
-      <div className="flex items-center gap-1.5 border-b border-white/[.06] bg-paper/90 px-3 py-2 pt-[max(.5rem,env(safe-area-inset-top))]">
-        <Link href="/takvim" className="rounded-full p-2 hover:bg-white/5" aria-label="Geri">
-          <ArrowLeft className="h-5 w-5" />
+      <div className="flex items-center gap-1.5 border-b border-champagne/10 bg-[rgba(7,11,22,.9)] px-3 py-2 pt-[max(.5rem,env(safe-area-inset-top))] backdrop-blur-xl">
+        <Link href="/takvim" className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft hover:bg-white/5 hover:text-ink" aria-label="Geri">
+          <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
         </Link>
         <div className="min-w-0 flex-1">
-          <h1 className="display text-xl leading-tight">Duvar kağıdı stüdyosu</h1>
+          <h1 className="display truncate text-[1.25rem] leading-tight">Duvar kağıdı stüdyosu</h1>
           <p className="flex items-center gap-1 text-xs text-ink-soft">
-            {saveState === "saving" ? <Loader2 className="h-3 w-3 animate-spin" /> : saveState === "saved" ? <Check className="h-3 w-3 text-cam" /> : null}
+            {saveState === "saving" ? <Loader2 className="h-3 w-3 animate-spin" /> : saveState === "saved" ? <Check className="h-3 w-3 text-champagne" /> : null}
             {saveState === "saved" ? "kaydedildi" : saveState === "saving" ? "kaydediliyor" : "değişiklik var"}
           </p>
         </div>
         <TopBtn label="Geri al" onClick={undo} disabled={!past.length}>
-          <Undo2 className="h-5 w-5" />
+          <Undo2 className="h-5 w-5" strokeWidth={1.5} />
         </TopBtn>
         <TopBtn label="İleri al" onClick={redo} disabled={!future.length}>
-          <Redo2 className="h-5 w-5" />
+          <Redo2 className="h-5 w-5" strokeWidth={1.5} />
         </TopBtn>
         <TopBtn label="Kilit ekranı önizleme" onClick={() => setGuide((g) => !g)} active={guide}>
-          <Smartphone className="h-5 w-5" />
+          <Smartphone className="h-5 w-5" strokeWidth={1.5} />
         </TopBtn>
-        <button className="btn btn-primary ml-1 !px-3.5 !py-2 text-sm" onClick={() => setPanel("export")}>
-          <Download className="h-4 w-4" /> İndir
+        <button className="btn btn-primary btn-sm ml-1" onClick={() => setPanel("export")}>
+          <Download className="h-4 w-4" strokeWidth={1.5} /> İndir
         </button>
       </div>
 
       {/* tuval */}
-      <div ref={wrapRef} className="relative flex min-h-0 flex-1 touch-none items-center justify-center bg-[radial-gradient(ellipse_at_center,#16213f,#070b16)]">
-        <div className="overflow-hidden rounded-[18px] shadow-[0_20px_50px_-20px_rgba(46,32,25,.6)]" style={{ width: sw, height: sh }}>
+      <div ref={wrapRef} className="relative flex min-h-0 flex-1 touch-none items-center justify-center bg-[radial-gradient(ellipse_at_center,#121b38,#04060c_70%)]">
+        {/* telefon çerçevesi: ince metal kenar + Dynamic Island */}
+        <div
+          className="relative rounded-[calc(var(--r)+7px)] p-[7px] shadow-[0_40px_90px_-30px_rgba(0,0,0,.95)]"
+          style={{
+            ["--r" as string]: `${Math.round(sw * 0.13)}px`,
+            background: "linear-gradient(145deg,#4a4f5c,#1b1e26 30%,#0c0e14 55%,#3a3e48 85%,#14161c)",
+            boxShadow: "inset 0 0 0 1px rgba(255,255,255,.12), 0 40px 90px -30px rgba(0,0,0,.95)",
+          }}
+        >
+        <span aria-hidden className="pointer-events-none absolute left-1/2 top-[calc(7px+2.2%)] z-10 h-[3.4%] w-[30%] -translate-x-1/2 rounded-full bg-[#020305]" />
+        <div className="overflow-hidden rounded-[var(--r)]" style={{ width: sw, height: sh }}>
           <Stage
             ref={stageRef}
             width={sw}
@@ -610,9 +620,9 @@ export default function BoardEditor({
                 enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
                 anchorSize={22}
                 anchorCornerRadius={11}
-                anchorStroke="#7a1f2b"
-                anchorFill="#fbf6ea"
-                borderStroke="#7a1f2b"
+                anchorStroke="#a88a5c"
+                anchorFill="#f3e6c8"
+                borderStroke="#dcc7a1"
                 borderDash={[8, 6]}
                 rotateAnchorOffset={46}
                 rotationSnaps={[0, 90, 180, 270]}
@@ -628,19 +638,20 @@ export default function BoardEditor({
             </Layer>
           </Stage>
         </div>
+        </div>
 
         {busy && (
-          <div className="absolute inset-0 flex items-center justify-center bg-paper/40">
-            <Loader2 className="h-8 w-8 animate-spin text-bordo" />
+          <div className="absolute inset-0 flex items-center justify-center bg-[rgba(4,6,12,.5)]">
+            <Loader2 className="h-8 w-8 animate-spin text-champagne" />
           </div>
         )}
 
         {/* seçili öğe araçları */}
         {sel && (
-          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border border-ink/10 bg-paper-3/95 p-1 shadow-[var(--shadow-lift)]">
+          <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border border-champagne/15 bg-[rgba(10,15,28,.85)] p-1 shadow-[var(--shadow-lift)] backdrop-blur-xl">
             {sel.type !== "sticker" && sel.type !== "tape" && (
               <SelBtn label="Düzenle" onClick={() => setPanel("edit")}>
-                <Pencil className="h-4 w-4" />
+                <Pencil className="h-4 w-4" strokeWidth={1.5} />
               </SelBtn>
             )}
             {sel.type === "tape" && (
@@ -651,39 +662,42 @@ export default function BoardEditor({
                   update(sel.id, { color: TAPE_COLORS[(i + 1) % TAPE_COLORS.length] } as Partial<TapeItem>);
                 }}
               >
-                <Palette className="h-4 w-4" />
+                <Palette className="h-4 w-4" strokeWidth={1.5} />
               </SelBtn>
             )}
             <SelBtn label="Öne getir" onClick={() => reorder(true)}>
-              <BringToFront className="h-4 w-4" />
+              <BringToFront className="h-4 w-4" strokeWidth={1.5} />
             </SelBtn>
             <SelBtn label="Arkaya gönder" onClick={() => reorder(false)}>
-              <SendToBack className="h-4 w-4" />
+              <SendToBack className="h-4 w-4" strokeWidth={1.5} />
             </SelBtn>
             <SelBtn label="Kopyala" onClick={duplicate}>
-              <Copy className="h-4 w-4" />
+              <Copy className="h-4 w-4" strokeWidth={1.5} />
             </SelBtn>
             <SelBtn label="Sil" onClick={removeSelected} danger>
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-4 w-4" strokeWidth={1.5} />
             </SelBtn>
           </div>
         )}
       </div>
 
       {/* ekleme çubuğu */}
-      <div className="border-t border-ink/10 bg-paper-3/95 px-2 pb-2.5 pt-2 backdrop-blur">
-        <div className="no-scrollbar mx-auto flex max-w-2xl justify-between gap-1 overflow-x-auto">
+      <div className="safe-bottom px-3 pt-2">
+        <div className="no-scrollbar mx-auto flex max-w-2xl justify-between gap-0.5 overflow-x-auto rounded-full border border-champagne/12 bg-[rgba(10,15,28,.82)] px-2 py-1 shadow-[0_20px_50px_-20px_rgba(0,0,0,.9)] backdrop-blur-xl">
           <AddBtn label="Fotoğraf" onClick={() => fileRef.current?.click()}>
-            <Camera className="h-5 w-5" />
+            <Camera className="h-5 w-5" strokeWidth={1.5} />
+          </AddBtn>
+          <AddBtn label="Çizim" onClick={() => setPanel("art")}>
+            <Palette className="h-5 w-5" strokeWidth={1.5} />
           </AddBtn>
           <AddBtn label="Çıkartma" onClick={() => setPanel("sticker")}>
-            <Sparkles className="h-5 w-5" />
+            <Sparkles className="h-5 w-5" strokeWidth={1.5} />
           </AddBtn>
           <AddBtn label="Yazı" onClick={addText}>
-            <Type className="h-5 w-5" />
+            <Type className="h-5 w-5" strokeWidth={1.5} />
           </AddBtn>
           <AddBtn label="Not" onClick={addNote}>
-            <StickyNote className="h-5 w-5" />
+            <StickyNote className="h-5 w-5" strokeWidth={1.5} />
           </AddBtn>
           <AddBtn label="Washi" onClick={addTape}>
             <span className="block h-3 w-6 -rotate-12 rounded-[2px] bg-[repeating-linear-gradient(45deg,#c8922a_0_4px,#e2863b_4px_8px)]" />
@@ -710,6 +724,26 @@ export default function BoardEditor({
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/stickers/${s}.svg`} alt={s} className="aspect-square w-full" />
+              </button>
+            ))}
+          </div>
+        </Sheet>
+      )}
+
+      {panel === "art" && (
+        <Sheet title="Hazır çizimler" onClose={() => setPanel(null)}>
+          <div className="grid grid-cols-3 gap-3">
+            {["/showcase/boyama.webp", "/showcase/duvar.webp", "/showcase/kedi.webp"].map((src) => (
+              <button
+                key={src}
+                className="overflow-hidden rounded-xl border border-white/10 transition-transform hover:scale-[1.03]"
+                onClick={() => {
+                  add({ id: uid(), type: "photo", path: src, w: 600, h: 900, frame: "plain", caption: "", ...center(), rot: 0, scale: 1 });
+                  setPanel(null);
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt="" className="aspect-[2/3] w-full object-cover" />
               </button>
             ))}
           </div>
@@ -917,7 +951,7 @@ function TopBtn({ label, onClick, disabled, active, children }: { label: string;
       disabled={disabled}
       aria-label={label}
       title={label}
-      className={cn("rounded-full p-2 transition-colors disabled:opacity-35", active ? "bg-ink text-paper-3" : "hover:bg-paper-2")}
+      className={cn("flex h-11 w-11 items-center justify-center rounded-full transition-colors disabled:opacity-35", active ? "text-champagne" : "text-ink-soft hover:bg-white/5 hover:text-ink")}
     >
       {children}
     </button>
@@ -926,7 +960,7 @@ function TopBtn({ label, onClick, disabled, active, children }: { label: string;
 
 function SelBtn({ label, onClick, danger, children }: { label: string; onClick: () => void; danger?: boolean; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} aria-label={label} title={label} className={cn("rounded-full p-2.5 hover:bg-paper-2", danger && "text-bordo")}>
+    <button onClick={onClick} aria-label={label} title={label} className={cn("flex h-11 w-11 items-center justify-center rounded-full text-ink-soft hover:bg-white/5 hover:text-ink", danger && "!text-bordo")}>
       {children}
     </button>
   );
@@ -934,7 +968,7 @@ function SelBtn({ label, onClick, danger, children }: { label: string; onClick: 
 
 function AddBtn({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} className="flex min-w-[58px] flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[0.7rem] font-medium text-ink-soft hover:bg-paper-2 hover:text-ink">
+    <button onClick={onClick} className="flex min-h-[52px] min-w-[56px] flex-col items-center justify-center gap-1 rounded-full px-2 text-[0.625rem] font-medium text-ink-soft transition-colors hover:text-champagne">
       <span className="flex h-6 items-center">{children}</span>
       {label}
     </button>

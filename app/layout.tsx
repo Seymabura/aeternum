@@ -12,10 +12,10 @@ export const metadata: Metadata = {
     template: "%s · Aeternum",
   },
   description:
-    "Yılbaşına kadar her gün küçük bir görev: resmini boya, dilek panonu doldur, anılarını biriktir. 31 Aralık gecesi hepsi sana özel bir sonuca dönüşsün.",
+    "Yılbaşına kadar her gün kendin için küçük bir şey yap, kar küreni süsle, wishlist ve vision board'unu kur, 2027'deki kendine mesaj bırak.",
   openGraph: {
     title: "Aeternum · Bu yıldan sonsuza kalanlar",
-    description: "Her gün küçük bir emek, yılın sonunda sonsuza saklayacağın bir defter.",
+    description: "Her gün küçük bir ritüel, yılın sonunda sonsuza saklayacağın bir kar küresi.",
     locale: "tr_TR",
     type: "website",
   },
@@ -36,14 +36,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Ambience />
         {children}
         <Toaster
-          position="top-center"
+          position="bottom-center"
+          offset={96}
+          icons={{ success: <span className="text-champagne">✦</span>, info: <span className="text-champagne">✦</span> }}
           toastOptions={{
             style: {
-              background: "rgba(24,18,30,.92)",
-              color: "#f4ead9",
-              border: "1px solid rgba(232,201,138,.18)",
-              backdropFilter: "blur(16px)",
+              background: "rgba(13,20,38,.82)",
+              color: "#f2eee6",
+              border: "1px solid rgba(220,199,161,.16)",
+              borderRadius: "999px",
+              backdropFilter: "blur(24px) saturate(140%)",
+              boxShadow: "0 20px 50px -20px rgba(0,0,0,.9)",
               fontFamily: "var(--font-sans)",
+              fontSize: "0.875rem",
             },
           }}
         />

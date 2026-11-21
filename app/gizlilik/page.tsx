@@ -12,8 +12,8 @@ export default function Privacy() {
       <h2>Neleri saklıyoruz?</h2>
       <ul>
         <li>Hesap bilgileri: e-posta adresin, (Google ile girdiysen) adın, şifren (şifrelenmiş olarak, biz göremeyiz).</li>
-        <li>Görev cevapların, küçük emek notların, 2027&apos;ye mektubun.</li>
-        <li>Boyamaların, dilek panon ve yüklediğin fotoğraflar.</li>
+        <li>Görev cevapların, küçük ritüel notların, 2027&apos;ye mektubun.</li>
+        <li>Wishlist'in, vision board'un, duvar kağıdı tasarımların ve yüklediğin fotoğraflar.</li>
         <li>Tercihlerin (ör. hatırlatma e-postası istiyor musun).</li>
       </ul>
       <h2>Nasıl koruyoruz?</h2>
@@ -32,7 +32,7 @@ export default function Privacy() {
       <p>Yalnızca oturumunu açık tutmak için gerekli çerezleri kullanıyoruz. Takip ya da reklam çerezi yok.</p>
       <h2>Silme hakkın</h2>
       <p>
-        Profil sayfasındaki <b>Hesabımı ve tüm verilerimi sil</b> düğmesiyle hesabını, cevaplarını, boyamalarını ve
+        Profil sayfasındaki <b>Hesabımı ve tüm verilerimi sil</b> düğmesiyle hesabını, cevaplarını, panolarını ve
         fotoğraflarını kalıcı olarak silebilirsin. Sorular için: <Contact />.
       </p>
     </LegalPage>

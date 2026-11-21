@@ -6,25 +6,20 @@ import { Lock } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const LIDS = [
-  { bg: "linear-gradient(160deg,#1d2a52,#0d1530)", fg: "#e9dcc0", pat: "dots" },
-  { bg: "linear-gradient(160deg,#16213f,#0a1122)", fg: "#dcc7a1", pat: "stripes" },
-  { bg: "linear-gradient(160deg,#24315c,#111a36)", fg: "#f2eee6", pat: "stars" },
-  { bg: "linear-gradient(160deg,#1a2547,#0b132a)", fg: "#b9cdf2", pat: "grid" },
-  { bg: "linear-gradient(160deg,#2a2440,#120f22)", fg: "#e9dcc0", pat: "stars" },
-  { bg: "linear-gradient(160deg,#18314a,#0a1626)", fg: "#dcc7a1", pat: "dots" },
-] as const;
-
+/** Lacivert kadife kapak + ince şampanya desen */
+const PATS = [
+  "radial-gradient(rgba(220,199,161,.16) 1px, transparent 1.3px) 0 0/11px 11px",
+  "repeating-linear-gradient(135deg, rgba(220,199,161,.08) 0 1px, transparent 1px 9px)",
+  "radial-gradient(rgba(220,199,161,.18) 1px, transparent 1.3px) 0 0/16px 16px, radial-gradient(rgba(220,199,161,.1) 1px, transparent 1.3px) 8px 8px/16px 16px",
+];
 function lidStyle(day: number): React.CSSProperties {
-  const l = LIDS[(day * 5) % LIDS.length];
-  const fg = l.fg + "22";
-  const pats: Record<string, string> = {
-    dots: `radial-gradient(${fg} 1.6px, transparent 1.8px) 0 0/12px 12px`,
-    stripes: `repeating-linear-gradient(135deg, ${fg} 0 4px, transparent 4px 11px)`,
-    grid: `linear-gradient(${fg} 1px, transparent 1px) 0 0/14px 14px, linear-gradient(90deg, ${fg} 1px, transparent 1px) 0 0/14px 14px`,
-    stars: `radial-gradient(${fg} 1px, transparent 1.4px) 0 0/9px 9px, radial-gradient(${fg} 2px, transparent 2.3px) 4px 6px/23px 19px`,
+  const velvet =
+    "radial-gradient(120% 90% at 30% 0%, rgba(120,140,200,.16), transparent 60%), linear-gradient(170deg, #17224a 0%, #0d1631 55%, #080e22 100%)";
+  return {
+    background: `${PATS[day % PATS.length]}, ${velvet}`,
+    border: "1px solid rgba(220,199,161,.14)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,.06), 0 14px 28px -18px rgba(0,0,0,.9)",
   };
-  return { background: `${pats[l.pat]}, ${l.bg}`, color: l.fg, border: "1px solid rgba(220,228,255,.1)" };
 }
 
 export function AdventGrid({ today, done, onTime }: { today: number; done: number[]; onTime: number[] }) {
@@ -36,7 +31,7 @@ export function AdventGrid({ today, done, onTime }: { today: number; done: numbe
   function open(day: number) {
     if (day > today) {
       const left = day - today;
-      toast(today === 0 ? `Bu kutu ${day} Aralık 00:00'da açılacak` : `${left} gün sonra açılacak. Sabır da bir emek`);
+      toast(today === 0 ? `Bu kutu ${day} Aralık 00:00'da açılacak` : `${left} gün sonra açılacak. Sabırla bekle`);
       return;
     }
     if (doneSet.has(day)) {
@@ -48,7 +43,7 @@ export function AdventGrid({ today, done, onTime }: { today: number; done: numbe
   }
 
   return (
-    <ol className="grid grid-cols-4 gap-2.5 sm:grid-cols-6 sm:gap-3 lg:grid-cols-8">
+    <ol className="grid grid-cols-4 gap-2.5 sm:gap-3 md:grid-cols-7 md:gap-4">
       {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
         const isDone = doneSet.has(day);
         const locked = day > today;
@@ -63,34 +58,38 @@ export function AdventGrid({ today, done, onTime }: { today: number; done: numbe
               className={cn("advent-box block w-full text-left", opening === day && "opening")}
             >
               {/* kutunun içi */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[18px] border border-champagne/25 bg-gradient-to-b from-champagne/20 to-champagne/[.04]">
+              <div
+                className={cn(
+                  "absolute inset-0 flex flex-col items-center justify-center rounded-[18px]",
+                  isDone
+                    ? "bg-[linear-gradient(170deg,#f3e6c8_0%,#dcc7a1_55%,#a88a5c_130%)] text-[#1a1408] shadow-[inset_0_1px_0_rgba(255,250,240,.8)]"
+                    : "bg-[radial-gradient(circle_at_50%_40%,rgba(255,220,160,.55),rgba(220,199,161,.12)_45%,#0a1122_75%)]",
+                )}
+              >
                 {isDone ? (
                   <>
-                    <span className="display text-3xl text-gold">✓</span>
-                    <span className="text-[0.65rem] text-ink-soft">{onTimeSet.has(day) ? "zamanında" : "sonradan"}</span>
+                    <span className="display num text-[1.75rem] leading-none sm:text-[2rem]">{day}</span>
+                    <span className="mt-1 text-[0.625rem] font-medium opacity-70">✓ {onTimeSet.has(day) ? "zamanında" : "sonradan"}</span>
                   </>
                 ) : (
-                  <span className="text-xl text-champagne">✦</span>
+                  <span className="text-xl text-gold">✦</span>
                 )}
               </div>
               {/* kapak */}
               {!isDone && (
                 <div
                   className={cn(
-                    "advent-lid flex flex-col justify-between p-2.5 shadow-[0_18px_30px_-18px_rgba(0,0,0,.9)]",
+                    "advent-lid flex flex-col items-center justify-center text-ink transition-[filter] duration-300 hover:brightness-125",
                     isToday && "glow-today",
-                    locked && "opacity-55",
+                    locked && "opacity-40",
                   )}
                   style={lidStyle(day)}
                 >
-                  <span className="display text-[2rem] italic leading-none sm:text-[2.3rem]">{day}</span>
-                  <span className="flex items-center justify-between text-[0.66rem] font-semibold uppercase tracking-wider opacity-90">
-                    {locked ? <Lock className="h-3.5 w-3.5" /> : isToday ? "bugün" : missed ? "kaçtı" : ""}
+                  <span className={cn("display num text-[2rem] leading-none sm:text-[2.4rem]", isToday && "text-gold")}>{day}</span>
+                  <span className="absolute bottom-2.5 flex h-4 items-center text-[0.625rem] text-ink-soft">
+                    {locked ? <Lock className="h-3 w-3" strokeWidth={1.5} /> : isToday ? <span className="text-champagne">bugün</span> : missed ? "bekliyor" : ""}
                   </span>
                 </div>
-              )}
-              {isDone && (
-                <span className="display pointer-events-none absolute left-2.5 top-2 text-lg italic text-gold/80">{day}</span>
               )}
             </button>
           </li>

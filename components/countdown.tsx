@@ -43,7 +43,7 @@ export function Countdown({ mode, className }: { mode: "december" | "midnight"; 
   );
 }
 
-/** Büyük, kutulu geri sayım */
+/** Büyük geri sayım şeridi: ince altın çizgilerle ayrılmış Bodoni rakamlar */
 export function BigCountdown({ mode }: { mode: "december" | "midnight" }) {
   const ms = useRemaining(mode);
   const { d, h, m, s } = split(ms ?? 0);
@@ -54,14 +54,15 @@ export function BigCountdown({ mode }: { mode: "december" | "midnight" }) {
     { v: s, l: "saniye" },
   ];
   return (
-    <div className="grid grid-cols-4 gap-2.5 sm:gap-4">
+    <div className="grid grid-cols-4">
       <NumberFlowGroup>
-        {cells.map((c) => (
-          <div key={c.l} className="sheet flex flex-col items-center px-2 py-5 sm:py-8">
-            <span className="display text-5xl tabular-nums text-gold [text-shadow:0_0_30px_rgba(220,199,161,.35)] sm:text-7xl">
+        {cells.map((c, i) => (
+          <div key={c.l} className="relative flex flex-col items-center px-1 py-2">
+            {i > 0 && <span aria-hidden className="hairline-v absolute inset-y-0 left-0" />}
+            <span className="display num text-[2.6rem] font-light leading-none text-ink sm:text-[5.5rem]">
               {ms === null ? "––" : <NumberFlow value={c.v} format={two} />}
             </span>
-            <span className="mt-1 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-ink-soft sm:text-xs">{c.l}</span>
+            <span className="mt-3 text-xs text-ink-soft sm:text-sm">{c.l}</span>
           </div>
         ))}
       </NumberFlowGroup>

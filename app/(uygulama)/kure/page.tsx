@@ -1,11 +1,11 @@
-import { requireUser } from "@/lib/data";
+import { getProgress } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { Capsule } from "./capsule";
 
-export const metadata = { title: "Mesaj küresi" };
+export const metadata = { title: "Kar küren" };
 
 export default async function KurePage() {
-  await requireUser();
+  const p = await getProgress();
   const supabase = await createClient();
   const { data } = await supabase.rpc("ae_capsule_status");
   const st = Array.isArray(data) ? data[0] : null;
@@ -18,6 +18,9 @@ export default async function KurePage() {
     <Capsule
       status={st ? { sealedAt: st.sealed_at as string, opensAt: st.opens_at as string, chars: st.chars as number, hasEmail: st.has_email as boolean } : null}
       opened={opened}
+      days={p.entries.map((e) => e.day)}
+      lights={p.bonusIds.length}
+      today={p.today}
     />
   );
 }

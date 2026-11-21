@@ -42,6 +42,19 @@ export function Ambience() {
     m.addEventListener("change", f);
     return () => m.removeEventListener("change", f);
   }, []);
+  // .spot kartlarında imleci takip eden ışık
+  useEffect(() => {
+    const move = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      const el = (e.target as HTMLElement | null)?.closest?.(".spot") as HTMLElement | null;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty("--mx", `${e.clientX - r.left}px`);
+      el.style.setProperty("--my", `${e.clientY - r.top}px`);
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    return () => window.removeEventListener("pointermove", move);
+  }, []);
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-night">
