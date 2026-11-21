@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s · Aeternum",
   },
   description:
-    "Yılbaşına kadar her gün kendin için küçük bir şey yap, kar küreni süsle, wishlist ve vision board'unu kur, 2027'deki kendine mesaj bırak.",
+    "Yılbaşına kadar her gün kendin için küçük bir şey yap, kar küreni süsle, sevdiğinle Ay'ınızı ve gökyüzünüzü yap, vision board'unu kur, 2027'deki kendine mesaj bırak.",
   openGraph: {
     title: "Aeternum · Bu yıldan sonsuza kalanlar",
     description: "Her gün küçük bir ritüel, yılın sonunda sonsuza saklayacağın bir kar küresi.",

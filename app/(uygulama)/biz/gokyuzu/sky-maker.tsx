@@ -7,9 +7,9 @@ import { ArrowLeft, ArrowRight, Check, Copy, Download, Link2, Loader2, RotateCcw
 import { CityPicker } from "@/components/biz/city-picker";
 import { DateInput } from "@/components/biz/date-input";
 import { ConsentDialog } from "@/components/biz/consent-dialog";
-import { SkyView, type SkyHandle, type SkyInput } from "@/components/biz/sky-view";
+import { SKY_EXPORTS, SkyView, type SkyHandle, type SkyInput } from "@/components/biz/sky-view";
+import type { ViewDir } from "@/lib/astro/skyfield";
 import { DEFAULT_CITY, formatCoords, type City } from "@/lib/astro/cities";
-import { SKY_EXPORTS } from "@/lib/astro/sky-render";
 import { todayIso, trDate, zonedToUtc } from "@/lib/astro/time";
 import { cn } from "@/lib/utils";
 
@@ -91,10 +91,21 @@ export function SkyMaker() {
   );
 }
 
-function SkyResult({ input, onEdit }: { input: SkyInput; onEdit: () => void }) {
+const DIRS: { id: ViewDir; label: string }[] = [
+  { id: "oto", label: "En güzel yön" },
+  { id: "kuzey", label: "Kuzey" },
+  { id: "dogu", label: "Doğu" },
+  { id: "guney", label: "Güney" },
+  { id: "bati", label: "Batı" },
+  { id: "basucu", label: "Başucu" },
+];
+
+function SkyResult({ input: initial, onEdit }: { input: SkyInput; onEdit: () => void }) {
   const view = useRef<SkyHandle>(null);
+  const [input, setInput] = useState<SkyInput>({ ...initial, dir: initial.dir ?? "oto", lines: false });
   const [spin, setSpin] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [prog, setProg] = useState(0);
   const [sharing, setSharing] = useState(false);
   const [link, setLink] = useState<string | null>(null);
   return (
@@ -109,6 +120,27 @@ function SkyResult({ input, onEdit }: { input: SkyInput; onEdit: () => void }) {
           {input.meta.dateText} · {input.meta.place}
           <span className="num block text-sm text-champagne">{input.meta.coords}</span>
         </p>
+        {input.meta.line && <p className="hand mt-3 text-2xl text-gold/80">{input.meta.line}</p>}
+
+        <h2 className="mt-10 text-sm text-ink-soft">Nereye bakalım?</h2>
+        <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Bakış yönü">
+          {DIRS.map((d) => (
+            <button
+              key={d.id}
+              role="radio"
+              aria-checked={input.dir === d.id}
+              onClick={() => setInput((i) => ({ ...i, dir: d.id }))}
+              className={cn("min-h-10 rounded-full border px-4 text-sm transition-colors", input.dir === d.id ? "border-champagne/60 text-champagne" : "border-champagne/12 text-ink-soft hover:text-ink")}
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+        <label className="mt-5 flex cursor-pointer items-center gap-3 text-sm text-ink-soft">
+          <input type="checkbox" className="h-4 w-4 accent-[#dcc7a1]" checked={!!input.lines} onChange={(e) => setInput((i) => ({ ...i, lines: e.target.checked }))} />
+          Takımyıldız çizgileri
+        </label>
+
         <div className="mt-8 flex flex-wrap gap-3">
           <button className="btn btn-primary" onClick={() => view.current?.spin(!spin)}>
             {spin ? "Durdur" : "O gece nasıl döndü?"}
@@ -127,8 +159,9 @@ function SkyResult({ input, onEdit }: { input: SkyInput; onEdit: () => void }) {
               disabled={!!busy}
               onClick={async () => {
                 setBusy(e.id);
+                setProg(0);
                 try {
-                  await view.current?.exportAs(e.id);
+                  await view.current?.exportAs(e.id, setProg);
                 } catch {
                   toast.error("İndirilemedi. Tekrar dene.");
                 } finally {
@@ -141,7 +174,13 @@ function SkyResult({ input, onEdit }: { input: SkyInput; onEdit: () => void }) {
                 {e.label}
                 <span className="num block text-xs text-ink-mute">{e.w}×{e.h}</span>
               </span>
-              {busy === e.id ? <Loader2 className="h-4 w-4 animate-spin text-champagne" /> : <Download className="h-4 w-4 text-ink-soft" strokeWidth={1.5} />}
+              {busy === e.id ? (
+                <span className="num flex items-center gap-2 text-xs text-champagne">
+                  Hazırlanıyor %{Math.round(prog * 100)} <Loader2 className="h-4 w-4 animate-spin" />
+                </span>
+              ) : (
+                <Download className="h-4 w-4 text-ink-soft" strokeWidth={1.5} />
+              )}
             </button>
           ))}
         </div>

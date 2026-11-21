@@ -21,7 +21,7 @@ const clip = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(
 export async function createShare(kind: ShareKind, payload: unknown, files: string[] = []) {
   const user = await getUser();
   if (!user) return { ok: false as const, error: "Oturum bulunamadı. Sayfayı yenile." };
-  if (!["ay", "gok", "film"].includes(kind)) return { ok: false as const, error: "Geçersiz tür." };
+  if (!["ay", "gok"].includes(kind)) return { ok: false as const, error: "Geçersiz tür." };
   const json = JSON.stringify(payload ?? {});
   if (json.length > 30000) return { ok: false as const, error: "Bu paylaşım çok büyük." };
   // sadece kendi klasöründeki paylaşılan dosyalar

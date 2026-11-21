@@ -62,7 +62,7 @@ export function ProfileForm({ name, reminders, resetPassword }: { name: string; 
       <details className="rounded-[28px] border border-bordo/35 p-6 sm:p-8">
         <summary className="cursor-pointer text-sm text-bordo marker:text-bordo/60">Defterimi ve tüm verilerimi sil</summary>
         <p className="mt-3 text-sm text-ink-soft">
-          Görev cevapların, kar küren, wishlist, vision board, duvar kağıtların ve yüklediğin tüm fotoğraflar kalıcı olarak silinir. Bu işlem geri
+          Görev cevapların, kar küren, vision board, paylaşım bağlantıların, duvar kağıtların ve yüklediğin tüm fotoğraflar kalıcı olarak silinir. Bu işlem geri
           alınamaz. Onaylamak için kutuya <b>SİL</b> yaz.
         </p>
         <div className="mt-3 flex gap-2">

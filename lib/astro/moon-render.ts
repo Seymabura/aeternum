@@ -52,7 +52,7 @@ export function renderMoon(
   diameter: number,
   lights: Light[],
   northAngle = 0,
-  opts: { earthshine?: number } = {},
+  opts: { earthshine?: number; sharpen?: number } = {},
 ): { canvas: HTMLCanvasElement; litFraction: number } {
   const D = Math.max(8, Math.round(diameter));
   const c = document.createElement("canvas");
@@ -67,7 +67,7 @@ export function renderMoon(
   const td = tex.data;
   const cs = Math.cos(northAngle);
   const sn = Math.sin(northAngle);
-  const es = opts.earthshine ?? 0.1;
+  const es = opts.earthshine ?? 0.045;
   let disc = 0;
   let lit = 0;
 
@@ -123,13 +123,30 @@ export function renderMoon(
         const t = (td[i00 + k] * (1 - fx) + td[i10 + k] * fx) * (1 - fy) + (td[i01 + k] * (1 - fx) + td[i11 + k] * fx) * fy;
         // dünya ışığı: karanlık yarıda çok hafif buz mavisi
         const tint = k === 0 ? 0.72 : k === 1 ? 0.8 : 0.95;
-        const val = t * b * 1.12 + (t * es + 9) * tint * (1 - b);
+        const limb = 0.9 + 0.1 * z; // çok hafif kenar kararması
+        const val = t * b * 1.12 * limb + (t * es + 3) * tint * (1 - b);
         o[oi + k] = val > 255 ? 255 : val;
       }
       // karanlık yarı neredeyse saydam: gökyüzü arkadan hafifçe görünür
-      o[oi + 3] = 255 * edge * (0.82 + 0.18 * Math.min(1, b * 1.6));
+      o[oi + 3] = 255 * edge * (0.95 + 0.05 * Math.min(1, b * 1.6));
     }
   }
+  if (opts.sharpen) unsharp(out, D, opts.sharpen);
   ctx.putImageData(out, 0, 0);
   return { canvas: c, litFraction: disc ? lit / disc : 0 };
+}
+
+/** Hafif keskinleştirme (3×3 unsharp mask), sadece renk kanalları */
+function unsharp(img: ImageData, D: number, amount: number) {
+  const src = new Uint8ClampedArray(img.data);
+  const o = img.data;
+  for (let y = 1; y < D - 1; y++)
+    for (let x = 1; x < D - 1; x++) {
+      const i = (y * D + x) * 4;
+      if (src[i + 3] < 250) continue;
+      for (let k = 0; k < 3; k++) {
+        const blur = (src[i + k - 4] + src[i + k + 4] + src[i + k - D * 4] + src[i + k + D * 4] + src[i + k] * 4) / 8;
+        o[i + k] = src[i + k] + (src[i + k] - blur) * amount;
+      }
+    }
 }

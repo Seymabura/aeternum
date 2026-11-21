@@ -1,4 +1,5 @@
 import { renderMoon } from "./moon-render";
+import { composeSky, type SkyLayers } from "./skyfield";
 import { phaseLabel } from "./moon";
 
 export type MoonPerson = {
@@ -9,6 +10,8 @@ export type MoonPerson = {
   fraction: number;
   light: [number, number, number];
   northAngle: number;
+  /** o gece Ay'ın gökteki yönü (EQJ birim vektör): arka plandaki gerçek yıldızlar için */
+  v?: [number, number, number];
 };
 
 export type MoonPayload = {
@@ -57,9 +60,9 @@ export function moonLayout(w: number, h: number) {
 /** Ay görsellerini bir kez çiz (animasyon sırasında yeniden çizilmez) */
 export function buildMoons(tex: ImageData, p: MoonPayload, w: number, h: number): MoonImages {
   const L = moonLayout(w, h);
-  const a = renderMoon(tex, L.single, [{ L: p.a.light }], p.a.northAngle).canvas;
-  const b = renderMoon(tex, L.single, [{ L: p.b.light }], p.b.northAngle).canvas;
-  const u = renderMoon(tex, L.merged, [{ L: unionLight(p) }], p.a.northAngle).canvas;
+  const a = renderMoon(tex, L.single, [{ L: p.a.light }], p.a.northAngle, { sharpen: 0.35 }).canvas;
+  const b = renderMoon(tex, L.single, [{ L: p.b.light }], p.b.northAngle, { sharpen: 0.35 }).canvas;
+  const u = renderMoon(tex, L.merged, [{ L: unionLight(p) }], p.a.northAngle, { sharpen: 0.35 }).canvas;
   return { a, b, u, unionFraction: unionFractionOf(p) };
 }
 
@@ -69,14 +72,6 @@ const SANS = "'Geist Variable', Geist, system-ui, sans-serif";
 export async function ensurePosterFonts() {
   if (typeof document === "undefined" || !document.fonts) return;
   await Promise.all([document.fonts.load(`400 40px ${SERIF}`), document.fonts.load(`400 20px ${SANS}`)]).catch(() => {});
-}
-
-function rng(seed: number) {
-  let s = seed >>> 0;
-  return () => {
-    s = (s * 1664525 + 1013904223) >>> 0;
-    return s / 4294967296;
-  };
 }
 
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
@@ -98,32 +93,25 @@ export function unionLine(p: MoonPayload) {
 /**
  * Duvar kağıdı: sadece Ay (yazı yok). progress 0 = iki Ay yan yana, 1 = tek büyük Ay.
  */
-export function drawPoster(ctx: CanvasRenderingContext2D, w: number, h: number, _p: MoonPayload, img: MoonImages, progress: number) {
-  const { u, single, merged, cy } = moonLayout(w, h);
+export function drawPoster(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  _p: MoonPayload,
+  img: MoonImages,
+  progress: number,
+  sky?: { layers: SkyLayers; t?: number; reveal?: number } | null,
+) {
+  const { single, merged, cy } = moonLayout(w, h);
   ctx.save();
-  // ---------------------------------------------------------------- zemin
-  const g = ctx.createRadialGradient(w / 2, cy, 0, w / 2, cy, Math.max(w, h) * 0.9);
-  g.addColorStop(0, "#0f1733");
-  g.addColorStop(0.45, "#070c1b");
-  g.addColorStop(1, "#03050b");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, w, h);
-
-  // ince yıldız tozu
-  const R = rng(20261231);
-  const n = Math.round((w * h) / 11000);
-  for (let i = 0; i < n; i++) {
-    const x = R() * w;
-    const y = R() * h;
-    const m = R();
-    const s = (m > 0.985 ? 1.5 : m > 0.9 ? 0.95 : 0.55) * (u / 1080) * 1.6;
-    ctx.globalAlpha = 0.15 + R() * 0.45;
-    ctx.fillStyle = m > 0.7 ? "#e9dcc0" : "#b9cdf2";
-    ctx.beginPath();
-    ctx.arc(x, y, s, 0, Math.PI * 2);
-    ctx.fill();
+  // ---------------------------------------------------------------- gece: o gece Ay'ın etrafındaki gerçek yıldızlar
+  if (sky) {
+    composeSky(ctx, sky.layers, { t: sky.t, reveal: sky.reveal });
+  } else {
+    ctx.fillStyle = "#020205";
+    ctx.fillRect(0, 0, w, h);
   }
-  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = "source-over";
 
   const t = clamp(progress);
   const k = easeInOut(t);
@@ -143,9 +131,9 @@ export function drawPoster(ctx: CanvasRenderingContext2D, w: number, h: number, 
   const flash = Math.sin(Math.PI * clamp((t - 0.25) / 0.55));
   if (flash > 0.001) {
     const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, merged * 0.62);
-    halo.addColorStop(0, `rgba(243,230,200,${0.2 * flash})`);
-    halo.addColorStop(0.5, `rgba(233,220,192,${0.07 * flash})`);
-    halo.addColorStop(1, "rgba(233,220,192,0)");
+    halo.addColorStop(0, `rgba(240,238,232,${0.18 * flash})`);
+    halo.addColorStop(0.5, `rgba(235,233,228,${0.06 * flash})`);
+    halo.addColorStop(1, "rgba(235,233,228,0)");
     ctx.fillStyle = halo;
     ctx.fillRect(0, 0, w, h);
   }
@@ -167,6 +155,7 @@ export function drawPoster(ctx: CanvasRenderingContext2D, w: number, h: number, 
 export const EXPORTS = [
   { id: "iphone", label: "iPhone duvar kağıdı", w: 1290, h: 2796 },
   { id: "android", label: "Android duvar kağıdı", w: 1440, h: 3200 },
+  { id: "4k", label: "4K dikey", w: 2160, h: 3840 },
   { id: "story", label: "Hikâye (9:16)", w: 1080, h: 1920 },
-  { id: "poster", label: "Poster (A4, baskı)", w: 2480, h: 3508 },
+  { id: "masaustu", label: "Masaüstü 4K", w: 3840, h: 2160 },
 ] as const;

@@ -4,7 +4,7 @@ import { Globe, Moons } from "@/components/icons";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, Gift, Images, Smartphone } from "lucide-react";
+import { CalendarDays, Images, Smartphone } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -12,8 +12,7 @@ export const NAV = [
   { href: "/takvim", label: "Takvim", icon: CalendarDays, mobile: true },
   { href: "/kure", label: "Küre", icon: Globe, mobile: true },
   { href: "/biz", label: "Biz", icon: Moons, mobile: true },
-  { href: "/pano", label: "Stüdyo", icon: Smartphone, mobile: false },
-  { href: "/liste", label: "Wishlist", icon: Gift, mobile: true },
+  { href: "/pano", label: "Stüdyo", icon: Smartphone, mobile: true },
   { href: "/vision", label: "Vision", icon: Images, mobile: true },
 ] as const;
 

@@ -4,7 +4,7 @@ export const metadata = { title: "Gizlilik" };
 
 export default function Privacy() {
   return (
-    <LegalPage title="Gizlilik" updated="20 Kasım 2026">
+    <LegalPage title="Gizlilik" updated="22 Kasım 2026">
       <p>
         Aeternum, yılın sonuna doğru tuttuğun kişisel bir defter. Yazdıkların ve yüklediklerin <b>varsayılan olarak sadece
         sana görünür</b>. Kimseye satmıyoruz, reklam için kullanmıyoruz.
@@ -13,7 +13,7 @@ export default function Privacy() {
       <ul>
         <li>Hesap bilgileri: e-posta adresin, (Google ile girdiysen) adın, şifren (şifrelenmiş olarak, biz göremeyiz).</li>
         <li>Görev cevapların, küçük ritüel notların, 2027&apos;ye mektubun.</li>
-        <li>Wishlist'in, vision board'un, duvar kağıdı tasarımların ve yüklediğin fotoğraflar.</li>
+        <li>Vision board'un, 2027 hedeflerin, duvar kağıdı tasarımların ve yüklediğin fotoğraflar.</li>
         <li>Tercihlerin (ör. hatırlatma e-postası istiyor musun).</li>
       </ul>
       <h2>Nasıl koruyoruz?</h2>
@@ -31,10 +31,9 @@ export default function Privacy() {
       <h2>Biz bölümü (sevgililer)</h2>
       <ul>
         <li>İki Ay ve gökyüzü haritası için girdiğin doğum tarihleri, saatler ve şehirler <b>sadece cihazında hesaplanır, kaydedilmez</b>.</li>
-        <li>Film için seçtiğin fotoğraflar cihazında küçültülür; yeniden kodlanırken konum (GPS) ve diğer EXIF bilgileri silinir.</li>
-        <li>
+                <li>
           <b>Bağlantı oluştur</b> dediğinde ve açıkça onay verdiğinde, yalnızca görselleştirme için gereken en az bilgi (isimler,
-          görünen tarih metni, Ay ve yıldız hesap sonuçları; film için fotoğraflar ve notlar) bağlantıyı bilen herkesin
+          görünen tarih metni, Ay ve yıldız hesap sonuçları) bağlantıyı bilen herkesin
           görebileceği bir sayfada saklanır. Bağlantıyı Biz sayfasından istediğin an silebilirsin; fotoğraflar da silinir.
         </li>
         <li>Ortak kürede partnerin yalnızca adını ve hangi günleri tamamladığını görür; görev cevapların ona görünmez.</li>

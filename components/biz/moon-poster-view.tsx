@@ -2,7 +2,9 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { loadMoonTexture, MOON_2K, MOON_4K } from "@/lib/astro/moon-render";
-import { buildMoons, drawPoster, ensurePosterFonts, EXPORTS, pct, type MoonImages, type MoonPayload } from "@/lib/astro/moon-poster";
+import { buildMoons, drawPoster, ensurePosterFonts, EXPORTS, moonLayout, pct, unionFractionOf, type MoonImages, type MoonPayload } from "@/lib/astro/moon-poster";
+import { makeDirScene, renderSky, type SkyLayers } from "@/lib/astro/skyfield";
+import { loadCatalog } from "@/components/biz/sky-view";
 import { phaseLabel } from "@/lib/astro/moon";
 import { shareOrDownload } from "@/lib/share";
 import { cn } from "@/lib/utils";
@@ -23,6 +25,9 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
     const texRef = useRef<ImageData | null>(null);
     const progRef = useRef(0);
     const animRef = useRef(0);
+    const skyRef = useRef<SkyLayers | null>(null);
+    const loopRef = useRef(0);
+    const t0 = useRef(0);
     const [ready, setReady] = useState(false);
     const [failed, setFailed] = useState(false);
     const [size, setSize] = useState({ w: 360, h: 640 });
@@ -45,7 +50,9 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
       if (!c || !img) return;
       const ctx = c.getContext("2d")!;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      drawPoster(ctx, c.width, c.height, payload, img, progRef.current);
+      const el = (performance.now() - t0.current) / 1000;
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      drawPoster(ctx, c.width, c.height, payload, img, progRef.current, skyRef.current ? { layers: skyRef.current, t: reduce ? undefined : el, reveal: reduce ? 1 : Math.min(1, el / 1.5) } : null);
     };
 
     // Ay'ları hazırla
@@ -61,17 +68,27 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
           if (dead) return;
           texRef.current = tex;
           imgRef.current = buildMoons(tex, payload, W, H);
+          skyRef.current = await skyFor(payload, W, H);
+          if (dead) return;
           const c = canvasRef.current!;
           c.width = W;
           c.height = H;
           setReady(true);
-          draw();
+          t0.current = performance.now();
+          // yıldızların parıldaması için sürekli döngü
+          cancelAnimationFrame(loopRef.current);
+          const loop = () => {
+            if (!document.hidden) draw();
+            loopRef.current = requestAnimationFrame(loop);
+          };
+          loopRef.current = requestAnimationFrame(loop);
         } catch {
           if (!dead) setFailed(true);
         }
       })();
       return () => {
         dead = true;
+        cancelAnimationFrame(loopRef.current);
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [payload, size.w, size.h]);
@@ -85,7 +102,6 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
       const step = (now: number) => {
         const k = Math.min(1, (now - t0) / dur);
         progRef.current = from + (target - from) * k;
-        draw();
         if (k < 1) animRef.current = requestAnimationFrame(step);
         else onMerged?.(target === 1);
       };
@@ -102,7 +118,13 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [ready, autoMerge]);
 
-    useEffect(() => () => cancelAnimationFrame(animRef.current), []);
+    useEffect(
+      () => () => {
+        cancelAnimationFrame(animRef.current);
+        cancelAnimationFrame(loopRef.current);
+      },
+      [],
+    );
 
     useImperativeHandle(ref, () => ({
       merge: (to) => animateTo(to ? 1 : 0),
@@ -113,7 +135,8 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
         c.width = spec.w;
         c.height = spec.h;
         const imgs = buildMoons(tex, payload, spec.w, spec.h);
-        drawPoster(c.getContext("2d")!, spec.w, spec.h, payload, imgs, progRef.current > 0.5 ? 1 : 0);
+        const sky = await skyFor(payload, spec.w, spec.h);
+        drawPoster(c.getContext("2d")!, spec.w, spec.h, payload, imgs, progRef.current > 0.5 ? 1 : 0, sky ? { layers: sky } : null);
         const blob = await new Promise<Blob | null>((r) => c.toBlob(r, "image/png"));
         if (!blob) throw new Error("png");
         const names = `${payload.a.name}-${payload.b.name}`.toLocaleLowerCase("tr").replace(/[^a-z0-9çğıöşü-]+/g, "-");
@@ -147,6 +170,18 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
     );
   },
 );
+
+/** O gece Ay'ın etrafındaki gerçek yıldızlar (yön yoksa Ay'ın ortalama yolu üzerinde bir yer) */
+async function skyFor(p: MoonPayload, W: number, H: number): Promise<SkyLayers | null> {
+  try {
+    const cat = await loadCatalog();
+    const v = p.a.v ?? [0.36, 0.86, 0.36];
+    const scene = makeDirScene(v, unionFractionOf(p), W > H ? 95 : 70);
+    return await renderSky(scene, cat, W, H, { moonGlowOnly: true, cyFrac: moonLayout(W, H).cy / H, scale: Math.min(W, H) / 1080, limitMag: 8 });
+  } catch {
+    return null;
+  }
+}
 
 /** SVG yedeği: yarım daire + elips yay ile evre maskesi */
 function PhaseMask({ angle }: { angle: number }) {

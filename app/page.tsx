@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, ArrowUpRight, CalendarDays, Clapperboard, Gift, Images, Lock, Moon, Smartphone, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarDays, Images, Lock, Moon, Smartphone, Sparkles } from "lucide-react";
 import { Globe, Moons } from "@/components/icons";
 import { Logo, Sparkle } from "@/components/logo";
 import { LandingNav } from "@/components/landing-nav";
@@ -15,10 +15,8 @@ const TOOLS = [
   { href: "/kure", name: "Kar küresi", hint: "Her görev bir süs", icon: Globe },
   { href: "/biz/iki-ay", name: "İki Ay", hint: "Doğduğunuz gecelerin Ay'ı", icon: Moon },
   { href: "/biz/gokyuzu", name: "Gökyüzümüz", hint: "Tanıştığınız gecenin yıldızları", icon: Sparkles },
-  { href: "/biz/2026", name: "Bizim 2026", hint: "Fotoğraflarınızdan kısa film", icon: Clapperboard },
   { href: "/biz/kure", name: "Ortak küre", hint: "Partnerinle birlikte süsle", icon: Moons },
   { href: "/pano", name: "Duvar kağıdı", hint: "Kilit ekranını tasarla", icon: Smartphone },
-  { href: "/liste", name: "Wishlist", hint: "Linkini yapıştır, vitrine ekle", icon: Gift },
   { href: "/vision", name: "Vision board", hint: "2027'yi görsellerle kur", icon: Images },
 ] as const;
 
@@ -41,7 +39,7 @@ export default function Home() {
             <span className="mask-line"><span style={{ animationDelay: "200ms" }}><em className="gold-shine pr-3 font-normal italic">sonsuza</em></span></span>
             <span className="mask-line"><span style={{ animationDelay: "280ms" }}>kalanlar.</span></span>
           </h1>
-          <nav aria-label="Araçlar" className="rise mx-auto mt-9 grid max-w-[34rem] grid-cols-3 gap-2 sm:gap-2.5 lg:mx-0" style={{ animationDelay: "420ms" }}>
+          <nav aria-label="Araçlar" className="rise mx-auto mt-9 grid max-w-[36rem] grid-cols-4 gap-1.5 sm:gap-2.5 lg:mx-0" style={{ animationDelay: "420ms" }}>
             {TOOLS.map(({ href, name, hint, icon: Icon }) => (
               <Link
                 key={href}
@@ -50,13 +48,13 @@ export default function Home() {
                 className="group flex min-h-[5.5rem] flex-col items-center justify-center gap-1.5 rounded-[16px] border border-champagne/12 bg-[rgba(18,26,46,0.5)] px-2 py-3 text-center backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-champagne/35 hover:bg-[rgba(28,38,64,0.6)] sm:min-h-[6.25rem] lg:items-start lg:px-4 lg:text-left"
               >
                 <Icon className="h-5 w-5 text-champagne transition-transform duration-500 group-hover:scale-110" strokeWidth={1.5} />
-                <span className="text-[0.8125rem] font-medium leading-tight text-ink sm:text-sm">{name}</span>
+                <span className="text-[0.72rem] font-medium leading-tight text-ink sm:text-sm">{name}</span>
                 <span className="hidden text-xs leading-snug text-ink-soft sm:block">{hint}</span>
               </Link>
             ))}
           </nav>
           <p className="rise mx-auto mt-8 max-w-[30rem] text-base leading-relaxed text-ink-soft lg:mx-0" style={{ animationDelay: "520ms" }}>
-            Aralık boyunca her gece bir kutu açılır, içinden kendin için küçük bir görev çıkar; her biri kar küreni bir süsle büyütür. Sevdiğinle de Ay'ınızı, gökyüzünüzü ve yılınızın filmini yaparsınız.
+            Aralık boyunca her gece bir kutu açılır, içinden kendin için küçük bir görev çıkar; her biri kar küreni bir süsle büyütür. Sevdiğinle de doğduğunuz gecelerin Ay'ını ve tanıştığınız gecenin gökyüzünü duvar kağıdı yaparsınız.
           </p>
           <div className="rise mt-10 flex flex-wrap items-center justify-center gap-3 lg:justify-start" style={{ animationDelay: "620ms" }}>
             <Link prefetch={false} href={START} className="btn btn-primary">
@@ -164,20 +162,12 @@ export default function Home() {
             </div>
           </Tile>
 
-          {/* wishlist */}
-          <Tile href="/liste" n="04" title="Wishlist" text="Ürün linkini yapıştır, görseli ve fiyatı kendiliğinden gelsin. Kendi dilek vitrinin." className="md:col-span-6">
-            <div className="mt-6 grid grid-cols-3 gap-2.5">
-              {[
-                { t: "Analog kamera", p: "4.250 TL", c: "from-[#2a2440] to-[#5b4a6e]", fav: true },
-                { t: "Kaşmir atkı", p: "1.890 TL", c: "from-[#3b2a22] to-[#8f6a4a]" },
-                { t: "Plak çalar", p: "6.400 TL", c: "from-[#16263f] to-[#3b5a86]" },
-              ].map((x) => (
-                <div key={x.t} className="overflow-hidden rounded-2xl border border-white/10 bg-white/[.03] p-1">
-                  <div className={"relative aspect-[4/5] rounded-xl bg-gradient-to-br " + x.c}>
-                    {x.fav && <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#d06a6f] text-[0.6rem] text-ink">♥</span>}
-                    <span className="absolute bottom-1.5 left-1.5 rounded-full bg-black/45 px-2 py-0.5 text-[0.6rem] text-ink num">{x.p}</span>
-                  </div>
-                  <p className="truncate px-1 py-1.5 text-[0.7rem]">{x.t}</p>
+          {/* biz: iki ay + gökyüzü */}
+          <Tile href="/biz" n="04" title="İkimizin gökyüzü" text="Doğduğunuz gecelerin Ay'ı ve tanıştığınız gecenin gerçek yıldızları. Yazısız, 4K duvar kağıdı." className="md:col-span-6">
+            <div className="mt-6 grid grid-cols-2 gap-2.5">
+              {["/showcase/biz-ay.webp", "/showcase/biz-gok.webp"].map((src) => (
+                <div key={src} className="relative aspect-[9/12] overflow-hidden rounded-xl border border-white/10">
+                  <Image src={src} alt="" fill sizes="200px" className="object-cover" />
                 </div>
               ))}
             </div>

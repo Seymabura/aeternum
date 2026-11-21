@@ -10,6 +10,7 @@ import { DateInput } from "@/components/biz/date-input";
 import { MoonPosterView, type MoonPosterHandle } from "@/components/biz/moon-poster-view";
 import { DEFAULT_CITY, type City } from "@/lib/astro/cities";
 import { moonAt } from "@/lib/astro/moon";
+import { moonDirection } from "@/lib/astro/skyfield";
 import { EXPORTS, pct, unionFractionOf, unionLine, type MoonPayload, type MoonPerson } from "@/lib/astro/moon-poster";
 import { todayIso, trDate, zonedToUtc } from "@/lib/astro/time";
 import { ConsentDialog } from "@/components/biz/consent-dialog";
@@ -35,6 +36,7 @@ function toMoon(p: Person, nameFallback: string): MoonPerson {
     fraction: Math.round(m.fraction * 1000) / 1000,
     light: m.light.map((v) => Math.round(v * 1e4) / 1e4) as [number, number, number],
     northAngle: Math.round(m.northAngle * 1e4) / 1e4,
+    v: moonDirection(when).map((x) => Math.round(x * 1e4) / 1e4) as [number, number, number],
   };
 }
 

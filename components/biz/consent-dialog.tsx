@@ -19,7 +19,7 @@ export function ConsentDialog({
   payload?: unknown;
   /** onaydan SONRA çalışır (ör. fotoğrafları paylaşılan klasöre yükler) */
   prepare?: () => Promise<{ payload: unknown; files: string[] }>;
-  kind?: "ay" | "gok" | "film";
+  kind?: "ay" | "gok";
   files?: string[];
   onClose: () => void;
   onShared: (url: string) => void;
@@ -39,7 +39,7 @@ export function ConsentDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="display text-[2rem]">Bağlantı oluştur</h2>
-        <p className="mt-3 text-ink-soft">Bağlantıya sahip olan herkes bu sayfayı görebilir: isimler{kind === "film" ? ", fotoğraflar ve notlar" : " ve görünen tarihler"}. İstediğin zaman Biz sayfasından silebilirsin.</p>
+        <p className="mt-3 text-ink-soft">Bağlantıya sahip olan herkes bu sayfayı görebilir: isimler ve görünen tarihler. İstediğin zaman Biz sayfasından silebilirsin.</p>
         <label className="mt-6 flex cursor-pointer items-start gap-3 text-sm">
           <input type="checkbox" className="mt-0.5 h-4 w-4 accent-[#dcc7a1]" checked={ok} onChange={(e) => setOk(e.target.checked)} />
           <span>Bu bilgiler bir bağlantıyla görüntülenebilir olacak. Partnerimin de bundan haberi var.</span>

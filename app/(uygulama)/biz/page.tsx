@@ -11,20 +11,14 @@ const FEATURES = [
   {
     href: "/biz/iki-ay",
     title: "İki Ay",
-    text: "İkinizin doğduğu gecenin Ay'ı, gerçek gökbilim hesabıyla ve NASA'nın yüksek çözünürlüklü Ay görüntüsüyle. Yan yana durur, sonra tek bir Ay'da birleşir. Yazısız, ekranı dolduran bir duvar kağıdı olarak indirilir.",
+    text: "İkinizin doğduğu gecenin Ay'ı; gerçek gökbilim hesabı, NASA'nın 4K Ay görüntüsü ve o gece Ay'ın etrafındaki gerçek yıldızlarla. Yan yana durur, sonra tek bir Ay'da birleşir.",
     img: "/showcase/biz-ay.webp",
   },
   {
     href: "/biz/gokyuzu",
     title: "Tanıştığınız gecenin gökyüzü",
-    text: "O tarih, saat ve şehirden görünen gerçek yıldızlar, Samanyolu, takımyıldızlar, Ay ve gezegenler. Poster ya da duvar kağıdı olarak indirilir.",
+    text: "O tarih, saat ve şehirden görünen 40.000 gerçek yıldız ve Samanyolu; bir gece fotoğrafı gibi, ekranın tamamını kaplayan 4K duvar kağıdı.",
     img: "/showcase/biz-gok.webp",
-  },
-  {
-    href: "/biz/2026",
-    title: "Bizim 2026'mız",
-    text: "Her aydan bir fotoğraf, yılın şarkısı, tek bir kelime ve son bir cümle. Kodla oynatılan, video olarak indirilebilen kısa bir film.",
-    img: "/showcase/biz-film.webp",
   },
 ] as const;
 
@@ -37,7 +31,7 @@ export default async function BizPage() {
         <h1 className="display mt-5 text-[2.75rem] sm:text-[4.5rem]">
           İkimizin <em className="gold-shine italic">2026&apos;sı</em>
         </h1>
-        <p className="mt-6 max-w-lg text-ink-soft">Birlikte geçen bir yılın gökyüzü, Ay&apos;ı ve anları. Hepsi bu cihazda hesaplanır; sen bağlantı oluşturmadıkça hiçbir yere kaydedilmez.</p>
+        <p className="mt-6 max-w-lg text-ink-soft">Birlikte geçen bir yılın gökyüzü ve Ay&apos;ı. Hepsi bu cihazda hesaplanır; sen bağlantı oluşturmadıkça hiçbir yere kaydedilmez.</p>
       </header>
 
       <ol className="mt-16 md:mt-24">
@@ -61,7 +55,7 @@ export default async function BizPage() {
         <li className="border-y border-champagne/10">
           <Link href="/biz/kure" className="group grid items-center gap-8 py-10 md:grid-cols-[1fr_15rem] md:gap-16 md:py-14">
             <div>
-              <span className="display num text-sm italic text-ink-mute">04</span>
+              <span className="display num text-sm italic text-ink-mute">03</span>
               <h2 className="display mt-3 text-[2.25rem] transition-colors duration-500 group-hover:text-gold sm:text-[3rem]">Ortak küre</h2>
               <p className="mt-4 max-w-md text-ink-soft">Partnerini davet et; ikinizin tamamladığı günler aynı kar küresini süslesin. Bir de ortak 2027 listeniz olsun.</p>
               <span className="mt-6 inline-flex items-center gap-1.5 text-sm text-champagne">
