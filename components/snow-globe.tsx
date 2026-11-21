@@ -18,10 +18,12 @@ export type GlobeProps = {
   /** yeni eklenen süs (öne çıkar) */
   fresh?: number | null;
   autoRotate?: boolean;
+  /** ortak kürede ikinizin de tamamladığı günler: süsün altında altın hale */
+  pairDays?: number[];
 };
 
 /** İçinde kendi köyün büyüyen, sallanınca karı uçuşan 3D kar küresi. */
-export default function SnowGlobe({ className, days = [], lights = 0, full = false, fresh = null, autoRotate = true }: GlobeProps) {
+export default function SnowGlobe({ className, days = [], lights = 0, full = false, fresh = null, autoRotate = true, pairDays = [] }: GlobeProps) {
   const [shake, setShake] = useState(0);
   const host = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
@@ -50,7 +52,7 @@ export default function SnowGlobe({ className, days = [], lights = 0, full = fal
 
         <Float speed={1.1} rotationIntensity={0.15} floatIntensity={0.3}>
           <group position={[0, 0.12, 0]}>
-            <Scene has={(d) => set.has(d)} lights={nLights} fresh={fresh} />
+            <Scene has={(d) => set.has(d)} pair={(d) => pairDays.includes(d)} lights={nLights} fresh={fresh} />
             <Snow shake={shake} />
             <Glass />
             <Base />
@@ -766,7 +768,23 @@ const ORNAMENTS: Orn[] = [
   { day: 31, pos: [0, 1.15, 0.05], node: <Letter /> },
 ];
 
-function Scene({ has, lights, fresh }: { has: (d: number) => boolean; lights: number; fresh: number | null }) {
+function PairHalo() {
+  const ref = useRef<THREE.Mesh>(null);
+  useFrame((st) => {
+    const m = ref.current;
+    if (!m) return;
+    const k = 0.75 + 0.25 * Math.sin(st.clock.elapsedTime * 2.2);
+    (m.material as THREE.MeshStandardMaterial).emissiveIntensity = 1.6 * k;
+  });
+  return (
+    <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.006, 0]}>
+      <torusGeometry args={[0.12, 0.007, 8, 48]} />
+      <meshStandardMaterial color="#e9dcc0" emissive="#dcc7a1" emissiveIntensity={1.6} />
+    </mesh>
+  );
+}
+
+function Scene({ has, pair, lights, fresh }: { has: (d: number) => boolean; pair: (d: number) => boolean; lights: number; fresh: number | null }) {
   let k = 0;
   return (
     <group position={[0, -R * 0.62, 0]}>
@@ -781,6 +799,7 @@ function Scene({ has, lights, fresh }: { has: (d: number) => boolean; lights: nu
       {ORNAMENTS.filter((o) => has(o.day)).map((o) => (
         <Pop key={o.day} position={o.pos} rotation={[0, o.rot ?? 0, 0]} delay={fresh === o.day ? 0.9 : 0.15 + k++ * 0.06} highlight={fresh === o.day}>
           {o.node}
+          {pair(o.day) && <PairHalo />}
         </Pop>
       ))}
       {/* küçük ışıklar: kenar boyunca peri ışıkları */}

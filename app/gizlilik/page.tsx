@@ -28,6 +28,17 @@ export default function Privacy() {
         (barındırma) ve ileride e-posta gönderimi için Resend. Herkese açık galeri ve teşekkür kartları gibi özellikler
         geldiğinde, yalnızca senin açıkça paylaştığın içerik görünür olur.
       </p>
+      <h2>Biz bölümü (sevgililer)</h2>
+      <ul>
+        <li>İki Ay ve gökyüzü haritası için girdiğin doğum tarihleri, saatler ve şehirler <b>sadece cihazında hesaplanır, kaydedilmez</b>.</li>
+        <li>Film için seçtiğin fotoğraflar cihazında küçültülür; yeniden kodlanırken konum (GPS) ve diğer EXIF bilgileri silinir.</li>
+        <li>
+          <b>Bağlantı oluştur</b> dediğinde ve açıkça onay verdiğinde, yalnızca görselleştirme için gereken en az bilgi (isimler,
+          görünen tarih metni, Ay ve yıldız hesap sonuçları; film için fotoğraflar ve notlar) bağlantıyı bilen herkesin
+          görebileceği bir sayfada saklanır. Bağlantıyı Biz sayfasından istediğin an silebilirsin; fotoğraflar da silinir.
+        </li>
+        <li>Ortak kürede partnerin yalnızca adını ve hangi günleri tamamladığını görür; görev cevapların ona görünmez.</li>
+      </ul>
       <h2>Çerezler</h2>
       <p>Yalnızca oturumunu açık tutmak için gerekli çerezleri kullanıyoruz. Takip ya da reklam çerezi yok.</p>
       <h2>Silme hakkın</h2>

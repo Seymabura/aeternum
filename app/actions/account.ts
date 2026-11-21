@@ -29,10 +29,16 @@ export async function deleteAccount(confirmText: string) {
   if (!user) return { ok: false, error: "Oturum kapalı" };
   const supabase = await createClient();
   // önce depodaki fotoğraflar (kullanıcı kendi klasörünü silebilir)
-  for (const f of [`${user.id}/pano`, `${user.id}/gorev`, user.id]) {
-    const { data } = await supabase.storage.from("uploads").list(f, { limit: 1000 });
-    const files = (data ?? []).filter((x) => x.id).map((x) => `${f}/${x.name}`);
-    if (files.length) await supabase.storage.from("uploads").remove(files);
+  const sweep = [
+    ["uploads", [`${user.id}/pano`, `${user.id}/gorev`, `${user.id}/wish`, `${user.id}/vision`, user.id]],
+    ["shared", [`${user.id}/film`, user.id]],
+  ] as const;
+  for (const [bucket, folders] of sweep) {
+    for (const f of folders) {
+      const { data } = await supabase.storage.from(bucket).list(f, { limit: 1000 });
+      const files = (data ?? []).filter((x) => x.id).map((x) => `${f}/${x.name}`);
+      if (files.length) await supabase.storage.from(bucket).remove(files);
+    }
   }
   const { error } = await supabase.rpc("ae_delete_me");
   if (error) return { ok: false, error: "Silinemedi, lütfen tekrar dene." };

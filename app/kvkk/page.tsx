@@ -15,12 +15,17 @@ export default function Kvkk() {
       <ul>
         <li>Kimlik ve iletişim: ad (isteğe bağlı), e-posta adresi.</li>
         <li>Kullanıcı içeriği: görev cevapları, notlar, mektuplar, wishlist, vision board, duvar kağıdı tasarımları, yüklenen fotoğraflar.</li>
+        <li>
+          Biz bölümü: ortak kürede görünen ad ve tamamlanan gün numaraları; yalnızca kullanıcının açık onayıyla oluşturulan
+          paylaşım bağlantılarında isimler, görünen tarih metni, gökyüzü/Ay hesap sonuçları ve film fotoğrafları. Doğum tarihi,
+          saat ve şehir bilgileri tarayıcıda hesaplanır, sunucuya kaydedilmez (kullanıcı bağlantıda tarihi göstermeyi seçmedikçe).
+        </li>
         <li>İşlem güvenliği: oturum bilgileri, giriş zamanları.</li>
       </ul>
       <h2>3. İşleme amaçları</h2>
       <ul>
         <li>Hesabının oluşturulması ve oturumunun yönetilmesi,</li>
-        <li>Günlük görev takvimi, kar küresi, wishlist, vision board, duvar kağıdı stüdyosu ve yıl sonu özeti hizmetlerinin sunulması,</li>
+        <li>Günlük görev takvimi, kar küresi, wishlist, vision board, duvar kağıdı stüdyosu, Biz bölümü ve yıl sonu özeti hizmetlerinin sunulması,</li>
         <li>İstemen halinde hatırlatma ve zaman kapsülü e-postalarının gönderilmesi,</li>
         <li>Sitenin güvenliğinin sağlanması ve kötüye kullanımın önlenmesi.</li>
       </ul>

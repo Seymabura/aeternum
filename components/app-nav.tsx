@@ -10,6 +10,16 @@ function Globe({ className, strokeWidth = 1.5 }: { className?: string; strokeWid
   );
 }
 
+function Moons({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) {
+  // iki iç içe hilal
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M10.5 4.2a7.5 7.5 0 1 0 6.3 11.6A6 6 0 0 1 10.5 4.2Z" />
+      <path d="M15.6 3.6a5.6 5.6 0 0 1 4.9 8.3 4.4 4.4 0 0 0-4.9-8.3Z" opacity=".75" />
+    </svg>
+  );
+}
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CalendarDays, Gift, Images, Smartphone } from "lucide-react";
@@ -17,11 +27,12 @@ import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 export const NAV = [
-  { href: "/takvim", label: "Takvim", icon: CalendarDays },
-  { href: "/kure", label: "Küre", icon: Globe },
-  { href: "/pano", label: "Stüdyo", icon: Smartphone },
-  { href: "/liste", label: "Wishlist", icon: Gift },
-  { href: "/vision", label: "Vision", icon: Images },
+  { href: "/takvim", label: "Takvim", icon: CalendarDays, mobile: true },
+  { href: "/kure", label: "Küre", icon: Globe, mobile: true },
+  { href: "/biz", label: "Biz", icon: Moons, mobile: true },
+  { href: "/pano", label: "Stüdyo", icon: Smartphone, mobile: false },
+  { href: "/liste", label: "Wishlist", icon: Gift, mobile: true },
+  { href: "/vision", label: "Vision", icon: Images, mobile: true },
 ] as const;
 
 export function BottomNav() {
@@ -29,7 +40,7 @@ export function BottomNav() {
   return (
     <nav className="safe-bottom fixed inset-x-3 bottom-3 z-50 md:hidden" aria-label="Ana menü">
       <ul className="mx-auto grid max-w-md grid-cols-5 rounded-full border border-champagne/12 bg-[rgba(10,15,28,0.78)] px-1 py-1 shadow-[0_20px_50px_-20px_rgba(0,0,0,.9)] backdrop-blur-xl backdrop-saturate-150">
-        {NAV.map(({ href, label, icon: Icon }) => {
+        {NAV.filter((n) => n.mobile).map(({ href, label, icon: Icon }) => {
           const active = path === href || path.startsWith(href + "/");
           return (
             <li key={href}>

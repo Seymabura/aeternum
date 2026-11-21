@@ -23,6 +23,13 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profil">
         <Stat n={p.streak} label="gün seri" />
         <Stat n={p.bonusIds.length} total="/17" label="ışık" />
       </dl>
+      <Link href="/pano" className="sheet spot lift flex items-center justify-between px-6 py-5">
+        <span>
+          <span className="display block text-[1.4rem]">Duvar kağıdı stüdyosu</span>
+          <span className="text-sm text-ink-soft">Fotoğraflar, çizimler ve yazıyla kilit ekranını tasarla.</span>
+        </span>
+        <span className="text-champagne">↗</span>
+      </Link>
       <ProfileForm
         name={prof?.display_name ?? ""}
         reminders={prof?.email_reminders ?? false}

@@ -77,3 +77,10 @@ bu tabloya eklenmelidir.
 - `sehir-2.webp` — https://images.unsplash.com/photo-1518084823714-2f59a7315a39
 - `sehir-3.webp` — https://images.unsplash.com/photo-1518391846015-55a9cc003b25
 - `sehir-4.webp` — https://images.unsplash.com/photo-1758229561242-9b9f1c1a00f7
+
+## Biz bölümü
+
+- **Ay dokusu** (`public/moon/lroc-2k.webp`, `public/moon/full-520.png`): NASA Goddard Scientific Visualization Studio, *CGI Moon Kit* — LRO Wide Angle Camera renk mozaiği (`lroc_color_poles_2k.tif`), https://svs.gsfc.nasa.gov/4720. NASA görselleri kamu malıdır (public domain). WebP'ye yeniden kodlandı.
+- **Yıldız ve takımyıldız verisi** (`public/sky/*.json`): d3-celestial, © 2015 Olaf Frohn, BSD-3-Clause lisansı (https://github.com/ofrohn/d3-celestial). Kaynak veriler: Hipparcos/Yale Bright Star katalogları. `scripts/sky/build.mjs` ile küçültüldü.
+- **Gökbilim hesapları**: astronomy-engine, © Don Cross, MIT lisansı (https://github.com/cosinekitty/astronomy).
+- **Şehir arama**: Open-Meteo Geocoding API (CC BY 4.0, GeoNames verisi).
