@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, ArrowUpRight, Lock } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarDays, Clapperboard, Gift, Images, Lock, Moon, Smartphone, Sparkles } from "lucide-react";
+import { Globe, Moons } from "@/components/icons";
 import { Logo, Sparkle } from "@/components/logo";
 import { LandingNav } from "@/components/landing-nav";
 import { BigCountdown, Countdown } from "@/components/countdown";
@@ -8,6 +9,18 @@ import { GlobeHero } from "@/components/globe-hero";
 import { todayIndexLocal } from "@/lib/day";
 
 const START = "/takvim";
+
+const TOOLS = [
+  { href: "/takvim", name: "31 günlük görev", hint: "Her gece yeni bir kutu", icon: CalendarDays },
+  { href: "/kure", name: "Kar küresi", hint: "Her görev bir süs", icon: Globe },
+  { href: "/biz/iki-ay", name: "İki Ay", hint: "Doğduğunuz gecelerin Ay'ı", icon: Moon },
+  { href: "/biz/gokyuzu", name: "Gökyüzümüz", hint: "Tanıştığınız gecenin yıldızları", icon: Sparkles },
+  { href: "/biz/2026", name: "Bizim 2026", hint: "Fotoğraflarınızdan kısa film", icon: Clapperboard },
+  { href: "/biz/kure", name: "Ortak küre", hint: "Partnerinle birlikte süsle", icon: Moons },
+  { href: "/pano", name: "Duvar kağıdı", hint: "Kilit ekranını tasarla", icon: Smartphone },
+  { href: "/liste", name: "Wishlist", hint: "Linkini yapıştır, vitrine ekle", icon: Gift },
+  { href: "/vision", name: "Vision board", hint: "2027'yi görsellerle kur", icon: Images },
+] as const;
 
 export default function Home() {
   const today = todayIndexLocal();
@@ -28,8 +41,22 @@ export default function Home() {
             <span className="mask-line"><span style={{ animationDelay: "200ms" }}><em className="gold-shine pr-3 font-normal italic">sonsuza</em></span></span>
             <span className="mask-line"><span style={{ animationDelay: "280ms" }}>kalanlar.</span></span>
           </h1>
-          <p className="rise mx-auto mt-8 max-w-[26rem] text-base leading-relaxed text-ink-soft lg:mx-0" style={{ animationDelay: "520ms" }}>
-            Aralık boyunca her gece bir kutu açılır, içinden kendin için küçük bir görev çıkar. Her biri kar küreni bir süsle büyütür.
+          <nav aria-label="Araçlar" className="rise mx-auto mt-9 grid max-w-[34rem] grid-cols-3 gap-2 sm:gap-2.5 lg:mx-0" style={{ animationDelay: "420ms" }}>
+            {TOOLS.map(({ href, name, hint, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                prefetch={false}
+                className="group flex min-h-[5.5rem] flex-col items-center justify-center gap-1.5 rounded-[16px] border border-champagne/12 bg-[rgba(18,26,46,0.5)] px-2 py-3 text-center backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-champagne/35 hover:bg-[rgba(28,38,64,0.6)] sm:min-h-[6.25rem] lg:items-start lg:px-4 lg:text-left"
+              >
+                <Icon className="h-5 w-5 text-champagne transition-transform duration-500 group-hover:scale-110" strokeWidth={1.5} />
+                <span className="text-[0.8125rem] font-medium leading-tight text-ink sm:text-sm">{name}</span>
+                <span className="hidden text-xs leading-snug text-ink-soft sm:block">{hint}</span>
+              </Link>
+            ))}
+          </nav>
+          <p className="rise mx-auto mt-8 max-w-[30rem] text-base leading-relaxed text-ink-soft lg:mx-0" style={{ animationDelay: "520ms" }}>
+            Aralık boyunca her gece bir kutu açılır, içinden kendin için küçük bir görev çıkar; her biri kar küreni bir süsle büyütür. Sevdiğinle de Ay'ınızı, gökyüzünüzü ve yılınızın filmini yaparsınız.
           </p>
           <div className="rise mt-10 flex flex-wrap items-center justify-center gap-3 lg:justify-start" style={{ animationDelay: "620ms" }}>
             <Link prefetch={false} href={START} className="btn btn-primary">
