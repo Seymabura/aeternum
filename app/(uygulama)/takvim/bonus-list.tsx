@@ -29,7 +29,7 @@ export function BonusList({ items, done }: { items: Bonus[]; done: number[] }) {
         const isDone = doneSet.has(b.id);
         const isOpen = openId === b.id;
         return (
-          <li key={b.id} className="rounded-xl border border-ink/10 bg-paper-3/70">
+          <li key={b.id} className="rounded-2xl border border-white/[.08] bg-white/[.025]">
             <button
               type="button"
               disabled={isDone}
@@ -42,12 +42,12 @@ export function BonusList({ items, done }: { items: Bonus[]; done: number[] }) {
               <span
                 className={
                   "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border " +
-                  (isDone ? "border-cam bg-cam text-paper-3" : "border-ink/20 text-ink-soft")
+                  (isDone ? "border-transparent bg-gradient-to-b from-[#fbf5e8] to-[#c9b089] text-midnight" : "border-white/20 text-ink-soft")
                 }
               >
                 {isDone ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
               </span>
-              <span className={isDone ? "text-ink-soft line-through decoration-ink/30" : ""}>{b.prompt}</span>
+              <span className={isDone ? "text-ink-soft line-through decoration-white/20" : ""}>{b.prompt}</span>
             </button>
             {isOpen && (
               <form
@@ -65,7 +65,7 @@ export function BonusList({ items, done }: { items: Bonus[]; done: number[] }) {
                   className="field hand !py-2 !text-xl"
                   placeholder="bir iki kelime yeter..."
                 />
-                <button className="btn btn-cam shrink-0" disabled={pending || !text.trim()}>
+                <button className="btn btn-primary shrink-0" disabled={pending || !text.trim()}>
                   {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ekle"}
                 </button>
               </form>

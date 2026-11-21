@@ -56,7 +56,7 @@ export const EXPORTS = [
 
 export const EMPTY_BOARD: Board = {
   v: 1,
-  bg: "mantar",
+  bg: "gece",
   items: [
     { id: "t1", type: "text", x: 540, y: 330, rot: -3, scale: 1, text: "2027", font: "fraunces", color: "#fbf6ea", size: 190, width: 900 },
     { id: "t2", type: "text", x: 540, y: 520, rot: 2, scale: 1, text: "bu yıl benim yılım", font: "caveat", color: "#fbf6ea", size: 96, width: 900 },

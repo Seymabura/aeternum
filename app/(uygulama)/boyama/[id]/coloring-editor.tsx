@@ -285,7 +285,7 @@ export function ColoringEditor({
   const sw = art ? Math.max(art.w, art.h) / 520 : 2;
 
   return (
-    <div className="fixed inset-x-0 bottom-[62px] top-[57px] z-30 flex flex-col bg-paper md:bottom-0">
+    <div className="fixed inset-0 z-[60] flex flex-col bg-paper">
       {/* üst çubuk */}
       <div className="flex items-center gap-2 border-b border-ink/8 bg-paper/90 px-3 py-2">
         <Link href="/boyama" className="rounded-full p-2 hover:bg-paper-2" aria-label="Geri">
@@ -316,7 +316,7 @@ export function ColoringEditor({
       </div>
 
       {/* tuval */}
-      <div className="relative min-h-0 flex-1 touch-none select-none bg-[radial-gradient(ellipse_at_center,#f8eedc,#efe1c6)]">
+      <div className="relative min-h-0 flex-1 touch-none select-none bg-[radial-gradient(ellipse_at_center,#16213f,#070b16)]">
         {!art || !layers ? (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-latte" />

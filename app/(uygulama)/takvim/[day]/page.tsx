@@ -51,16 +51,16 @@ export default async function TaskPage({ params }: PageProps<"/takvim/[day]">) {
 
   return (
     <div className="mx-auto max-w-xl">
-      <Link href="/takvim" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-bordo">
+      <Link href="/takvim" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-champagne">
         <ArrowLeft className="h-4 w-4" /> Takvim
       </Link>
       <article className="sheet relative overflow-hidden p-6 sm:p-8">
-        <span className="washi -top-2 right-10 rotate-[5deg]" />
-        <p className="display text-lg italic text-bordo">{day} Aralık</p>
-        <h1 className="display mt-1 text-3xl leading-tight sm:text-4xl">{task.title}</h1>
+        
+        <p className="eyebrow">{day} Aralık</p>
+        <h1 className="display mt-3 text-4xl leading-tight sm:text-5xl">{task.title}</h1>
         <p className="mt-2 text-ink-soft">{task.hint}</p>
         {late && (
-          <p className="mt-4 rounded-lg bg-hardal/15 px-3 py-2 text-sm text-ink">
+          <p className="mt-4 rounded-lg bg-champagne/10 px-3 py-2 text-sm text-ink">
             Bu günü kaçırmışsın. Şimdi yapabilirsin, resmin açılır ama seri 🔥 için sayılmaz.
           </p>
         )}

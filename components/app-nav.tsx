@@ -2,36 +2,34 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarHeart, Palette, Sparkles, UserRound } from "lucide-react";
+import { CalendarDays, Images, ListChecks, Palette, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ITEMS = [
-  { href: "/takvim", label: "Takvim", icon: CalendarHeart },
+export const NAV = [
+  { href: "/takvim", label: "Takvim", icon: CalendarDays },
   { href: "/boyama", label: "Boyama", icon: Palette },
-  { href: "/pano", label: "Dilek Panosu", icon: Sparkles },
-  { href: "/profil", label: "Ben", icon: UserRound },
+  { href: "/pano", label: "Stüdyo", icon: Smartphone },
+  { href: "/liste", label: "Wishlist", icon: ListChecks },
+  { href: "/vision", label: "Vision", icon: Images },
 ] as const;
 
 export function BottomNav() {
   const path = usePathname();
   return (
-    <nav
-      className="safe-bottom fixed inset-x-0 bottom-0 z-50 border-t border-ink/10 bg-paper-3/92 backdrop-blur-md md:hidden"
-      aria-label="Ana menü"
-    >
-      <ul className="mx-auto grid max-w-md grid-cols-4 px-2 pt-1.5">
-        {ITEMS.map(({ href, label, icon: Icon }) => {
+    <nav className="safe-bottom fixed inset-x-3 bottom-3 z-50 md:hidden" aria-label="Ana menü">
+      <ul className="sheet mx-auto grid max-w-md grid-cols-5 !rounded-[26px] px-1.5 py-1.5">
+        {NAV.map(({ href, label, icon: Icon }) => {
           const active = path === href || path.startsWith(href + "/");
           return (
             <li key={href}>
               <Link
                 href={href}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[0.7rem] font-medium transition-colors",
-                  active ? "text-bordo" : "text-ink-soft",
+                  "relative flex flex-col items-center gap-0.5 rounded-[20px] py-2 text-[0.64rem] font-medium tracking-wide transition-colors",
+                  active ? "bg-champagne/12 text-gold" : "text-ink-soft",
                 )}
               >
-                <Icon className={cn("h-5 w-5", active && "drop-shadow-[0_2px_6px_rgba(122,31,43,.35)]")} strokeWidth={active ? 2.2 : 1.7} />
+                <Icon className="h-[1.15rem] w-[1.15rem]" strokeWidth={active ? 2 : 1.6} />
                 {label}
               </Link>
             </li>
@@ -45,19 +43,18 @@ export function BottomNav() {
 export function TopLinks() {
   const path = usePathname();
   return (
-    <ul className="hidden items-center gap-1 md:flex">
-      {ITEMS.map(({ href, label, icon: Icon }) => {
+    <ul className="hidden items-center gap-0.5 md:flex">
+      {NAV.map(({ href, label }) => {
         const active = path === href || path.startsWith(href + "/");
         return (
           <li key={href}>
             <Link
               href={href}
               className={cn(
-                "flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
-                active ? "bg-bordo text-paper-3" : "text-ink-soft hover:bg-paper-2",
+                "rounded-full px-3.5 py-2 text-sm transition-colors",
+                active ? "bg-champagne/12 text-gold" : "text-ink-soft hover:text-ink",
               )}
             >
-              <Icon className="h-4 w-4" />
               {label}
             </Link>
           </li>

@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Loader2, LogOut } from "lucide-react";
-import { deleteAccount, signOut, updateProfile } from "@/app/actions/account";
+import { Loader2 } from "lucide-react";
+import { deleteAccount, updateProfile } from "@/app/actions/account";
 import { createClient } from "@/lib/supabase/client";
 import { setSnow, useSnow } from "@/components/ambience";
 
@@ -52,21 +52,15 @@ export function ProfileForm({ name, reminders, resetPassword }: { name: string; 
           <label className="label" htmlFor="ad">Adın</label>
           <input id="ad" className="field" value={n} maxLength={40} onChange={(e) => setN(e.target.value)} />
         </div>
-        <Toggle checked={r} onChange={setR} title="Günlük hatırlatma e-postası" desc="“Bugünün kutusu açıldı 🕯️” e-postası (Aralık boyunca, yakında)." />
-        <Toggle checked={snow} onChange={setSnow} title="Yağan kar" desc="Arka planda yavaşça yağan kar. Bu cihazda saklanır." />
+        <Toggle checked={r} onChange={setR} title="Günlük hatırlatma e-postası" desc="“Bugünün kutusu açıldı” e-postası (Aralık boyunca, yakında)." />
+        <Toggle checked={snow} onChange={setSnow} title="Yağan kar" desc="Arka planda yavaşça yağan kar." />
         <button className="btn btn-primary" disabled={pending}>
           {pending && <Loader2 className="h-4 w-4 animate-spin" />} Kaydet
         </button>
       </form>
 
-      <form action={signOut}>
-        <button className="btn btn-ghost w-full">
-          <LogOut className="h-4 w-4" /> Çıkış yap
-        </button>
-      </form>
-
       <details className="sheet p-5">
-        <summary className="cursor-pointer font-medium text-bordo">Hesabımı ve tüm verilerimi sil</summary>
+        <summary className="cursor-pointer text-sm text-bordo">Hesabımı ve tüm verilerimi sil</summary>
         <p className="mt-3 text-sm text-ink-soft">
           Görev cevapların, boyamaların, dilek panon ve yüklediğin tüm fotoğraflar kalıcı olarak silinir. Bu işlem geri
           alınamaz. Onaylamak için kutuya <b>SİL</b> yaz.
@@ -75,7 +69,7 @@ export function ProfileForm({ name, reminders, resetPassword }: { name: string; 
           <input className="field" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="SİL" />
           <button
             type="button"
-            className="btn shrink-0 bg-bordo text-paper-3"
+            className="btn shrink-0 bg-bordo text-white"
             disabled={pending || confirm.trim().toLocaleLowerCase("tr") !== "sil"}
             onClick={() =>
               start(async () => {
@@ -104,9 +98,9 @@ function Toggle({ checked, onChange, title, desc }: { checked: boolean; onChange
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={"relative mt-1 h-7 w-12 shrink-0 rounded-full transition-colors " + (checked ? "bg-cam" : "bg-ink/20")}
+        className={"relative mt-1 h-7 w-12 shrink-0 rounded-full transition-colors " + (checked ? "bg-gradient-to-b from-[#fbf5e8] to-[#c9b089]" : "bg-white/15")}
       >
-        <span className={"absolute top-1 h-5 w-5 rounded-full bg-paper-3 shadow transition-all " + (checked ? "left-6" : "left-1")} />
+        <span className={"absolute top-1 h-5 w-5 rounded-full bg-midnight shadow transition-all " + (checked ? "left-6" : "left-1")} />
       </button>
     </label>
   );

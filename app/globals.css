@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "@fontsource-variable/fraunces/full.css";
-@import "@fontsource-variable/fraunces/full-italic.css";
+@import "@fontsource-variable/bodoni-moda/opsz.css";
+@import "@fontsource-variable/bodoni-moda/opsz-italic.css";
 @import "@fontsource-variable/geist/wght.css";
 @import "@fontsource/caveat/latin-ext-500.css";
 @import "@fontsource/caveat/latin-500.css";
@@ -10,38 +10,39 @@
 @import "@fontsource/dancing-script/latin-600.css";
 @import "@fontsource/patrick-hand/latin-ext-400.css";
 @import "@fontsource/patrick-hand/latin-400.css";
+@import "@fontsource-variable/fraunces/full.css";
 
 /*
-  Aeternum · "Gece & mum ışığı"
-  Koyu gece zemini, mum ışığı turuncusu, eski altın, bordo.
-  (Eski token adları korunuyor: paper = zemin/yüzey, ink = yazı.)
+  Aeternum · "Gece mavisi & şampanya"
+  Derin lacivert gece, fildişi yazı, şampanya altını detaylar, buzlu cam.
+  (Eski token adları korunuyor: paper = zemin/yüzey, ink = yazı, mum/hardal = şampanya vurgusu.)
 */
 @theme {
-  --color-night: #07060c;
-  --color-paper: #0c0a12;
-  --color-paper-2: #1a1522;
-  --color-paper-3: #14101b;
-  --color-ink: #f4ead9;
-  --color-ink-soft: #b3a493;
-  --color-latte: #c9a27e;
-  --color-bordo: #b8364a;
-  --color-bordo-dark: #6e1a2b;
-  --color-hardal: #d9b26a;
-  --color-gold: #e8c98a;
-  --color-mum: #f2a24a;
-  --color-cam: #2f6b55;
-  --color-cam-dark: #173a2e;
+  --color-night: #04060c;
+  --color-midnight: #0a1122;
+  --color-paper: #070b16;
+  --color-paper-2: #121a2e;
+  --color-paper-3: #0d1426;
+  --color-ink: #f2eee6;
+  --color-ink-soft: #98a1b6;
+  --color-latte: #cdb892;
+  --color-champagne: #dcc7a1;
+  --color-gold: #e9dcc0;
+  --color-hardal: #dcc7a1;
+  --color-mum: #e6d2ad;
+  --color-ice: #b9cdf2;
+  --color-bordo: #d06a6f;
+  --color-bordo-dark: #7d2c35;
+  --color-cam: #7fa896;
+  --color-cam-dark: #2a4a40;
 
-  --font-serif: "Fraunces Variable", "Fraunces", Georgia, serif;
+  --font-serif: "Bodoni Moda Variable", "Bodoni Moda", "Didot", Georgia, serif;
   --font-sans: "Geist Variable", "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-hand: "Caveat", "Segoe Print", cursive;
 
-  --radius-paper: 20px;
-  --shadow-paper: 0 1px 0 rgba(255, 240, 220, 0.04) inset, 0 20px 40px -24px rgba(0, 0, 0, 0.8);
-  --shadow-lift: 0 1px 0 rgba(255, 240, 220, 0.06) inset, 0 30px 60px -20px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(232, 201, 138, 0.08);
-
-  --animate-shine: shine 6s linear infinite;
-  --animate-float: float 7s ease-in-out infinite;
+  --radius-paper: 22px;
+  --shadow-paper: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 24px 48px -28px rgba(0, 0, 0, 0.9);
+  --shadow-lift: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 40px 80px -30px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(220, 199, 161, 0.12);
 }
 
 :root {
@@ -63,16 +64,26 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.paper-grain {
-  background: transparent;
-}
-
 .display {
   font-family: var(--font-serif);
-  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
-  font-weight: 420;
-  letter-spacing: -0.02em;
-  line-height: 1.02;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+.wordmark {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+}
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--color-champagne);
 }
 
 .hand {
@@ -80,20 +91,17 @@ body {
   line-height: 1.15;
 }
 
-/* Altın yazı: yavaşça kayan parıltı */
+/* Şampanya parıltılı yazı */
 .gold-shine {
-  background: linear-gradient(100deg, #b98a4a 0%, #f6dfae 22%, #e8c98a 38%, #fff3d6 50%, #d9b26a 62%, #f6dfae 80%, #b98a4a 100%);
+  background: linear-gradient(100deg, #a8916a 0%, #efe3c9 25%, #dcc7a1 40%, #fffaf0 50%, #cdb892 62%, #efe3c9 80%, #a8916a 100%);
   background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: shine 7s linear infinite;
+  animation: shine 9s linear infinite;
 }
 .text-candle {
-  background: linear-gradient(180deg, #ffe9c2 0%, #f2a24a 55%, #c8582f 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--color-gold);
 }
 
 @keyframes shine {
@@ -104,15 +112,39 @@ body {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
+@property --beam-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes beam-spin {
+  to { --beam-angle: 360deg; }
+}
+@keyframes sheen {
+  0%, 60% { transform: translateX(-130%); }
+  90%, 100% { transform: translateX(130%); }
+}
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(233, 220, 192, 0.45), 0 0 20px 0 rgba(220, 199, 161, 0.18); }
+  50% { box-shadow: 0 0 0 1px rgba(255, 248, 232, 0.85), 0 0 40px 4px rgba(220, 199, 161, 0.4); }
+}
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(18px); filter: blur(8px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
 
 :focus-visible {
-  outline: 2px solid var(--color-mum);
+  outline: 2px solid var(--color-champagne);
   outline-offset: 2px;
   border-radius: 8px;
 }
 
 ::selection {
-  background: rgba(242, 162, 74, 0.35);
+  background: rgba(220, 199, 161, 0.35);
   color: #fff;
 }
 
@@ -126,205 +158,160 @@ body {
   }
 }
 
-@property --beam-angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
-@keyframes beam-spin {
-  to { --beam-angle: 360deg; }
-}
-@keyframes sheen {
-  0%, 55% { transform: translateX(-120%); }
-  85%, 100% { transform: translateX(120%); }
-}
-@keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 1px rgba(242, 162, 74, 0.5), 0 0 24px 0 rgba(242, 162, 74, 0.25); }
-  50% { box-shadow: 0 0 0 1px rgba(255, 210, 150, 0.9), 0 0 46px 6px rgba(242, 162, 74, 0.5); }
-}
-@keyframes flicker {
-  0%, 100% { transform: scaleY(1) translateX(0); opacity: 1; }
-  25% { transform: scaleY(1.07) translateX(-0.5px); opacity: 0.9; }
-  50% { transform: scaleY(0.95) translateX(0.6px); opacity: 1; }
-  75% { transform: scaleY(1.04) translateX(-0.3px); opacity: 0.94; }
-}
 @layer components {
-/* Cam kart */
-.sheet {
-  position: relative;
-  background: linear-gradient(180deg, rgba(255, 245, 230, 0.065), rgba(255, 245, 230, 0.025));
-  border: 1px solid rgba(255, 236, 210, 0.1);
-  border-radius: var(--radius-paper);
-  box-shadow: var(--shadow-paper);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  backdrop-filter: blur(18px) saturate(140%);
-}
-.sheet-solid {
-  background: #15111c;
-  border: 1px solid rgba(255, 236, 210, 0.09);
-  border-radius: var(--radius-paper);
-  box-shadow: var(--shadow-paper);
-}
+  /* Buzlu cam kart */
+  .sheet {
+    position: relative;
+    background: linear-gradient(180deg, rgba(190, 210, 255, 0.06), rgba(190, 210, 255, 0.02));
+    border: 1px solid rgba(220, 228, 255, 0.09);
+    border-radius: var(--radius-paper);
+    box-shadow: var(--shadow-paper);
+    -webkit-backdrop-filter: blur(20px) saturate(130%);
+    backdrop-filter: blur(20px) saturate(130%);
+  }
+  .sheet-solid {
+    background: #0d1426;
+    border: 1px solid rgba(220, 228, 255, 0.08);
+    border-radius: var(--radius-paper);
+    box-shadow: var(--shadow-paper);
+  }
 
-/* Altın çerçeve ışını (Magic UI "border beam" benzeri) */
-.beam {
-  position: relative;
-}
-.beam::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: conic-gradient(from var(--beam-angle, 0deg), transparent 0deg, transparent 290deg, #f2a24a 320deg, #fff1cf 340deg, transparent 360deg);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: beam-spin 6s linear infinite;
-  pointer-events: none;
-}
+  /* Şampanya ışık çizgisi dönen kenar */
+  .beam::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(from var(--beam-angle, 0deg), transparent 0deg, transparent 290deg, rgba(220, 199, 161, 0.9) 325deg, #fffaf0 340deg, transparent 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: beam-spin 7s linear infinite;
+    pointer-events: none;
+  }
 
-/* ------------------------------------------------------------ düğmeler */
-.btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 999px;
-  padding: 0.75rem 1.3rem;
-  font-weight: 560;
-  font-size: 0.95rem;
-  line-height: 1.1;
-  letter-spacing: -0.005em;
-  transition: transform 0.15s ease, box-shadow 0.3s ease, background-color 0.2s ease, opacity 0.2s, border-color 0.2s;
-  -webkit-user-select: none;
-  user-select: none;
-  isolation: isolate;
-  overflow: hidden;
-}
-.btn:active { transform: translateY(1px) scale(0.98); }
-.btn:disabled { opacity: 0.5; pointer-events: none; }
+  /* düğmeler */
+  .btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    border-radius: 999px;
+    padding: 0.8rem 1.35rem;
+    font-weight: 500;
+    font-size: 0.93rem;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+    transition: transform 0.15s ease, box-shadow 0.3s ease, background 0.25s ease, opacity 0.2s, border-color 0.25s;
+    -webkit-user-select: none;
+    user-select: none;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .btn:active { transform: translateY(1px) scale(0.985); }
+  .btn:disabled { opacity: 0.45; pointer-events: none; }
 
-/* Mum ışığı düğmesi: sıcak degrade + parlama + kayan ışıltı */
-.btn-primary {
-  color: #1a0d06;
-  background: linear-gradient(180deg, #ffd59a 0%, #f2a24a 45%, #d96f35 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 0 0 1px rgba(255, 200, 140, 0.35), 0 10px 30px -8px rgba(242, 140, 60, 0.65);
-}
-.btn-primary::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.55) 48%, transparent 66%);
-  transform: translateX(-120%);
-  animation: sheen 4.5s ease-in-out infinite;
-  z-index: -1;
-}
-.btn-primary:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 0 0 1px rgba(255, 210, 150, 0.5), 0 14px 40px -6px rgba(242, 140, 60, 0.85); }
+  .btn-primary {
+    color: #0a1122;
+    background: linear-gradient(180deg, #fbf5e8 0%, #e9dcc0 45%, #c9b089 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 0 0 1px rgba(233, 220, 192, 0.5), 0 14px 34px -14px rgba(220, 199, 161, 0.75);
+  }
+  .btn-primary::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.75) 48%, transparent 66%);
+    transform: translateX(-130%);
+    animation: sheen 5s ease-in-out infinite;
+    z-index: -1;
+  }
+  .btn-primary:hover { box-shadow: inset 0 1px 0 #fff, 0 0 0 1px rgba(255, 248, 232, 0.8), 0 18px 44px -12px rgba(220, 199, 161, 0.9); }
 
-.btn-ghost {
-  background: rgba(255, 245, 230, 0.06);
-  border: 1px solid rgba(255, 236, 210, 0.14);
-  color: var(--color-ink);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-}
-.btn-ghost:hover { background: rgba(255, 245, 230, 0.1); border-color: rgba(255, 236, 210, 0.24); }
-.btn-cam {
-  background: linear-gradient(180deg, #3c8a6e, #24584a);
-  color: #f6ecd9;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 8px 22px -10px rgba(47, 107, 85, 0.9);
-}
+  .btn-ghost {
+    background: rgba(200, 215, 255, 0.05);
+    border: 1px solid rgba(220, 228, 255, 0.14);
+    color: var(--color-ink);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+  .btn-ghost:hover { background: rgba(200, 215, 255, 0.09); border-color: rgba(220, 228, 255, 0.26); }
+  .btn-cam {
+    background: linear-gradient(180deg, #e9dcc0, #c9b089);
+    color: #0a1122;
+  }
 
-/* ------------------------------------------------------------ form */
-.field {
-  width: 100%;
-  background: rgba(255, 245, 230, 0.05);
-  border: 1px solid rgba(255, 236, 210, 0.14);
-  border-radius: 14px;
-  padding: 0.8rem 0.95rem;
-  font-size: 1rem;
-  color: var(--color-ink);
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-}
-.field::placeholder { color: rgba(179, 164, 147, 0.6); }
-.field:focus {
-  outline: none;
-  background: rgba(255, 245, 230, 0.08);
-  border-color: rgba(242, 162, 74, 0.7);
-  box-shadow: 0 0 0 4px rgba(242, 162, 74, 0.15);
-}
-textarea.field {
-  font-family: var(--font-hand);
-  font-size: 1.5rem;
-  line-height: 1.35;
-  background-image: repeating-linear-gradient(180deg, transparent 0 calc(2rem - 1px), rgba(232, 201, 138, 0.12) calc(2rem - 1px) 2rem);
-  background-attachment: local;
-  background-position: 0 0.6rem;
-}
-select.field option { background: #15111c; color: var(--color-ink); }
-.label {
-  display: block;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-ink-soft);
-  margin-bottom: 0.4rem;
-  font-weight: 600;
-}
+  /* form */
+  .field {
+    width: 100%;
+    background: rgba(200, 215, 255, 0.045);
+    border: 1px solid rgba(220, 228, 255, 0.13);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    font-size: 1rem;
+    color: var(--color-ink);
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+  .field::placeholder { color: rgba(152, 161, 182, 0.65); }
+  .field:focus {
+    outline: none;
+    background: rgba(200, 215, 255, 0.07);
+    border-color: rgba(220, 199, 161, 0.7);
+    box-shadow: 0 0 0 4px rgba(220, 199, 161, 0.12);
+  }
+  textarea.field {
+    font-family: var(--font-hand);
+    font-size: 1.5rem;
+    line-height: 1.35;
+    background-image: repeating-linear-gradient(180deg, transparent 0 calc(2rem - 1px), rgba(220, 199, 161, 0.1) calc(2rem - 1px) 2rem);
+    background-attachment: local;
+    background-position: 0 0.6rem;
+  }
+  select.field option { background: #0d1426; color: var(--color-ink); }
+  .label {
+    display: block;
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+    margin-bottom: 0.45rem;
+    font-weight: 500;
+  }
 
-/* ------------------------------------------------------------ advent kutuları */
-.advent-box {
-  position: relative;
-  aspect-ratio: 1 / 1.12;
-  border-radius: 18px;
-  perspective: 700px;
-}
-.advent-lid {
-  position: absolute;
-  inset: 0;
-  border-radius: 18px;
-  transform-origin: left center;
-  transition: transform 0.75s cubic-bezier(0.3, 0.7, 0.2, 1);
-  backface-visibility: hidden;
-}
-.advent-box.opening .advent-lid { transform: rotateY(-115deg); }
+  /* advent kutuları */
+  .advent-box {
+    position: relative;
+    aspect-ratio: 1 / 1.15;
+    border-radius: 18px;
+    perspective: 800px;
+  }
+  .advent-lid {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    transform-origin: left center;
+    transition: transform 0.8s cubic-bezier(0.3, 0.7, 0.2, 1);
+    backface-visibility: hidden;
+  }
+  .advent-box.opening .advent-lid { transform: rotateY(-115deg); }
+  .glow-today { animation: glow-pulse 3s ease-in-out infinite; }
+  .flame { animation: flicker 2s ease-in-out infinite; }
 
-.glow-today { animation: glow-pulse 2.8s ease-in-out infinite; }
-
-.flame { transform-origin: 50% 90%; animation: flicker 1.6s ease-in-out infinite; }
-
-.washi {
-  position: absolute;
-  height: 22px;
-  width: 86px;
-  opacity: 0.8;
-  background: repeating-linear-gradient(45deg, rgba(217, 178, 106, 0.8) 0 6px, rgba(242, 162, 74, 0.6) 6px 12px);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  clip-path: polygon(2% 0, 98% 4%, 100% 50%, 97% 100%, 3% 96%, 0 50%);
-}
-
+  .washi {
+    position: absolute;
+    height: 22px;
+    width: 86px;
+    opacity: 0.75;
+    background: repeating-linear-gradient(45deg, rgba(233, 220, 192, 0.75) 0 6px, rgba(185, 205, 242, 0.5) 6px 12px);
+    clip-path: polygon(2% 0, 98% 4%, 100% 50%, 97% 100%, 3% 96%, 0 50%);
+  }
 }
 
 .ambient { display: none; }
-
 .safe-bottom { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
-
-@keyframes rise-in {
-  from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
-  to { opacity: 1; transform: none; filter: none; }
-}
-.rise { animation: rise-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-
-/* ince altın ayraç */
-.hairline {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(232, 201, 138, 0.35), transparent);
-}
-
-/* Boyama */
+.rise { animation: rise-in 1s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.hairline { height: 1px; background: linear-gradient(90deg, transparent, rgba(220, 199, 161, 0.35), transparent); }
 .art-host svg { width: 100%; height: 100%; display: block; }
-
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }

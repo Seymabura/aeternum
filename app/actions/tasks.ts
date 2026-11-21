@@ -52,7 +52,7 @@ export async function saveTask(day: number, answer: TaskAnswer, photoPath?: stri
     ? await supabase.from("task_entries").update(row).eq("day", day).eq("user_id", user.id)
     : await supabase.from("task_entries").insert({ ...row, user_id: user.id });
   if (error) {
-    if (error.message?.includes("açılmadı")) return { ok: false as const, error: "Bu kutu henüz açılmadı. Sabırla bekle 🕯️" };
+    if (error.message?.includes("açılmadı")) return { ok: false as const, error: "Bu kutu henüz açılmadı. Sabırla bekle" };
     return { ok: false as const, error: "Kaydedilemedi, tekrar dener misin?" };
   }
   revalidatePath("/takvim");

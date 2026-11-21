@@ -19,10 +19,10 @@ export default async function CalendarPage() {
   return (
     <div className="space-y-8">
       <section className="rise">
-        <p className="hand text-2xl text-latte">merhaba {p.name},</p>
+        <p className="eyebrow">aralık defteri</p>
         {p.today === 0 ? (
           <>
-            <h1 className="display mt-1 text-4xl sm:text-5xl">Takvimin hazırlanıyor</h1>
+            <h1 className="display mt-3 text-5xl sm:text-6xl">Takvimin <em className="gold-shine italic">hazırlanıyor</em></h1>
             <p className="mt-2 text-ink-soft">
               İlk kutu 1 Aralık 00:00&apos;da açılıyor:{" "}
               <Countdown mode="december" className="font-semibold tabular-nums text-ink" />. Bu arada aşağıdaki hazırlık
@@ -31,7 +31,7 @@ export default async function CalendarPage() {
           </>
         ) : p.today <= 31 ? (
           <>
-            <h1 className="display mt-1 text-4xl sm:text-5xl">
+            <h1 className="display mt-3 text-5xl sm:text-6xl">
               {p.today} Aralık{todayDone ? ", bugünün emeği tamam" : ""}
             </h1>
             <p className="mt-2 text-ink-soft">
@@ -51,13 +51,13 @@ export default async function CalendarPage() {
             )}
           </>
         ) : (
-          <h1 className="display mt-1 text-4xl sm:text-5xl">Yıl bitti, defterin dolu ✨</h1>
+          <h1 className="display mt-3 text-5xl sm:text-6xl">Yıl bitti, defterin dolu ✨</h1>
         )}
       </section>
 
       <section>
         <div className="mb-3 flex items-end justify-between">
-          <h2 className="display text-2xl italic">Aralık</h2>
+          <h2 className="display text-3xl italic">Aralık</h2>
           <p className="text-sm text-ink-soft">
             {done.length}/31 kutu · en uzun seri {p.bestStreak}
           </p>
@@ -70,7 +70,7 @@ export default async function CalendarPage() {
 
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <section className="sheet p-5">
-          <h2 className="display text-2xl">{p.today === 0 ? "Hazırlık emekleri" : "Küçük emekler"}</h2>
+          <h2 className="display text-3xl">{p.today === 0 ? "Hazırlık emekleri" : "Küçük emekler"}</h2>
           <p className="mb-4 mt-1 text-sm text-ink-soft">
             İstersen ekstra emekle resmini daha hızlı açabilirsin. Her biri boyamada bir bölüm daha açar.
           </p>
@@ -81,22 +81,22 @@ export default async function CalendarPage() {
         </section>
         <div className="grid gap-4 self-start">
           <Link href="/boyama" className="sheet group flex items-center gap-4 p-5 hover:shadow-[var(--shadow-lift)]">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-bordo text-paper-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-champagne/25 bg-champagne/10 text-champagne">
               <Palette />
             </span>
             <span className="flex-1">
-              <span className="display block text-xl">Emek boyama</span>
+              <span className="display block text-2xl">Emek boyama</span>
               <span className="text-sm text-ink-soft">{p.effort}/32 bölüm açık</span>
             </span>
             <ArrowRight className="text-ink-soft transition-transform group-hover:translate-x-1" />
           </Link>
           <Link href="/pano" className="sheet group flex items-center gap-4 p-5 hover:shadow-[var(--shadow-lift)]">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cam text-paper-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-champagne/25 bg-champagne/10 text-champagne">
               <Sparkles />
             </span>
             <span className="flex-1">
-              <span className="display block text-xl">Dilek panosu</span>
-              <span className="text-sm text-ink-soft">Duvar kağıdın olsun</span>
+              <span className="display block text-2xl">Duvar kağıdı stüdyosu</span>
+              <span className="text-sm text-ink-soft">Telefonun için tasarla</span>
             </span>
             <ArrowRight className="text-ink-soft transition-transform group-hover:translate-x-1" />
           </Link>

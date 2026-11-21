@@ -1,0 +1,20 @@
+import { requireUser } from "@/lib/data";
+import { createClient } from "@/lib/supabase/server";
+import type { VisionItem } from "@/app/actions/extras";
+import { VisionBoard } from "./vision-board";
+
+export const metadata = { title: "Vision board" };
+
+export default async function VisionPage() {
+  const user = await requireUser();
+  const supabase = await createClient();
+  const { data } = await supabase.from("vision_items").select("id,kind,src,text,tone,size").order("position", { ascending: true });
+  const items = (data ?? []) as VisionItem[];
+  const own = items.filter((i) => i.src && !i.src.startsWith("/")).map((i) => i.src!) as string[];
+  const urls: Record<string, string> = {};
+  if (own.length) {
+    const { data: signed } = await supabase.storage.from("uploads").createSignedUrls(own, 60 * 60 * 6);
+    for (const s of signed ?? []) if (s.path && s.signedUrl) urls[s.path] = s.signedUrl;
+  }
+  return <VisionBoard initial={items} urls={urls} userId={user.id} />;
+}

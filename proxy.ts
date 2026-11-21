@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const PROTECTED = ["/takvim", "/boyama", "/pano", "/profil"];
+const PROTECTED = ["/takvim", "/boyama", "/pano", "/profil", "/liste", "/vision", "/kure"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -25,11 +25,20 @@ export async function proxy(request: NextRequest) {
   // Oturumu tazeler (bu satırı silme)
   const { data } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
-  if (!data.user && PROTECTED.some((p) => path === p || path.startsWith(p + "/"))) {
-    const to = request.nextUrl.clone();
-    to.pathname = "/giris";
-    to.searchParams.set("sonra", path);
-    return NextResponse.redirect(to);
+  const isApp = PROTECTED.some((p) => path === p || path.startsWith(p + "/"));
+  const isPrefetch =
+    request.headers.get("next-router-prefetch") !== null ||
+    request.headers.get("purpose") === "prefetch" ||
+    request.headers.get("sec-purpose")?.includes("prefetch");
+  if (!data.user && isApp && !isPrefetch) {
+    // Girişsiz kullanım: ilk ziyarette bu cihaza özel anonim bir defter açılır
+    const { error } = await supabase.auth.signInAnonymously();
+    if (error) {
+      const to = request.nextUrl.clone();
+      to.pathname = "/";
+      to.searchParams.set("hata", "1");
+      return NextResponse.redirect(to);
+    }
   }
   return response;
 }

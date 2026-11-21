@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { MeshGradient } from "@paper-design/shaders-react";
 
 const KEY = "ae-snow";
 const listeners = new Set<() => void>();
@@ -30,8 +29,8 @@ export function useSnow() {
 }
 
 /**
- * Gece gökyüzü: yavaşça akan mum ışığı/gece degradesi (WebGL shader),
- * üstünde altın toz ve kar, kenarlarda karanlık vinyet.
+ * Gece gökyüzü: derin lacivert katmanlar, ufukta soğuk ay ışığı,
+ * yavaşça göz kırpan yıldızlar, ince kar ve film greni.
  */
 export function Ambience() {
   const snow = useSnow();
@@ -46,28 +45,95 @@ export function Ambience() {
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-night">
-      <MeshGradient
-        className="absolute inset-0 h-full w-full"
-        colors={["#120a1e", "#4a1530", "#1a2350", "#7a3414", "#2a1038"]}
-        distortion={0.85}
-        swirl={0.35}
-        grainMixer={0.18}
-        grainOverlay={0.06}
-        speed={motion ? 0.12 : 0}
-        maxPixelCount={1920 * 1080}
-      />
-      {/* mum ışığı: alttan yükselen sıcak parıltı */}
       <div
-        className="absolute inset-x-0 bottom-[-30vh] h-[80vh] opacity-70"
-        style={{ background: "radial-gradient(60% 50% at 50% 60%, rgba(242,140,60,.28), rgba(184,54,74,.12) 45%, transparent 70%)" }}
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(120% 70% at 50% -10%, #16224a 0%, #0b1328 38%, #05080f 75%), linear-gradient(180deg, #070b16, #04060c)",
+        }}
       />
-      {/* üstte derin gece */}
-      <div className="absolute inset-0" style={{ background: "radial-gradient(120% 80% at 50% -10%, rgba(10,12,30,.0), rgba(7,6,12,.2) 80%)" }} />
-      {/* kenar vinyeti */}
-      <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 160px 20px rgba(4,3,8,.6)" }} />
+      {/* ay ışığı haresi */}
+      <div
+        className="absolute left-1/2 top-[-18vh] h-[70vh] w-[110vw] -translate-x-1/2 opacity-70"
+        style={{ background: "radial-gradient(50% 50% at 50% 50%, rgba(185,205,242,.16), rgba(185,205,242,.04) 45%, transparent 70%)" }}
+      />
+      {/* şampanya yansıması (alt) */}
+      <div
+        className="absolute bottom-[-25vh] left-1/2 h-[55vh] w-[90vw] -translate-x-1/2 opacity-60"
+        style={{ background: "radial-gradient(50% 50% at 50% 50%, rgba(220,199,161,.12), transparent 70%)" }}
+      />
+      <Stars motion={motion} />
       {snow && <Dust motion={motion} />}
+      {/* film greni */}
+      <div
+        className="absolute inset-0 opacity-[.07] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+        }}
+      />
+      <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 180px 30px rgba(2,3,8,.7)" }} />
     </div>
   );
+}
+
+/** Göz kırpan yıldızlar (tek seferlik çizim + yavaş parıltı) */
+function Stars({ motion }: { motion: boolean }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const cv = ref.current;
+    if (!cv) return;
+    const ctx = cv.getContext("2d")!;
+    let w = 0,
+      h = 0,
+      raf = 0;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let stars: { x: number; y: number; r: number; p: number; s: number }[] = [];
+    const resize = () => {
+      w = window.innerWidth;
+      h = window.innerHeight;
+      cv.width = w * dpr;
+      cv.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const n = Math.round((w * h) / 5200);
+      stars = Array.from({ length: n }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h * 0.85,
+        r: Math.random() < 0.92 ? 0.35 + Math.random() * 0.6 : 0.9 + Math.random() * 0.8,
+        p: Math.random() * Math.PI * 2,
+        s: 0.4 + Math.random() * 1.2,
+      }));
+    };
+    resize();
+    window.addEventListener("resize", resize);
+    const draw = (t: number) => {
+      ctx.clearRect(0, 0, w, h);
+      for (const st of stars) {
+        const a = 0.35 + 0.45 * (0.5 + 0.5 * Math.sin(st.p + (t / 1000) * st.s));
+        ctx.fillStyle = `rgba(235,240,255,${a * (1 - st.y / (h * 1.1))})`;
+        ctx.beginPath();
+        ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+        ctx.fill();
+        if (st.r > 1.2) {
+          ctx.strokeStyle = `rgba(235,240,255,${a * 0.25})`;
+          ctx.lineWidth = 0.6;
+          ctx.beginPath();
+          ctx.moveTo(st.x - st.r * 4, st.y);
+          ctx.lineTo(st.x + st.r * 4, st.y);
+          ctx.moveTo(st.x, st.y - st.r * 4);
+          ctx.lineTo(st.x, st.y + st.r * 4);
+          ctx.stroke();
+        }
+      }
+      if (motion) raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+    };
+  }, [motion]);
+  return <canvas ref={ref} className="absolute inset-0" />;
 }
 
 /** Kar taneleri ve süzülen altın kıvılcımlar */
@@ -90,10 +156,10 @@ function Dust({ motion }: { motion: boolean }) {
     };
     resize();
     window.addEventListener("resize", resize);
-    const n = Math.round(Math.min(90, (w * h) / 14000));
+    const n = Math.round(Math.min(55, (w * h) / 22000));
     type P = { x: number; y: number; r: number; s: number; d: number; spark: boolean; tw: number };
     const ps: P[] = Array.from({ length: n }, () => {
-      const spark = Math.random() < 0.28;
+      const spark = false;
       return {
         x: Math.random() * w,
         y: Math.random() * h,

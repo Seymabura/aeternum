@@ -14,13 +14,13 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profil">
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <div>
-        <h1 className="display text-4xl">Ben</h1>
-        <p className="mt-1 text-ink-soft">{user.email}</p>
+        <h1 className="display text-5xl sm:text-6xl">Ben</h1>
+        <p className="mt-2 text-ink-soft">Defterin bu cihazda saklanıyor. Tarayıcı verilerini silersen defterin de silinir.</p>
       </div>
       <div className="grid grid-cols-3 gap-3">
         <Stat n={p.entries.length} label="kutu" />
         <Stat n={p.streak} label="seri 🔥" />
-        <Stat n={p.effort} label="emek 🕯️" />
+        <Stat n={p.effort} label="emek" />
       </div>
       <ProfileForm
         name={prof?.display_name ?? ""}

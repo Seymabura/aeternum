@@ -57,8 +57,8 @@ export function BigCountdown({ mode }: { mode: "december" | "midnight" }) {
     <div className="grid grid-cols-4 gap-2.5 sm:gap-4">
       <NumberFlowGroup>
         {cells.map((c) => (
-          <div key={c.l} className="sheet flex flex-col items-center px-2 py-4 sm:py-6">
-            <span className="display text-4xl tabular-nums text-[#ffd59a] [text-shadow:0_0_24px_rgba(242,162,74,.55)] sm:text-6xl">
+          <div key={c.l} className="sheet flex flex-col items-center px-2 py-5 sm:py-8">
+            <span className="display text-5xl tabular-nums text-gold [text-shadow:0_0_30px_rgba(220,199,161,.35)] sm:text-7xl">
               {ms === null ? "––" : <NumberFlow value={c.v} format={two} />}
             </span>
             <span className="mt-1 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-ink-soft sm:text-xs">{c.l}</span>

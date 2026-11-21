@@ -1,0 +1,139 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { createClient, getUser } from "@/lib/supabase/server";
+import { VISION_LIBRARY } from "@/lib/vision-library";
+
+const clip = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(0, n) : "");
+
+// ---------------------------------------------------------------- wishlist
+
+export type WishKind = "istek" | "hedef";
+export type WishItem = {
+  id: string;
+  kind: WishKind;
+  title: string;
+  note: string | null;
+  url: string | null;
+  price: string | null;
+  category: string | null;
+  done: boolean;
+};
+
+export async function addWish(input: { kind: WishKind; title: string; url?: string; price?: string; note?: string; category?: string }) {
+  const user = await getUser();
+  if (!user) return { ok: false as const, error: "Oturum yok" };
+  const title = clip(input.title, 140);
+  if (!title) return { ok: false as const, error: "Bir şey yazmalısın." };
+  const url = clip(input.url, 500);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("wish_items")
+    .insert({
+      user_id: user.id,
+      kind: input.kind === "hedef" ? "hedef" : "istek",
+      title,
+      url: /^https?:\/\//.test(url) ? url : null,
+      price: clip(input.price, 40) || null,
+      note: clip(input.note, 500) || null,
+      category: clip(input.category, 30) || null,
+    })
+    .select("id,kind,title,note,url,price,category,done")
+    .single();
+  if (error) return { ok: false as const, error: error.message.includes("dolu") ? "Liste dolu (300 madde)." : "Eklenemedi." };
+  revalidatePath("/liste");
+  return { ok: true as const, item: data as WishItem };
+}
+
+export async function toggleWish(id: string, done: boolean) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("wish_items").update({ done }).eq("id", id);
+  return { ok: !error };
+}
+
+export async function deleteWish(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("wish_items").delete().eq("id", id);
+  revalidatePath("/liste");
+  return { ok: !error };
+}
+
+// ---------------------------------------------------------------- vision board
+
+export type VisionItem = {
+  id: string;
+  kind: "image" | "word";
+  src: string | null;
+  text: string | null;
+  tone: string | null;
+  size: "s" | "m" | "l";
+};
+
+const TONES = ["gece", "sampanya", "buz", "gul", "zumrut"];
+const LIB = new Set(VISION_LIBRARY.map((v) => v.src));
+
+export async function addVision(input: { kind: "image" | "word"; src?: string; text?: string; tone?: string; size?: string }) {
+  const user = await getUser();
+  if (!user) return { ok: false as const, error: "Oturum yok" };
+  const supabase = await createClient();
+  let src: string | null = null;
+  let text: string | null = null;
+  if (input.kind === "image") {
+    const s = clip(input.src, 300);
+    if (!(LIB.has(s) || s.startsWith(`${user.id}/vision/`))) return { ok: false as const, error: "Geçersiz görsel" };
+    src = s;
+  } else {
+    text = clip(input.text, 80);
+    if (!text) return { ok: false as const, error: "Bir kelime yaz." };
+  }
+  const { data, error } = await supabase
+    .from("vision_items")
+    .insert({
+      user_id: user.id,
+      kind: input.kind,
+      src,
+      text,
+      tone: TONES.includes(String(input.tone)) ? input.tone : "gece",
+      size: ["s", "m", "l"].includes(String(input.size)) ? input.size : "m",
+    })
+    .select("id,kind,src,text,tone,size")
+    .single();
+  if (error) return { ok: false as const, error: error.message.includes("dolu") ? "Pano dolu (60 parça)." : "Eklenemedi." };
+  revalidatePath("/vision");
+  return { ok: true as const, item: data as VisionItem };
+}
+
+export async function updateVision(id: string, patch: { size?: string; tone?: string }) {
+  const supabase = await createClient();
+  const p: Record<string, string> = {};
+  if (patch.size && ["s", "m", "l"].includes(patch.size)) p.size = patch.size;
+  if (patch.tone && TONES.includes(patch.tone)) p.tone = patch.tone;
+  const { error } = await supabase.from("vision_items").update(p).eq("id", id);
+  return { ok: !error };
+}
+
+export async function deleteVision(id: string) {
+  const user = await getUser();
+  const supabase = await createClient();
+  const { data } = await supabase.from("vision_items").select("src").eq("id", id).maybeSingle();
+  if (user && data?.src?.startsWith(`${user.id}/`)) await supabase.storage.from("uploads").remove([data.src]);
+  const { error } = await supabase.from("vision_items").delete().eq("id", id);
+  revalidatePath("/vision");
+  return { ok: !error };
+}
+
+// ---------------------------------------------------------------- mesaj küresi
+
+export async function sealCapsule(message: string, email: string) {
+  const user = await getUser();
+  if (!user) return { ok: false as const, error: "Oturum yok" };
+  const msg = clip(message, 6000);
+  if (msg.length < 3) return { ok: false as const, error: "Biraz daha yaz, 2027'deki sen merak ediyor." };
+  const mail = clip(email, 200);
+  if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return { ok: false as const, error: "E-posta adresi geçersiz görünüyor." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("ae_capsule_seal", { msg, mail: mail || null });
+  if (error) return { ok: false as const, error: error.message.includes("zaten") ? "Küren zaten kapatılmış." : "Kapatılamadı, tekrar dener misin?" };
+  revalidatePath("/kure");
+  return { ok: true as const };
+}

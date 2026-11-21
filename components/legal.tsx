@@ -13,7 +13,7 @@ export function LegalPage({ title, updated, children }: { title: string; updated
         {children}
       </article>
       <p className="mt-6 text-center text-sm">
-        <Link href="/" className="text-bordo underline">Ana sayfaya dön</Link>
+        <Link href="/" className="text-champagne underline">Ana sayfaya dön</Link>
       </p>
     </div>
   );
@@ -21,7 +21,7 @@ export function LegalPage({ title, updated, children }: { title: string; updated
 
 export function Contact() {
   return CONTACT ? (
-    <a className="text-bordo underline" href={`mailto:${CONTACT}`}>{CONTACT}</a>
+    <a className="text-champagne underline" href={`mailto:${CONTACT}`}>{CONTACT}</a>
   ) : (
     <span>sitedeki profil sayfası üzerinden</span>
   );

@@ -4,8 +4,10 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import type Konva from "konva";
 import { Group, Image as KImage, Layer, Line, Rect, Stage, Text, Transformer } from "react-konva";
 import { toast } from "sonner";
+import Link from "next/link";
 import {
   ArrowDownToLine,
+  ArrowLeft,
   BringToFront,
   Camera,
   Check,
@@ -545,11 +547,14 @@ export default function BoardEditor({
   const dark = board.bg === "gece" || board.bg === "cam";
 
   return (
-    <div className="fixed inset-x-0 bottom-[62px] top-[57px] z-30 flex flex-col bg-paper md:bottom-0">
+    <div className="fixed inset-0 z-[60] flex flex-col bg-paper">
       {/* üst çubuk */}
-      <div className="flex items-center gap-1.5 border-b border-ink/8 bg-paper/90 px-3 py-2">
+      <div className="flex items-center gap-1.5 border-b border-white/[.06] bg-paper/90 px-3 py-2 pt-[max(.5rem,env(safe-area-inset-top))]">
+        <Link href="/takvim" className="rounded-full p-2 hover:bg-white/5" aria-label="Geri">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
         <div className="min-w-0 flex-1">
-          <h1 className="display text-lg leading-tight">Dilek panom</h1>
+          <h1 className="display text-xl leading-tight">Duvar kağıdı stüdyosu</h1>
           <p className="flex items-center gap-1 text-xs text-ink-soft">
             {saveState === "saving" ? <Loader2 className="h-3 w-3 animate-spin" /> : saveState === "saved" ? <Check className="h-3 w-3 text-cam" /> : null}
             {saveState === "saved" ? "kaydedildi" : saveState === "saving" ? "kaydediliyor" : "değişiklik var"}
@@ -570,7 +575,7 @@ export default function BoardEditor({
       </div>
 
       {/* tuval */}
-      <div ref={wrapRef} className="relative flex min-h-0 flex-1 touch-none items-center justify-center bg-[radial-gradient(ellipse_at_center,#efe1c6,#e2cfae)]">
+      <div ref={wrapRef} className="relative flex min-h-0 flex-1 touch-none items-center justify-center bg-[radial-gradient(ellipse_at_center,#16213f,#070b16)]">
         <div className="overflow-hidden rounded-[18px] shadow-[0_20px_50px_-20px_rgba(46,32,25,.6)]" style={{ width: sw, height: sh }}>
           <Stage
             ref={stageRef}
@@ -898,7 +903,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   return (
     <button
       onClick={onClick}
-      className={cn("rounded-full border px-3.5 py-1.5 text-sm", active ? "border-bordo bg-bordo text-paper-3" : "border-ink/15 bg-paper")}
+      className={cn("rounded-full border px-3.5 py-1.5 text-sm", active ? "border-champagne/50 bg-champagne/15 text-gold" : "border-white/10 bg-white/[.03]")}
     >
       {children}
     </button>
