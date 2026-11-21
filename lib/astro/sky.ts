@@ -10,7 +10,11 @@ export type ConstellationData = {
 export type SkyPoint = { x: number; y: number; alt: number };
 export type SkyBody = SkyPoint & { name: string; mag: number; kind: "moon" | "planet"; phaseAngle?: number; fraction?: number };
 
+/** Samanyolu: 5 parlaklık katmanı, her katman birkaç halka [ra, dec][] */
+export type MilkyWay = [number, number][][][];
+
 export type Sky = {
+  milky: { x: number; y: number }[][][];
   /** birim dairede (-1..1) izdüşüm; ufuk = 1. Ekranda kuzey yukarı, doğu sol (gökyüzüne bakar gibi). */
   stars: (SkyPoint & { mag: number; bv: number; i: number })[];
   lines: { id: string; rank: number; segs: [SkyPoint, SkyPoint][] }[];
@@ -54,7 +58,7 @@ export function altAz(raDeg: number, decDeg: number, when: Date, lat: number, lo
   return project(h);
 }
 
-export function computeSky(when: Date, lat: number, lon: number, stars: StarRow[], cons: ConstellationData): Sky {
+export function computeSky(when: Date, lat: number, lon: number, stars: StarRow[], cons: ConstellationData, mw: MilkyWay = []): Sky {
   const t = A.MakeTime(when);
   const obs = new A.Observer(lat, lon, 0);
   const rot = A.Rotation_EQJ_HOR(t, obs);
@@ -107,7 +111,19 @@ export function computeSky(when: Date, lat: number, lon: number, stars: StarRow[
   add(A.Body.Jupiter, "Jüpiter", "planet");
   add(A.Body.Saturn, "Satürn", "planet");
 
-  return { stars: out, lines, labels, bodies };
+  // Samanyolu halkaları (ufkun çok altındaki noktalar kenarda sıkıştırılır)
+  const milky = mw.map((layer) =>
+    layer.map((ring) =>
+      ring.map(([ra, dec]) => {
+        const p = project(A.RotateVector(rot, eqVec(ra, dec, t)));
+        const r = Math.hypot(p.x, p.y);
+        const k = r > 2.2 ? 2.2 / r : 1;
+        return { x: p.x * k, y: p.y * k };
+      }),
+    ),
+  );
+
+  return { milky, stars: out, lines, labels, bodies };
 }
 
 /** B–V renk indeksinden yumuşak bir yıldız rengi (buz mavisi → fildişi → soluk şampanya) */

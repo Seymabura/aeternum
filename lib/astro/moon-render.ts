@@ -5,10 +5,15 @@
 
 export type Light = { L: [number, number, number]; w?: number };
 
-let texPromise: Promise<ImageData> | null = null;
+const texCache = new Map<string, Promise<ImageData>>();
+
+/** Ön izleme için 2K, dışa aktarma için 4K doku */
+export const MOON_2K = "/moon/lroc-2k.webp";
+export const MOON_4K = "/moon/lroc-4k.webp";
 
 /** Ay dokusunu bir kez yükler ve piksellerini önbelleğe alır */
-export function loadMoonTexture(src = "/moon/lroc-2k.webp"): Promise<ImageData> {
+export function loadMoonTexture(src = MOON_2K): Promise<ImageData> {
+  let texPromise = texCache.get(src);
   if (!texPromise) {
     texPromise = new Promise((resolve, reject) => {
       const img = new Image();
@@ -22,11 +27,12 @@ export function loadMoonTexture(src = "/moon/lroc-2k.webp"): Promise<ImageData> 
         resolve(ctx.getImageData(0, 0, c.width, c.height));
       };
       img.onerror = () => {
-        texPromise = null;
+        texCache.delete(src);
         reject(new Error("Ay dokusu yüklenemedi"));
       };
       img.src = src;
     });
+    texCache.set(src, texPromise);
   }
   return texPromise;
 }
@@ -61,7 +67,7 @@ export function renderMoon(
   const td = tex.data;
   const cs = Math.cos(northAngle);
   const sn = Math.sin(northAngle);
-  const es = opts.earthshine ?? 0.055;
+  const es = opts.earthshine ?? 0.1;
   let disc = 0;
   let lit = 0;
 
@@ -117,11 +123,11 @@ export function renderMoon(
         const t = (td[i00 + k] * (1 - fx) + td[i10 + k] * fx) * (1 - fy) + (td[i01 + k] * (1 - fx) + td[i11 + k] * fx) * fy;
         // dünya ışığı: karanlık yarıda çok hafif buz mavisi
         const tint = k === 0 ? 0.72 : k === 1 ? 0.8 : 0.95;
-        const val = t * b * 1.12 + t * es * tint * (1 - b) + 6 * tint * (1 - b);
+        const val = t * b * 1.12 + (t * es + 9) * tint * (1 - b);
         o[oi + k] = val > 255 ? 255 : val;
       }
       // karanlık yarı neredeyse saydam: gökyüzü arkadan hafifçe görünür
-      o[oi + 3] = 255 * edge * (0.42 + 0.58 * Math.min(1, b * 1.6));
+      o[oi + 3] = 255 * edge * (0.82 + 0.18 * Math.min(1, b * 1.6));
     }
   }
   ctx.putImageData(out, 0, 0);

@@ -1,7 +1,6 @@
 import type { Sky } from "./sky";
 import { starColor } from "./sky";
 import { CONSTELLATION_TR } from "./constellation-names";
-import { initialOf, letterStrokes } from "./letters";
 
 export type SkyMeta = { names: [string, string]; dateText: string; place: string; coords: string; line?: string };
 
@@ -64,7 +63,7 @@ export function drawSkyPoster(
   h: number,
   sky: Sky,
   meta: SkyMeta,
-  opts: { progress?: number; initials?: boolean; labels?: boolean } = {},
+  opts: { progress?: number; labels?: boolean } = {},
 ) {
   const progress = opts.progress ?? 1;
   const { cx, cy, R, textY, u } = skyLayout(w, h);
@@ -104,6 +103,26 @@ export function drawSkyPoster(
   const X = (p: { x: number }) => cx + p.x * R;
   const Y = (p: { y: number }) => cy + p.y * R;
 
+  // Samanyolu: üst üste binen yarı saydam katmanlar, yumuşak bulanıklıkla
+  if (sky.milky.length) {
+    const mp = Math.min(1, progress / 0.5);
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    const canFilter = "filter" in ctx;
+    if (canFilter) ctx.filter = `blur(${Math.max(2, 7 * s)}px)`;
+    sky.milky.forEach((layer, li) => {
+      ctx.fillStyle = `rgba(${li < 2 ? "170,190,235" : "225,215,200"},${(0.032 + li * 0.006) * mp})`;
+      ctx.beginPath();
+      for (const ring of layer) {
+        ring.forEach((p, k) => (k ? ctx.lineTo(X(p), Y(p)) : ctx.moveTo(X(p), Y(p))));
+        ctx.closePath();
+      }
+      ctx.fill("evenodd");
+    });
+    if (canFilter) ctx.filter = "none";
+    ctx.restore();
+  }
+
   // takımyıldız çizgileri
   const lp = Math.max(0, Math.min(1, (progress - 0.5) / 0.5));
   if (lp > 0) {
@@ -127,15 +146,15 @@ export function drawSkyPoster(
   for (let k = 0; k < shown; k++) {
     const st = sky.stars[k];
     if (st.alt < 0) continue;
-    const r = Math.min(3.6, Math.max(0.38, 2.2 * Math.pow(10, -0.2 * st.mag))) * s * 1.25;
+    const r = Math.min(4, Math.max(0.42, 2.3 * Math.pow(10, -0.2 * st.mag))) * s * 1.3;
     const fade = k > shown - n * 0.08 ? 0.4 : 1;
     // ufka yakın olanlar biraz sönük
     const ext = st.alt < 12 ? 0.45 + (st.alt / 12) * 0.55 : 1;
     ctx.globalAlpha = Math.min(1, (0.55 + 0.45 * (1 - st.mag / 6)) * fade * ext);
     ctx.fillStyle = starColor(st.bv);
-    if (st.mag < 1.6) {
+    if (st.mag < 2.6) {
       ctx.shadowColor = ctx.fillStyle;
-      ctx.shadowBlur = r * 4;
+      ctx.shadowBlur = r * (st.mag < 1 ? 5 : 3);
     }
     ctx.beginPath();
     ctx.arc(X(st), Y(st), r, 0, Math.PI * 2);
@@ -179,10 +198,6 @@ export function drawSkyPoster(
     ctx.globalAlpha = 1;
   }
 
-  // baş harf takımyıldızı
-  if (opts.initials && progress > 0.85) {
-    drawInitials(ctx, sky, meta.names, cx, cy, R, s, (progress - 0.85) / 0.15);
-  }
   ctx.restore();
 
   // ---------------------------------------------------------------- pusula halkası
@@ -251,62 +266,9 @@ function label(ctx: CanvasRenderingContext2D, t: string, x: number, y: number, s
   ctx.textAlign = "center";
 }
 
-/** İki baş harfi, haritadaki gerçek parlak yıldızlara en yakın eşleşmeyle çizer */
-function drawInitials(ctx: CanvasRenderingContext2D, sky: Sky, names: [string, string], cx: number, cy: number, R: number, s: number, alpha: number) {
-  const letters = [initialOf(names[0]), initialOf(names[1])];
-  const box = R * 0.3;
-  const pool = sky.stars.filter((st) => st.mag < 5.2 && st.alt > 10 && Math.hypot(st.x, st.y) < 0.85);
-  const used = new Set<number>();
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.strokeStyle = "rgba(233,220,192,.9)";
-  ctx.lineWidth = Math.max(0.8, 1.1 * s);
-  ctx.setLineDash([5 * s, 4 * s]);
-  letters.forEach((Lt, li) => {
-    if (!Lt) return;
-    const ox = cx + (li === 0 ? -1 : 1) * box * 0.72 - box / 2;
-    const oy = cy - box * 0.55;
-    for (const stroke of letterStrokes(Lt)) {
-      const pts = stroke.map(([lx, ly]) => {
-        const tx = ox + lx * box * (Lt === "I" ? 1 : 0.8) + (Lt === "I" ? 0 : box * 0.1);
-        const ty = oy + ly * box;
-        // en yakın kullanılmamış yıldız
-        let best = -1;
-        let bd = box * 0.3;
-        for (const st of pool) {
-          if (used.has(st.i)) continue;
-          const d = Math.hypot(cx + st.x * R - tx, cy + st.y * R - ty);
-          if (d < bd) {
-            bd = d;
-            best = st.i;
-          }
-        }
-        if (best >= 0) {
-          used.add(best);
-          const st = pool.find((p) => p.i === best)!;
-          return [cx + st.x * R, cy + st.y * R] as [number, number];
-        }
-        return [tx, ty] as [number, number];
-      });
-      ctx.beginPath();
-      pts.forEach(([x, y], k) => (k ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = "#f3e6c8";
-      for (const [x, y] of pts) {
-        ctx.beginPath();
-        ctx.arc(x, y, 1.8 * s, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.setLineDash([5 * s, 4 * s]);
-    }
-  });
-  ctx.restore();
-}
-
 export const SKY_EXPORTS = [
-  { id: "iphone", label: "iPhone duvar kağıdı", w: 1179, h: 2556 },
-  { id: "android", label: "Android duvar kağıdı", w: 1080, h: 2400 },
+  { id: "iphone", label: "iPhone duvar kağıdı", w: 1290, h: 2796 },
+  { id: "android", label: "Android duvar kağıdı", w: 1440, h: 3200 },
   { id: "story", label: "Hikâye (9:16)", w: 1080, h: 1920 },
   { id: "kare", label: "Kare (gönderi)", w: 2048, h: 2048 },
   { id: "poster", label: "Poster (A4, baskı)", w: 2480, h: 3508 },

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, Copy, Download, ImagePlus, Link2, Pencil, X } from "lucide-react";
 import { FilmPlayer, type FilmHandle } from "@/components/biz/film-player";
 import { ConsentDialog } from "@/components/biz/consent-dialog";
+import { DateInput } from "@/components/biz/date-input";
 import { MONTHS_TR, type FilmData } from "@/lib/film/engine";
 import { compressImage } from "@/lib/image";
 import { shareOrDownload } from "@/lib/share";
@@ -48,7 +49,7 @@ export function FilmMaker({ userId }: { userId: string }) {
   function next() {
     if (step === 0 && (!a.trim() || !b.trim())) return setErr("İki ismi de yaz.");
     if (step === 1) {
-      if (!met) return setErr("Bir tarih seç.");
+      if (!met) return setErr("Tarihi Gün.Ay.Yıl şeklinde yaz, ör. 14.06.2025");
       if (met > todayIso()) return setErr("Tarih bugünden sonra olamaz.");
     }
     if (step === 2 && count < 3) return setErr("En az 3 ay için birer fotoğraf seç.");
@@ -124,8 +125,7 @@ export function FilmMaker({ userId }: { userId: string }) {
           )}
           {step === 1 && (
             <div className="max-w-xs">
-              <label className="label" htmlFor="met">Tarih</label>
-              <input id="met" type="date" min="1950-01-01" max={todayIso()} className="field [color-scheme:dark]" value={met} onChange={(e) => setMet(e.target.value)} />
+              <DateInput label="Tarih" value={met} onChange={setMet} />
             </div>
           )}
           {step === 2 && (

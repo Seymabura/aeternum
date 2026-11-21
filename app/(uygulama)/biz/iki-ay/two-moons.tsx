@@ -6,10 +6,11 @@ import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, Copy, Download, Link2, Loader2, RotateCcw } from "lucide-react";
 import { CityPicker } from "@/components/biz/city-picker";
+import { DateInput } from "@/components/biz/date-input";
 import { MoonPosterView, type MoonPosterHandle } from "@/components/biz/moon-poster-view";
 import { DEFAULT_CITY, type City } from "@/lib/astro/cities";
 import { moonAt } from "@/lib/astro/moon";
-import { EXPORTS, type MoonPayload, type MoonPerson } from "@/lib/astro/moon-poster";
+import { EXPORTS, pct, unionFractionOf, unionLine, type MoonPayload, type MoonPerson } from "@/lib/astro/moon-poster";
 import { todayIso, trDate, zonedToUtc } from "@/lib/astro/time";
 import { ConsentDialog } from "@/components/biz/consent-dialog";
 import { cn } from "@/lib/utils";
@@ -18,14 +19,14 @@ type Person = { name: string; date: string; time: string; city: City };
 const empty = (): Person => ({ name: "", date: "", time: "", city: DEFAULT_CITY });
 
 function validDate(d: string): string | null {
-  if (!d) return "Bir tarih seç.";
+  if (!d) return "Tarihi Gün.Ay.Yıl şeklinde yaz, ör. 14.03.2005";
   if (d > todayIso()) return "Tarih bugünden sonra olamaz.";
   if (d < "1900-01-01") return "1900'den önceki tarihler desteklenmiyor.";
   return null;
 }
 
 function toMoon(p: Person, nameFallback: string): MoonPerson {
-  const when = zonedToUtc(p.date, p.time || "21:00", p.city.tz);
+  const when = zonedToUtc(p.date, p.time || "12:00", p.city.tz);
   const m = moonAt(when, p.city.lat, p.city.lon);
   return {
     name: p.name.trim() || nameFallback,
@@ -49,7 +50,7 @@ export function TwoMoons() {
     return {
       a: toMoon(a, "Sen"),
       b: toMoon(b, "O"),
-      met: met.date && !validDate(met.date) ? { ...toMoon({ name: "", date: met.date, time: "21:00", city: met.city }, ""), name: "" } : null,
+      met: met.date && !validDate(met.date) ? { ...toMoon({ name: "", date: met.date, time: "12:00", city: met.city }, ""), name: "" } : null,
     };
   }, [step, a, b, met]);
 
@@ -88,7 +89,7 @@ export function TwoMoons() {
           </h1>
           <p className="mt-4 text-ink-soft">
             {step < 2
-              ? "Saati bilmiyorsan boş bırak, akşam 21:00 kabul ederiz. Bilgiler sadece bu cihazda hesaplanır, kaydedilmez."
+              ? "Saati bilmiyorsan boş bırak: Ay bir gün içinde çok az değişir, öğle 12:00 üzerinden hesaplarız. Bilgiler sadece bu cihazda hesaplanır, kaydedilmez."
               : "İstersen tanıştığınız geceyi de ekle; posterin üstünde küçük bir Ay olarak durur. Atlayabilirsin."}
           </p>
 
@@ -105,7 +106,7 @@ export function TwoMoons() {
                 <PersonFields p={step === 0 ? a : b} set={step === 0 ? setA : setB} who={step === 0 ? "Adın" : "Onun adı"} />
               ) : (
                 <>
-                  <DateField label="Tanıştığınız tarih (isteğe bağlı)" value={met.date} onChange={(d) => setMet((m) => ({ ...m, date: d }))} />
+                  <DateInput label="Tanıştığınız tarih" optional value={met.date} onChange={(d) => setMet((m) => ({ ...m, date: d }))} />
                   {met.date && <CityPicker value={met.city} onChange={(c) => setMet((m) => ({ ...m, city: c }))} label="Nerede tanıştınız?" />}
                 </>
               )}
@@ -146,7 +147,7 @@ function PersonFields({ p, set, who }: { p: Person; set: React.Dispatch<React.Se
         <input id="ad" className="field" maxLength={24} value={p.name} onChange={(e) => set((x) => ({ ...x, name: e.target.value }))} autoComplete="given-name" />
       </div>
       <div className="grid grid-cols-[1fr_8.5rem] gap-3">
-        <DateField label="Doğum tarihi" value={p.date} onChange={(d) => set((x) => ({ ...x, date: d }))} />
+        <DateInput label="Doğum tarihi" value={p.date} onChange={(d) => set((x) => ({ ...x, date: d }))} />
         <div>
           <label className="label" htmlFor="saat">
             Saat
@@ -156,17 +157,6 @@ function PersonFields({ p, set, who }: { p: Person; set: React.Dispatch<React.Se
       </div>
       <CityPicker value={p.city} onChange={(c) => set((x) => ({ ...x, city: c }))} label="Doğduğu şehir" />
     </>
-  );
-}
-
-function DateField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div>
-      <label className="label" htmlFor={label}>
-        {label}
-      </label>
-      <input id={label} type="date" lang="tr" min="1900-01-01" max={todayIso()} className="field [color-scheme:dark]" value={value} onChange={(e) => onChange(e.target.value)} />
-    </div>
   );
 }
 
@@ -180,7 +170,7 @@ function Result({ payload, onEdit }: { payload: MoonPayload; onEdit: () => void 
 
   return (
     <div className="mt-8 grid items-start gap-10 lg:grid-cols-[minmax(0,26rem)_1fr] lg:gap-16">
-      <MoonPosterView ref={view} payload={payload} hideDates={hideDates} onMerged={setMerged} className="mx-auto max-w-[26rem] shadow-[0_40px_90px_-30px_rgba(0,0,0,.95)]" />
+      <MoonPosterView ref={view} payload={payload} onMerged={setMerged} className="mx-auto max-w-[26rem] shadow-[0_40px_90px_-30px_rgba(0,0,0,.95)]" />
 
       <div className="lg:sticky lg:top-28">
         <p className="eyebrow">İki Ay</p>
@@ -198,6 +188,16 @@ function Result({ payload, onEdit }: { payload: MoonPayload; onEdit: () => void 
           ))}
         </dl>
 
+        <div className="mt-6">
+          <p className="display text-[1.6rem] italic text-gold">İkimiz birlikte: {pct(unionFractionOf(payload))}</p>
+          <p className="mt-1 text-sm text-ink-soft">{unionLine(payload)}</p>
+          {payload.met && (
+            <p className="mt-3 text-sm text-ink-soft">
+              Tanıştığınız gece: <span className="text-champagne">{moonName(payload.met.phaseAngle)} · {pct(payload.met.fraction)}</span>
+            </p>
+          )}
+        </div>
+
         <div className="mt-8 flex flex-wrap gap-3">
           <button className="btn btn-primary" onClick={() => view.current?.merge(!merged)}>
             {merged ? "Ayır" : "Birleştir"}
@@ -209,7 +209,7 @@ function Result({ payload, onEdit }: { payload: MoonPayload; onEdit: () => void 
 
         <label className="mt-6 flex cursor-pointer items-center gap-3 text-sm text-ink-soft">
           <input type="checkbox" className="h-4 w-4 accent-[#dcc7a1]" checked={hideDates} onChange={(e) => setHideDates(e.target.checked)} />
-          Doğum tarihlerini posterde gösterme
+          Bağlantıda doğum tarihlerini gösterme
         </label>
 
         <h2 className="mt-12 text-sm text-ink-soft">İndir</h2>

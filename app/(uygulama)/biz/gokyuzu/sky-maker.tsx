@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, Copy, Download, Link2, Loader2, RotateCcw } from "lucide-react";
 import { CityPicker } from "@/components/biz/city-picker";
+import { DateInput } from "@/components/biz/date-input";
 import { ConsentDialog } from "@/components/biz/consent-dialog";
 import { SkyView, type SkyHandle, type SkyInput } from "@/components/biz/sky-view";
 import { DEFAULT_CITY, formatCoords, type City } from "@/lib/astro/cities";
@@ -19,7 +20,6 @@ export function SkyMaker() {
   const [time, setTime] = useState("21:00");
   const [city, setCity] = useState<City>(DEFAULT_CITY);
   const [line, setLine] = useState("");
-  const [initials, setInitials] = useState(true);
   const [input, setInput] = useState<SkyInput | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -34,7 +34,6 @@ export function SkyMaker() {
       when,
       lat: city.lat,
       lon: city.lon,
-      initials,
       meta: {
         names: [a.trim(), b.trim()],
         dateText: `${trDate(date)}, ${time || "21:00"}`,
@@ -54,7 +53,7 @@ export function SkyMaker() {
         <div className="mx-auto mt-10 max-w-lg">
           <p className="eyebrow">Gökyüzümüz</p>
           <h1 className="display mt-5 text-[2.5rem] sm:text-[3.5rem]">O gece gökyüzünde ne vardı?</h1>
-          <p className="mt-4 text-ink-soft">Tarih, saat ve şehri seç; o an o şehirden görünen gerçek yıldızları, takımyıldızları, Ay'ı ve gezegenleri çizelim.</p>
+          <p className="mt-4 text-ink-soft">Tarih, saat ve şehri seç; o an o şehirden görünen gerçek yıldızları, Samanyolu'nu, takımyıldızları, Ay'ı ve gezegenleri çizelim.</p>
           <div className="mt-10 space-y-5">
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -67,10 +66,7 @@ export function SkyMaker() {
               </div>
             </div>
             <div className="grid grid-cols-[1fr_8.5rem] gap-3">
-              <div>
-                <label className="label" htmlFor="tarih">Tarih</label>
-                <input id="tarih" type="date" min="1900-01-01" max="2100-12-31" className="field [color-scheme:dark]" value={date} onChange={(e) => setDate(e.target.value)} />
-              </div>
+              <DateInput label="Tarih" value={date} onChange={setDate} />
               <div>
                 <label className="label" htmlFor="saat">Saat</label>
                 <input id="saat" type="time" className="field [color-scheme:dark]" value={time} onChange={(e) => setTime(e.target.value)} />
@@ -81,10 +77,6 @@ export function SkyMaker() {
               <label className="label" htmlFor="line">Kısa bir cümle (isteğe bağlı)</label>
               <input id="line" className="field hand !text-[1.4rem]" maxLength={60} value={line} onChange={(e) => setLine(e.target.value)} placeholder="o akşam her şey başladı" />
             </div>
-            <label className="flex cursor-pointer items-center gap-3 text-sm text-ink-soft">
-              <input type="checkbox" className="h-4 w-4 accent-[#dcc7a1]" checked={initials} onChange={(e) => setInitials(e.target.checked)} />
-              Baş harflerimizi yıldızlarla çiz
-            </label>
           </div>
           {err && <p role="alert" className="mt-4 text-sm text-bordo">{err}</p>}
           <button className="btn btn-primary mt-10" onClick={show}>
@@ -93,13 +85,13 @@ export function SkyMaker() {
           <p className="mt-4 text-xs text-ink-mute">Bugün: {trDate(todayIso())}. Gelecekteki bir tarih de seçebilirsin (yıldönümü gibi).</p>
         </div>
       ) : (
-        <SkyResult input={input} onEdit={() => setInput(null)} onToggleInitials={() => setInput((i) => (i ? { ...i, initials: !i.initials } : i))} />
+        <SkyResult input={input} onEdit={() => setInput(null)} />
       )}
     </div>
   );
 }
 
-function SkyResult({ input, onEdit, onToggleInitials }: { input: SkyInput; onEdit: () => void; onToggleInitials: () => void }) {
+function SkyResult({ input, onEdit }: { input: SkyInput; onEdit: () => void }) {
   const view = useRef<SkyHandle>(null);
   const [spin, setSpin] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -120,9 +112,6 @@ function SkyResult({ input, onEdit, onToggleInitials }: { input: SkyInput; onEdi
         <div className="mt-8 flex flex-wrap gap-3">
           <button className="btn btn-primary" onClick={() => view.current?.spin(!spin)}>
             {spin ? "Durdur" : "O gece nasıl döndü?"}
-          </button>
-          <button className={cn("btn btn-ghost", input.initials && "!border-champagne/40")} onClick={onToggleInitials} aria-pressed={input.initials}>
-            Baş harfler
           </button>
           <button className="btn btn-ghost" onClick={onEdit}>
             <RotateCcw className="h-4 w-4" strokeWidth={1.5} /> Değiştir

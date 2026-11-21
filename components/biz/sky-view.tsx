@@ -1,27 +1,32 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { computeSky, type ConstellationData, type StarRow } from "@/lib/astro/sky";
+import { computeSky, type ConstellationData, type MilkyWay, type StarRow } from "@/lib/astro/sky";
 import { drawSkyPoster, ensureSkyFonts, SKY_EXPORTS, type SkyMeta } from "@/lib/astro/sky-render";
 import { shareOrDownload } from "@/lib/share";
 import { cn } from "@/lib/utils";
 
-let dataPromise: Promise<{ stars: StarRow[]; cons: ConstellationData }> | null = null;
+type SkyData = { stars: StarRow[]; cons: ConstellationData; mw: MilkyWay };
+let dataPromise: Promise<SkyData> | null = null;
 export function loadSkyData() {
   if (!dataPromise) {
-    dataPromise = Promise.all([fetch("/sky/stars.json").then((r) => r.json()), fetch("/sky/constellations.json").then((r) => r.json())]).then(([stars, cons]) => ({ stars, cons }));
+    dataPromise = Promise.all([
+      fetch("/sky/stars.json").then((r) => r.json()),
+      fetch("/sky/constellations.json").then((r) => r.json()),
+      fetch("/sky/milkyway.json").then((r) => r.json()),
+    ]).then(([stars, cons, mw]) => ({ stars, cons, mw }));
     dataPromise.catch(() => (dataPromise = null));
   }
   return dataPromise;
 }
 
-export type SkyInput = { when: string; lat: number; lon: number; meta: SkyMeta; initials: boolean };
+export type SkyInput = { when: string; lat: number; lon: number; meta: SkyMeta; initials?: boolean };
 export type SkyHandle = { exportAs: (id: (typeof SKY_EXPORTS)[number]["id"]) => Promise<void>; spin: (on: boolean) => void };
 
 export const SkyView = forwardRef<SkyHandle, { input: SkyInput; className?: string; onSpin?: (on: boolean) => void }>(function SkyView({ input, className, onSpin }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const dataRef = useRef<{ stars: StarRow[]; cons: ConstellationData } | null>(null);
+  const dataRef = useRef<SkyData | null>(null);
   const raf = useRef(0);
   const spinning = useRef(false);
   const offset = useRef(0); // dakika
@@ -44,8 +49,8 @@ export const SkyView = forwardRef<SkyHandle, { input: SkyInput; className?: stri
     const d = dataRef.current;
     if (!c || !d) return;
     const t = new Date(new Date(input.when).getTime() + offset.current * 60000);
-    const sky = computeSky(t, input.lat, input.lon, d.stars, d.cons);
-    drawSkyPoster(c.getContext("2d")!, c.width, c.height, sky, input.meta, { progress, initials: input.initials && !spinning.current });
+    const sky = computeSky(t, input.lat, input.lon, d.stars, d.cons, d.mw);
+    drawSkyPoster(c.getContext("2d")!, c.width, c.height, sky, input.meta, { progress });
   };
 
   useEffect(() => {
@@ -105,8 +110,8 @@ export const SkyView = forwardRef<SkyHandle, { input: SkyInput; className?: stri
       const c = document.createElement("canvas");
       c.width = spec.w;
       c.height = spec.h;
-      const sky = computeSky(new Date(input.when), input.lat, input.lon, d.stars, d.cons);
-      drawSkyPoster(c.getContext("2d")!, spec.w, spec.h, sky, input.meta, { progress: 1, initials: input.initials });
+      const sky = computeSky(new Date(input.when), input.lat, input.lon, d.stars, d.cons, d.mw);
+      drawSkyPoster(c.getContext("2d")!, spec.w, spec.h, sky, input.meta, { progress: 1 });
       const blob = await new Promise<Blob | null>((r) => c.toBlob(r, "image/png"));
       if (!blob) throw new Error("png");
       await shareOrDownload(blob, `aeternum-gokyuzu-${spec.id}.png`, "Gökyüzümüz");
@@ -120,7 +125,7 @@ export const SkyView = forwardRef<SkyHandle, { input: SkyInput; className?: stri
       <canvas
         ref={canvasRef}
         role="img"
-        aria-label={`${input.meta.dateText}, ${input.meta.place} gökyüzü: yıldızlar, takımyıldızlar${input.initials ? " ve baş harfleriniz" : ""}.`}
+        aria-label={`${input.meta.dateText}, ${input.meta.place} gökyüzü: yıldızlar, takımyıldızlar.`}
         className="absolute inset-0 rounded-[22px]"
         style={{ width: size.w, height: size.h }}
       />

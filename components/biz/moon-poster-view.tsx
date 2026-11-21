@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { loadMoonTexture } from "@/lib/astro/moon-render";
+import { loadMoonTexture, MOON_2K, MOON_4K } from "@/lib/astro/moon-render";
 import { buildMoons, drawPoster, ensurePosterFonts, EXPORTS, pct, type MoonImages, type MoonPayload } from "@/lib/astro/moon-poster";
 import { phaseLabel } from "@/lib/astro/moon";
 import { shareOrDownload } from "@/lib/share";
@@ -15,8 +15,8 @@ export type MoonPosterHandle = {
 /**
  * İki Ay posterinin canlı önizlemesi (9:16). Ay'lar bir kez çizilir; animasyon sadece yerleşimi değiştirir.
  */
-export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayload; autoMerge?: boolean; hideDates?: boolean; className?: string; onMerged?: (m: boolean) => void }>(
-  function MoonPosterView({ payload, autoMerge = true, hideDates, className, onMerged }, ref) {
+export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayload; autoMerge?: boolean; className?: string; onMerged?: (m: boolean) => void }>(
+  function MoonPosterView({ payload, autoMerge = true, className, onMerged }, ref) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const wrapRef = useRef<HTMLDivElement>(null);
     const imgRef = useRef<MoonImages | null>(null);
@@ -45,7 +45,7 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
       if (!c || !img) return;
       const ctx = c.getContext("2d")!;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      drawPoster(ctx, c.width, c.height, payload, img, progRef.current, { hideDates });
+      drawPoster(ctx, c.width, c.height, payload, img, progRef.current);
     };
 
     // Ay'ları hazırla
@@ -53,14 +53,14 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
       let dead = false;
       (async () => {
         try {
-          const [tex] = await Promise.all([loadMoonTexture(), ensurePosterFonts()]);
-          if (dead) return;
-          texRef.current = tex;
           const dpr = Math.min(2, window.devicePixelRatio || 1);
           const W = size.w * dpr;
           const H = size.h * dpr;
-          const u = Math.min(W, H * 0.5625);
-          imgRef.current = buildMoons(tex, payload, u * 0.34);
+          // büyük ekranlarda ön izleme de 4K dokuyla
+          const [tex] = await Promise.all([loadMoonTexture(W > 900 ? MOON_4K : MOON_2K), ensurePosterFonts()]);
+          if (dead) return;
+          texRef.current = tex;
+          imgRef.current = buildMoons(tex, payload, W, H);
           const c = canvasRef.current!;
           c.width = W;
           c.height = H;
@@ -74,7 +74,7 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
         dead = true;
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [payload, size.w, size.h, hideDates]);
+    }, [payload, size.w, size.h]);
 
     function animateTo(target: number, ms = 2400) {
       cancelAnimationFrame(animRef.current);
@@ -108,13 +108,12 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
       merge: (to) => animateTo(to ? 1 : 0),
       async exportAs(id) {
         const spec = EXPORTS.find((e) => e.id === id)!;
-        const tex = texRef.current ?? (await loadMoonTexture());
+        const tex = await loadMoonTexture(MOON_4K);
         const c = document.createElement("canvas");
         c.width = spec.w;
         c.height = spec.h;
-        const u = Math.min(spec.w, spec.h * 0.5625);
-        const imgs = buildMoons(tex, payload, u * 0.34);
-        drawPoster(c.getContext("2d")!, spec.w, spec.h, payload, imgs, progRef.current > 0.5 ? 1 : 0, { hideDates });
+        const imgs = buildMoons(tex, payload, spec.w, spec.h);
+        drawPoster(c.getContext("2d")!, spec.w, spec.h, payload, imgs, progRef.current > 0.5 ? 1 : 0);
         const blob = await new Promise<Blob | null>((r) => c.toBlob(r, "image/png"));
         if (!blob) throw new Error("png");
         const names = `${payload.a.name}-${payload.b.name}`.toLocaleLowerCase("tr").replace(/[^a-z0-9çğıöşü-]+/g, "-");

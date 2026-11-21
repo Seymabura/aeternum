@@ -22,6 +22,14 @@ const cons = Object.fromEntries(
   read("constellations.json").features.map((f) => [f.id, { rank: +f.properties.rank, p: [+ra(f.geometry.coordinates[0]).toFixed(2), +f.geometry.coordinates[1].toFixed(2)] }]),
 );
 
+// Samanyolu: 5 parlaklık katmanı, her halkada 3 noktadan biri
+const mw = read("mw.json").features.map((f) =>
+  f.geometry.coordinates.flatMap((poly) =>
+    poly.map((ring) => ring.filter((_, i) => i % 3 === 0).map(([x, y]) => [+ra(x).toFixed(2), +y.toFixed(2)])),
+  ),
+);
+writeFileSync("public/sky/milkyway.json", JSON.stringify(mw));
+
 writeFileSync("public/sky/stars.json", JSON.stringify(stars));
 writeFileSync("public/sky/constellations.json", JSON.stringify({ lines, labels: cons }));
 console.log("yıldız", stars.length, "takımyıldız", lines.length);

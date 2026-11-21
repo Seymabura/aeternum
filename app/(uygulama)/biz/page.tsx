@@ -11,13 +11,13 @@ const FEATURES = [
   {
     href: "/biz/iki-ay",
     title: "İki Ay",
-    text: "İkinizin doğduğu gecenin Ay'ı, gerçek gökbilim hesabıyla. Yan yana durur, sonra tek bir Ay'da birleşir. Poster ve duvar kağıdı olarak indirilir.",
+    text: "İkinizin doğduğu gecenin Ay'ı, gerçek gökbilim hesabıyla ve NASA'nın yüksek çözünürlüklü Ay görüntüsüyle. Yan yana durur, sonra tek bir Ay'da birleşir. Yazısız, ekranı dolduran bir duvar kağıdı olarak indirilir.",
     img: "/showcase/biz-ay.webp",
   },
   {
     href: "/biz/gokyuzu",
     title: "Tanıştığınız gecenin gökyüzü",
-    text: "O tarih, saat ve şehirden görünen gerçek yıldızlar, takımyıldızlar, Ay ve gezegenler. İsterseniz baş harfleriniz yıldızlarla çizilir.",
+    text: "O tarih, saat ve şehirden görünen gerçek yıldızlar, Samanyolu, takımyıldızlar, Ay ve gezegenler. Poster ya da duvar kağıdı olarak indirilir.",
     img: "/showcase/biz-gok.webp",
   },
   {
