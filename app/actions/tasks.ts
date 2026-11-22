@@ -56,7 +56,6 @@ export async function saveTask(day: number, answer: TaskAnswer, photoPath?: stri
     return { ok: false as const, error: "Kaydedilemedi, tekrar dener misin?" };
   }
   revalidatePath("/takvim");
-  revalidatePath("/kure");
   return { ok: true as const, first: !existing, gift: task.gift };
 }
 

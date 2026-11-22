@@ -329,6 +329,8 @@ export type RenderOpts = {
   fast?: boolean;
   /** kadraj merkezinin dikey konumu (0..1), varsayılan 0.5 */
   cyFrac?: number;
+  /** Samanyolu bulutunu çizme (İki Ay: sade siyah gökyüzü) */
+  noMilkyWay?: boolean;
 };
 
 export type SkyLayers = {
@@ -396,7 +398,7 @@ export async function renderSky(scene: SkyScene, cat: Catalog, W: number, H: num
         G += 8 * ag;
         B += 6 * ag;
         // Samanyolu
-        const md = sampleMw(mwMap, d);
+        const md = opts.noMilkyWay ? 0 : sampleMw(mwMap, d);
         if (md > 0.005) {
           const n1 = fbm(d[0] * 6 + 3, d[1] * 6 - 1, d[2] * 6);
           const n2 = fbm(d[0] * 34 - 5, d[1] * 34 + 2, d[2] * 34 + 7);

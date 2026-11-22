@@ -1,9 +1,6 @@
-import { loadSky } from "@/app/actions/fener";
-import { LanternSky } from "./lantern-sky";
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "Dilek feneri" };
-
-export default async function FenerPage() {
-  const sky = await loadSky();
-  return <LanternSky initial={sky} />;
+// Dilek feneri şimdilik kapalı (kodu duruyor, geri açmak için eski sayfayı geri getir)
+export default function FenerPage() {
+  redirect("/");
 }

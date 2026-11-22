@@ -19,10 +19,10 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profil">
       <div>
         <p className="eyebrow">Profil</p>
         <h1 className="display mt-5 text-[2.75rem] sm:text-[3.5rem]">Defterin</h1>
-        <p className="mt-4 text-ink-soft">Görevlerin, küren ve mektubun bu defterde.</p>
+        <p className="mt-4 text-ink-soft">Görevlerin, mektubun ve panoların bu defterde.</p>
       </div>
       <dl className="sheet grid grid-cols-3 py-6">
-        <Stat n={p.entries.length} total="/31" label="süs" first />
+        <Stat n={p.entries.length} total="/31" label="gün" first />
         <Stat n={p.streak} label="gün seri" />
         <Stat n={p.bonusIds.length} total="/17" label="ışık" />
       </dl>

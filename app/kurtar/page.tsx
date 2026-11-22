@@ -10,7 +10,7 @@ export default function Page() {
       <Logo />
       <div className="my-auto py-16">
         <h1 className="display text-[2.5rem] sm:text-[3rem]">Defterini geri getir</h1>
-        <p className="mt-4 text-ink-soft">Başka bir cihazda aldığın kurtarma kodunu yaz. Görevlerin, küren, mektubun ve vision board’un bu cihazda açılır.</p>
+        <p className="mt-4 text-ink-soft">Başka bir cihazda aldığın kurtarma kodunu yaz. Görevlerin, mektubun ve vision board’un bu cihazda açılır.</p>
         <RestoreForm />
         <p className="mt-10 text-sm text-ink-mute">
           Kodun yok mu? Eski cihazında <span className="text-ink-soft">Profil</span> sayfasından alabilirsin. Kod yoksa defter geri getirilemez.{" "}

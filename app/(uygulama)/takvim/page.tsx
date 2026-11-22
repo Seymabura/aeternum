@@ -6,7 +6,7 @@ import { RestoredToast } from "./restored-toast";
 import { InstallApp } from "@/components/install-app";
 import { TASKS } from "@/lib/tasks";
 import { Countdown } from "@/components/countdown";
-import { GlobeHero } from "@/components/globe-hero";
+import { ProgressRing } from "@/components/progress-ring";
 import { AdventGrid } from "./advent-grid";
 
 export const metadata = { title: "Takvim" };
@@ -46,7 +46,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/takvim"
           )}
         </div>
       )}
-      {/* ------------------------------------------------------------ üst: bugün + küre */}
+      {/* ------------------------------------------------------------ üst: bugün + takımyıldızı */}
       <section className="grid items-stretch gap-5 lg:grid-cols-[1.35fr_1fr]">
         <div className="sheet spot rise relative flex flex-col justify-between overflow-hidden p-7 sm:p-10" style={{ borderColor: "rgba(220,199,161,.22)" }}>
           <div
@@ -59,7 +59,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/takvim"
             {p.today === 0 ? (
               <>
                 <h1 className="display mt-5 text-[2.6rem] sm:text-[4rem]">
-                  Küren seni <em className="gold-shine italic">bekliyor.</em>
+                  Aralık seni <em className="gold-shine italic">bekliyor.</em>
                 </h1>
                 <p className="mt-5 max-w-md text-ink-soft">
                   1 Aralık&apos;tan itibaren her gün kendin için küçük bir şey yapacaksın. İlk kutu{" "}
@@ -68,7 +68,6 @@ export default async function CalendarPage({ searchParams }: PageProps<"/takvim"
                 <div className="mt-8 border-t border-champagne/10 pt-6">
                   <p className="text-sm text-ink-soft">İlk görev</p>
                   <p className="display mt-1 text-[1.6rem]">{firstTask.title}</p>
-                  <p className="mt-1 text-sm text-ink-soft">✦ Süsü: {firstTask.gift}</p>
                 </div>
               </>
             ) : p.today <= 31 && todayTask ? (
@@ -83,7 +82,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/takvim"
                   )}
                 </h1>
                 <p className="mt-5 max-w-md text-ink-soft">
-                  {todayDone ? "Küren biraz daha parladı. Yeni kutu " : todayTask.hint + " Yeni kutu "}
+                  {todayDone ? "Takımyıldızında bir yıldız daha yandı. Yeni kutu " : todayTask.hint + " Yeni kutu "}
                   <Countdown mode="midnight" className="text-ink" /> sonra.
                 </p>
                 {!todayDone && (
@@ -94,17 +93,23 @@ export default async function CalendarPage({ searchParams }: PageProps<"/takvim"
               </>
             ) : (
               <h1 className="display mt-5 text-[2.6rem] sm:text-[4rem]">
-                Küren <em className="gold-shine italic">tamamlandı.</em>
+                Aralık <em className="gold-shine italic">tamamlandı.</em>
               </h1>
             )}
           </div>
         </div>
 
-        <Link href="/kure" className="sheet group relative flex flex-col overflow-hidden p-5" aria-label="Küremi gör">
-          <GlobeHero days={done} lights={p.bonusIds.length} className="max-w-[360px] transition-transform duration-700 group-hover:scale-[1.02]" />
+        <div className="sheet relative flex flex-col overflow-hidden p-5">
+          <ProgressRing done={done} today={p.today >= 1 && p.today <= 31 ? p.today : undefined} className="max-w-[320px] py-2">
+            <span className="display num text-[3.2rem] leading-none text-ink">
+              {done.length}
+              <span className="text-xl text-ink-mute">/31</span>
+            </span>
+            <span className="mt-2 text-xs text-ink-soft">Aralık takımyıldızın</span>
+          </ProgressRing>
           <dl className="mt-auto grid grid-cols-3 border-t border-champagne/10 pt-4 text-center">
             {[
-              { v: `${done.length}`, s: "/31", l: "süs" },
+              { v: `${done.length}`, s: "/31", l: "gün" },
               { v: `${p.streak}`, s: "", l: "gün seri" },
               { v: `${p.bonusIds.length}`, s: "/17", l: "ışık" },
             ].map((x, i) => (
@@ -118,7 +123,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/takvim"
               </div>
             ))}
           </dl>
-        </Link>
+        </div>
       </section>
 
       {/* ------------------------------------------------------------ takvim */}
@@ -128,7 +133,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/takvim"
           <p className="text-sm text-ink-soft">En uzun seri {p.bestStreak} gün</p>
         </div>
         <AdventGrid today={p.today} done={done} onTime={onTime} />
-        <p className="mt-4 text-[0.8125rem] text-ink-soft">Kaçırdığın günleri sonradan da yapabilirsin. Süsün eklenir ama seriye sayılmaz.</p>
+        <p className="mt-4 text-[0.8125rem] text-ink-soft">Kaçırdığın günleri sonradan da yapabilirsin; yıldızın yanar ama seriye sayılmaz.</p>
       </section>
       {p.today < 31 && <InstallApp compact />}
 

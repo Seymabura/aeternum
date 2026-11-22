@@ -48,11 +48,11 @@ export function TwoMoons() {
   const [err, setErr] = useState<string | null>(null);
 
   const payload: MoonPayload | null = useMemo(() => {
-    if (step < 3) return null;
+    if (step < 2) return null;
     return {
       a: toMoon(a, "Sen"),
       b: toMoon(b, "O"),
-      met: met.date && !validDate(met.date) ? { ...toMoon({ name: "", date: met.date, time: "12:00", city: met.city }, ""), name: "" } : null,
+      met: null,
     };
   }, [step, a, b, met]);
 
@@ -62,10 +62,6 @@ export function TwoMoons() {
       if (!p.name.trim()) return setErr("Bir isim yaz.");
       const e = validDate(p.date);
       if (e) return setErr(step === 0 ? e.replace("Tarih", "Doğum tarihi") : e.replace("Tarih", "Doğum tarihi"));
-    }
-    if (step === 2 && met.date) {
-      const e = validDate(met.date);
-      if (e) return setErr(e);
     }
     setErr(null);
     setStep((s) => s + 1);
@@ -77,22 +73,14 @@ export function TwoMoons() {
         <ArrowLeft className="h-4 w-4" strokeWidth={1.5} /> Biz
       </Link>
 
-      {step < 3 ? (
+      {step < 2 ? (
         <div className="mx-auto mt-10 max-w-lg">
-          <p className="eyebrow">İki Ay · {step + 1}/3</p>
+          <p className="eyebrow">İki Ay · {step + 1}/2</p>
           <h1 className="display mt-5 text-[2.5rem] sm:text-[3.5rem]">
-            {step === 0 ? (
-              <>Sen doğduğunda gökyüzünde hangi Ay vardı?</>
-            ) : step === 1 ? (
-              <>Peki o doğduğunda?</>
-            ) : (
-              <>Tanıştığınız gece</>
-            )}
+            {step === 0 ? <>Sen doğduğunda gökyüzünde hangi Ay vardı?</> : <>Peki o doğduğunda?</>}
           </h1>
           <p className="mt-4 text-ink-soft">
-            {step < 2
-              ? "Saati bilmiyorsan boş bırak: Ay bir gün içinde çok az değişir, öğle 12:00 üzerinden hesaplarız. Bilgiler sadece bu cihazda hesaplanır, kaydedilmez."
-              : "İstersen tanıştığınız geceyi de ekle; posterin üstünde küçük bir Ay olarak durur. Atlayabilirsin."}
+            Saati bilmiyorsan boş bırak: Ay bir gün içinde çok az değişir, öğle 12:00 üzerinden hesaplarız. Bilgiler sadece bu cihazda hesaplanır, kaydedilmez.
           </p>
 
           <AnimatePresence mode="wait">
@@ -104,14 +92,7 @@ export function TwoMoons() {
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
               className="mt-10 space-y-5"
             >
-              {step < 2 ? (
-                <PersonFields p={step === 0 ? a : b} set={step === 0 ? setA : setB} who={step === 0 ? "Adın" : "Onun adı"} />
-              ) : (
-                <>
-                  <DateInput label="Tanıştığınız tarih" optional value={met.date} onChange={(d) => setMet((m) => ({ ...m, date: d }))} />
-                  {met.date && <CityPicker value={met.city} onChange={(c) => setMet((m) => ({ ...m, city: c }))} label="Nerede tanıştınız?" />}
-                </>
-              )}
+              <PersonFields p={step === 0 ? a : b} set={step === 0 ? setA : setB} who={step === 0 ? "Adın" : "Onun adı"} />
             </motion.div>
           </AnimatePresence>
 
@@ -128,7 +109,7 @@ export function TwoMoons() {
               </button>
             )}
             <button type="button" className="btn btn-primary" onClick={next}>
-              {step === 2 ? (met.date ? "Ay'ları göster" : "Atla ve göster") : "Devam"} <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+              {step === 1 ? "Ay'ları göster" : "Devam"} <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
             </button>
           </div>
         </div>

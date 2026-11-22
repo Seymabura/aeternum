@@ -1,23 +1,19 @@
 import Link from "next/link";
 import Image from "next/image";
-import { CalendarDays, Images, Mail, Moon, Sparkles } from "lucide-react";
-import { Globe, Lantern, Moons } from "@/components/icons";
+import { BookHeart, CalendarDays, Images, Mail, Moon, Sparkles } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { LandingNav } from "@/components/landing-nav";
 import { BigCountdown } from "@/components/countdown";
 import { StarRoadHost } from "@/components/star-road-host";
-import { LanternArt } from "@/components/lantern-art";
 import { todayIndexLocal } from "@/lib/day";
 
 const TOOLS = [
-  { href: "/fener", name: "Dilek feneri", hint: "Dileğini gökyüzüne bırak", icon: Lantern, nar: true },
-  { href: "/biz/iki-ay", name: "İki Ay", hint: "Doğduğunuz gecelerin Ay'ı", icon: Moon },
+  { href: "/biz/iki-ay", name: "İki Ay", hint: "Doğduğunuz gecelerin Ay'ı, tek bir Ay'da", icon: Moon, nar: true },
   { href: "/biz/gokyuzu", name: "Gökyüzümüz", hint: "Bir gecenin gerçek yıldızları", icon: Sparkles },
-  { href: "/kure#mektup", name: "2027'ye mektup", hint: "Mühürle, bir yıl sonra aç", icon: Mail },
+  { href: "/mektup", name: "2027'ye mektup", hint: "Mühürle, bir yıl sonra aç", icon: Mail },
   { href: "/vision", name: "Vision board", hint: "Gelecek yılını kur", icon: Images },
-  { href: "/biz/kure", name: "Ortak küre", hint: "Sevdiğinle birlikte", icon: Moons },
+  { href: "/biz/defter", name: "Ortak defter", hint: "30 gün, 30 soru, ikiniz", icon: BookHeart },
   { href: "/takvim", name: "31 gün", hint: "Aralık'a özel görevler", icon: CalendarDays },
-  { href: "/kure", name: "Kar küresi", hint: "Her gün bir süs", icon: Globe },
 ] as const;
 
 export default function Home() {
@@ -41,7 +37,7 @@ export default function Home() {
         </p>
         </div>
 
-        <nav aria-label="Araçlar" className="rise mx-auto grid w-full max-w-[56rem] grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3 lg:order-1 lg:mx-0 lg:max-w-none lg:grid-cols-2" style={{ animationDelay: "760ms" }}>
+        <nav aria-label="Araçlar" className="rise mx-auto grid w-full max-w-[56rem] grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:order-1 lg:mx-0 lg:max-w-none lg:grid-cols-2" style={{ animationDelay: "760ms" }}>
           {TOOLS.map(({ href, name, hint, icon: Icon, ...rest }) => {
             const nar = "nar" in rest;
             return (
@@ -72,15 +68,12 @@ export default function Home() {
         <h2 className="display max-w-3xl text-[2.6rem] leading-[1.02] sm:text-[4.5rem]">Bir gece, olduğu gibi.</h2>
         <p className="mt-5 max-w-md text-ink-soft">Gerçek gökyüzü hesabıyla çizilir. Yazısız, 4K, telefonuna duvar kağıdı olur.</p>
 
-        <div className="mt-16 grid gap-14 md:grid-cols-3 md:gap-8">
+        <div className="mt-16 grid gap-14 md:grid-cols-2 md:gap-10 lg:mx-auto lg:max-w-4xl">
           <Moment href="/biz/iki-ay" title="İki Ay" text="İkinizin doğduğu gecelerin Ay'ı, tek bir Ay'da buluşur." cta="Ayınızı oluşturun" className="md:mt-0">
             <Image src="/showcase/biz-ay.webp" alt="Siyah gökyüzünde birleşen iki Ay" fill sizes="(min-width:768px) 30vw, 90vw" className="object-cover" />
           </Moment>
-          <Moment href="/biz/gokyuzu" title="Gökyüzümüz" text="Tanıştığınız gece, o şehrin üstündeki yıldızlar." cta="O geceyi çizin" className="md:mt-24">
+          <Moment href="/biz/gokyuzu" title="Gökyüzümüz" text="Tanıştığınız gece, o şehrin üstündeki yıldızlar." cta="O geceyi çizin" className="md:mt-20">
             <Image src="/showcase/biz-gok.webp" alt="Yıldızlarla dolu gerçekçi gece gökyüzü" fill sizes="(min-width:768px) 30vw, 90vw" className="object-cover" />
-          </Moment>
-          <Moment href="/fener" title="Dilek feneri" text="Dileğini yaz, fenerini bırak. Herkesin feneri aynı gökyüzünde, isimsiz." cta="Fenerini bırak" className="md:mt-10" nar>
-            <LanternArt className="absolute inset-0 h-full w-full" />
           </Moment>
         </div>
       </section>
@@ -94,7 +87,7 @@ export default function Home() {
               Bir mektup yaz ve mühürle. 31 Aralık 2027 gece yarısına kadar kimse okuyamaz, sen bile. Yanına gelecek yılın panosunu kur: görseller, kelimeler, hedefler.
             </p>
             <div className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-[0.95rem]">
-              <Link href="/kure#mektup" prefetch={false} className="link-line">Mektubunu yaz</Link>
+              <Link href="/mektup" prefetch={false} className="link-line">Mektubunu yaz</Link>
               <Link href="/vision" prefetch={false} className="link-line">Panonu kur</Link>
             </div>
           </div>
@@ -137,23 +130,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ------------------------------------------------------------ birlikte */}
-      <section className="relative mx-auto max-w-[1240px] px-5 py-24 sm:px-8 md:py-32">
-        <div className="grid items-center gap-10 md:grid-cols-[1.1fr_1fr]">
-          <div className="relative mx-auto aspect-square w-full max-w-[420px] md:order-2">
-            <div aria-hidden className="absolute inset-[12%] rounded-full bg-[radial-gradient(circle,rgba(220,199,161,.16),transparent_65%)] blur-2xl" />
-            <Image src="/showcase/kure.webp" alt="Süslenmiş kar küresi" fill sizes="420px" className="object-contain" />
-          </div>
-          <div>
-            <h2 className="display text-[2.6rem] leading-[1.02] sm:text-[4.5rem]">İki kişilik bir küre.</h2>
-            <p className="mt-5 max-w-md text-ink-soft">
-              Sevdiğini bir bağlantıyla davet et. Aynı küreyi birlikte süsleyin, 2027&apos;de birlikte yapacaklarınızın listesini aynı anda yazın.
-            </p>
-            <Link href="/biz/kure" prefetch={false} className="link-line mt-8 inline-block">Ortak küreni aç</Link>
-          </div>
-        </div>
-      </section>
-
       {/* ------------------------------------------------------------ sezon: aralık */}
       <section id="aralik" className="relative scroll-mt-20 px-3 py-16 sm:px-6 md:py-24">
         <div className="season relative mx-auto max-w-[1320px] overflow-hidden rounded-[36px] border border-nar-soft/20 px-6 py-16 sm:px-12 md:py-24">
@@ -163,14 +139,14 @@ export default function Home() {
               <p className="text-sm text-nar-soft">Sezon</p>
               <h2 className="display mt-2 text-[4.5rem] leading-[0.9] sm:text-[8rem]">Aralık</h2>
               <p className="mt-6 max-w-md text-[1.05rem] text-ink-soft">
-                Yılın son ayı için hazırladık: her gece bir kutu açılır, içinden kendin için küçük bir iyilik çıkar. Her biri kar küreni bir süsle büyütür; ayın sonunda 2026&apos;n tek bir hikâyede toplanır.
+                Yılın son ayı için hazırladık: her gece bir kutu açılır, içinden kendin için küçük bir iyilik çıkar. Ayın sonunda 2026&apos;n tek bir hikâyede toplanır.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/takvim" prefetch={false} className="btn btn-primary">
                   Takvimi aç
                 </Link>
-                <Link href="/kure" prefetch={false} className="btn btn-ghost">
-                  Kar küren
+                <Link href="/mektup" prefetch={false} className="btn btn-ghost">
+                  2027&apos;ye mektup
                 </Link>
               </div>
             </div>

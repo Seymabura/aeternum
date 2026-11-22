@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Loader2, Share2, X } from "lucide-react";
-import { GlobeHero } from "@/components/globe-hero";
+import { ProgressRing } from "@/components/progress-ring";
 import { shareOrDownload } from "@/lib/share";
 import { yearStoryCard } from "@/lib/story-card";
 
@@ -32,7 +32,6 @@ function Big({ children }: { children: React.ReactNode }) {
 export function YearStory({ data }: { data: StoryData }) {
   const [i, setI] = useState(0);
   const reduce = useReducedMotion();
-  const globeRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
 
   async function share() {
@@ -42,7 +41,7 @@ export function YearStory({ data }: { data: StoryData }) {
         count: data.count,
         bestStreak: data.bestStreak,
         word: data.word,
-        globe: globeRef.current?.querySelector("canvas") ?? null,
+        done: data.days,
       });
       await shareOrDownload(blob, "aeternum-2026.png", "2026'm");
     } catch {
@@ -62,7 +61,7 @@ export function YearStory({ data }: { data: StoryData }) {
             <Big>
               <span className="num gold-shine">{data.count}</span> kez zaman ayırdın.
             </Big>
-            <p className="mt-6 text-ink-soft">31 günün {data.count} tanesi. Hepsi kürende bir süs oldu.</p>
+            <p className="mt-6 text-ink-soft">31 günün {data.count} tanesi. Her biri Aralık takımyıldızında bir yıldız oldu.</p>
           </>
         ),
       },
@@ -143,7 +142,7 @@ export function YearStory({ data }: { data: StoryData }) {
           <>
             <p className="text-ink-soft">Son bir şey</p>
             <Big>2027&apos;deki sana yaz.</Big>
-            <Link href="/kure" className="btn btn-primary mt-8">
+            <Link href="/mektup" className="btn btn-primary mt-8">
               Mektubunu yaz
             </Link>
           </>
@@ -153,9 +152,10 @@ export function YearStory({ data }: { data: StoryData }) {
       id: "kure",
       render: () => (
         <div className="flex w-full flex-col items-center text-center">
-          <div ref={globeRef} className="w-full">
-            <GlobeHero days={data.days} lights={data.lights} autoRotate className="max-w-[420px]" />
-          </div>
+          <ProgressRing done={data.days} className="max-w-[360px]">
+            <span className="display num text-[3.4rem] leading-none">{data.count}</span>
+            <span className="mt-1 text-xs text-ink-soft">/31 gün</span>
+          </ProgressRing>
           <h2 className="display mt-2 text-[2.4rem] sm:text-[3.2rem]">Bu senin 2026&apos;n.</h2>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button className="btn btn-primary" onClick={share} disabled={busy}>

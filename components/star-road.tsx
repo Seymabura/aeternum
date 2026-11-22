@@ -114,50 +114,6 @@ function Stars({ count, reduced }: { count: number; reduced: boolean }) {
   );
 }
 
-/** Uzakta ince Samanyolu tozu (tek bir doku) */
-function MilkyWay() {
-  const tex = useMemo(() => {
-    const c = document.createElement("canvas");
-    c.width = 1024;
-    c.height = 512;
-    const x = c.getContext("2d")!;
-    x.translate(512, 256);
-    x.rotate(-0.42);
-    for (let i = 0; i < 1600; i++) {
-      const u = (Math.random() - 0.5) * 1300;
-      const v = (Math.random() + Math.random() + Math.random() - 1.5) * 55;
-      const r = 30 + Math.random() * 90;
-      const g = x.createRadialGradient(u, v, 0, u, v, r);
-      const warm = Math.random() < 0.5;
-      g.addColorStop(0, warm ? "rgba(230,215,195,0.012)" : "rgba(205,212,232,0.01)");
-      g.addColorStop(1, "rgba(0,0,0,0)");
-      x.fillStyle = g;
-      x.fillRect(u - r, v - r, r * 2, r * 2);
-    }
-    // toz şeritleri
-    x.globalCompositeOperation = "destination-out";
-    for (let i = 0; i < 140; i++) {
-      const u = (Math.random() - 0.5) * 1100;
-      const v = (Math.random() - 0.5) * 30;
-      const r = 10 + Math.random() * 40;
-      const g = x.createRadialGradient(u, v, 0, u, v, r);
-      g.addColorStop(0, "rgba(0,0,0,0.22)");
-      g.addColorStop(1, "rgba(0,0,0,0)");
-      x.fillStyle = g;
-      x.fillRect(u - r, v - r, r * 2, r * 2);
-    }
-    const t = new THREE.CanvasTexture(c);
-    t.colorSpace = THREE.SRGBColorSpace;
-    return t;
-  }, []);
-  return (
-    <mesh position={[0, 30, -1400]}>
-      <planeGeometry args={[3400, 1700]} />
-      <meshBasicMaterial map={tex} transparent opacity={0.55} depthWrite={false} blending={THREE.AdditiveBlending} />
-    </mesh>
-  );
-}
-
 function Moon() {
   const tex = useLoader(THREE.TextureLoader, "/moon/full-520.png");
   const ref = useRef<THREE.Group>(null);
@@ -286,7 +242,6 @@ export default function StarRoad() {
       camera={{ position: [0, 0, 0], fov: 60, near: 0.5, far: 3000 }}
       onCreated={({ gl }) => gl.setClearColor("#020203")}
     >
-      <MilkyWay />
       <Stars count={count} reduced={reduced} />
       <Moon />
       <Lanterns reduced={reduced} />

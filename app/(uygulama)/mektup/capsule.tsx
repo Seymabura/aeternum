@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
 import { Loader2, Lock, Mail } from "lucide-react";
-import { GlobeHero } from "@/components/globe-hero";
 import { sealCapsule } from "@/app/actions/extras";
-import { TASKS } from "@/lib/tasks";
 import Link from "next/link";
 
 type Status = { sealedAt: string; opensAt: string; chars: number; hasEmail: boolean } | null;
@@ -20,7 +18,7 @@ const PROMPTS = [
   "Şu an yanımdaki insanlar:",
 ];
 
-export function Capsule({ status, opened, days, lights, today }: { status: Status; opened: string | null; days: number[]; lights: number; today: number }) {
+export function Capsule({ status, opened }: { status: Status; opened: string | null }) {
   const [text, setText] = useState("");
   const [email, setEmail] = useState("");
   const [confirm, setConfirm] = useState(false);
@@ -42,40 +40,10 @@ export function Capsule({ status, opened, days, lights, today }: { status: Statu
   }
 
   return (
-    <div className="grid items-start gap-8 lg:grid-cols-[1fr_1.05fr]">
-      <div className="lg:sticky lg:top-24">
-        <GlobeHero days={days} lights={lights} />
-        <p className="hand -mt-2 text-center text-2xl text-gold/70">küreye dokun, karı savur</p>
-      </div>
-
+    <div className="mx-auto max-w-2xl">
       <div>
-        <p className="eyebrow">Kar küren</p>
-        <h1 className="display mt-5 text-[2.75rem] sm:text-[4rem]">
-          Her gün <em className="gold-shine italic">biraz daha</em> senin.
-        </h1>
-        <p className="mt-5 max-w-md text-ink-soft">Tamamladığın her görev kürene bir süs, her küçük soru bir peri ışığı ekler. 31 Aralık&apos;ta küren dolmuş olur.</p>
-        <div className="mt-10 grid grid-cols-3 gap-3">
-          <Stat n={days.length} total="/31" label="süs" />
-          <Stat n={lights} total="/17" label="ışık" />
-          <Stat n={status ? 1 : 0} total="/1" label="mektup" />
-        </div>
-        {(() => {
-          const next = TASKS.find((t) => !days.includes(t.day) && t.day <= Math.max(today, 1));
-          const tomorrow = TASKS.find((t) => t.day === today + 1);
-          return next ? (
-            <Link href={`/takvim/${next.day}`} className="sheet spot lift mt-3 flex items-center justify-between gap-3 px-6 py-5">
-              <span>
-                <span className="block text-sm text-ink-soft">Sıradaki süs</span>
-                <span className="display mt-1 block text-[1.5rem]">{next.gift}</span>
-              </span>
-              <span className="text-sm text-champagne">{next.day} Aralık</span>
-            </Link>
-          ) : tomorrow ? (
-            <p className="mt-4 text-sm text-ink-soft">Yarının süsü: <span className="text-gold">{tomorrow.gift}</span></p>
-          ) : null;
-        })()}
-        <div className="hairline my-16" />
-        <p id="mektup" className="eyebrow scroll-mt-28">2027&apos;ye mesaj</p>
+        <h1 id="mektup" className="display scroll-mt-28 text-[2.75rem] sm:text-[4rem]">2027&apos;ye mektup</h1>
+        <p className="mt-4 max-w-md text-ink-soft">Gelecekteki kendine yaz, mühürle. 31 Aralık 2027 gece yarısına kadar kimse okuyamaz, sen bile.</p>
         {opened ? (
           <>
             <h2 className="display mt-3 text-4xl sm:text-5xl">
@@ -89,7 +57,7 @@ export function Capsule({ status, opened, days, lights, today }: { status: Statu
         ) : sealed ? (
           <>
             <h2 className="display mt-3 text-4xl sm:text-5xl">
-              Mesajın <em className="gold-shine italic">kürede</em>
+              Mektubun <em className="gold-shine italic">mühürlü</em>
             </h2>
             <p className="mt-4 max-w-md text-ink-soft">
               {new Date(status!.sealedAt).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })} tarihinde kapattın. Kimse
@@ -121,7 +89,7 @@ export function Capsule({ status, opened, days, lights, today }: { status: Statu
             <h2 className="display mt-3 text-4xl sm:text-5xl">
               2027&apos;deki <em className="gold-shine italic">kendine</em> yaz
             </h2>
-            <p className="mt-4 max-w-md text-ink-soft">Mektubunu küreye kapat. 31 Aralık 2027&apos;ye kadar kimse okuyamaz, sen bile.</p>
+            <p className="mt-4 max-w-md text-ink-soft">Aklına geleni yaz; bir yıl sonra bu geceyi hatırlatacak.</p>
 
             <AnimatePresence>
               {!flying && (
@@ -161,7 +129,7 @@ export function Capsule({ status, opened, days, lights, today }: { status: Statu
                   <input className="field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Açılış günü e-postana da gelsin" />
                 </label>
                 <button className="btn btn-primary mt-8 w-full sm:w-auto" disabled={text.trim().length < 3} onClick={() => setConfirm(true)}>
-                  Mühürle ve küreye bırak ✦
+                  Mühürle ✦
                 </button>
               </>
             )}
@@ -190,17 +158,6 @@ export function Capsule({ status, opened, days, lights, today }: { status: Statu
   );
 }
 
-function Stat({ n, total, label }: { n: number; total: string; label: string }) {
-  return (
-    <div className="sheet px-3 py-5 text-center">
-      <p className="display num text-[2.25rem] leading-none text-ink">
-        {n}
-        <span className="text-base text-ink-mute">{total}</span>
-      </p>
-      <p className="mt-2 text-xs text-ink-soft">{label}</p>
-    </div>
-  );
-}
 
 /** Bordo balmumu mühür, ✦ baskılı */
 function WaxSeal({ className, broken }: { className?: string; broken?: boolean }) {

@@ -63,10 +63,9 @@ export default async function TaskPage({ params }: PageProps<"/takvim/[day]">) {
           <span className="mask-line"><span style={{ animationDelay: "80ms" }}>{task.title}</span></span>
         </h1>
         <p className="rise mt-6 max-w-lg text-[1.0625rem] text-ink-soft" style={{ animationDelay: "300ms" }}>{task.hint}</p>
-        <p className="rise mt-6 inline-flex items-center gap-2 rounded-full border border-champagne/20 px-4 py-2 text-sm text-gold" style={{ animationDelay: "380ms" }}>✦ Bugünün süsü: {task.gift}</p>
         {late && (
           <p className="mt-6 rounded-[14px] border border-champagne/15 bg-champagne/[.06] px-4 py-3 text-sm text-ink">
-            Bu günü kaçırmışsın. Şimdi yapabilirsin, süsün yine eklenir ama seriye sayılmaz.
+            Bu günü kaçırmışsın. Şimdi yapabilirsin; yıldızın yanar ama seriye sayılmaz.
           </p>
         )}
         <TaskForm days={p.entries.map((e) => e.day)} task={task} userId={p.userId} initial={entry?.answer ?? null} initialPhoto={photoUrl} initialPath={entry?.photo_path ?? null} />
@@ -77,7 +76,7 @@ export default async function TaskPage({ params }: PageProps<"/takvim/[day]">) {
             <h2 className="display text-[1.75rem]">Bir de küçük bir ışık yak</h2>
             <p className="num text-sm text-ink-soft">{p.bonusIds.length}/17 ışık</p>
           </div>
-          <p className="mb-5 mt-2 text-sm text-ink-soft">Bir iki kelimelik cevap yeter. Her biri kürenin kenarına bir peri ışığı ekler.</p>
+          <p className="mb-5 mt-2 text-sm text-ink-soft">Bir iki kelimelik cevap yeter.</p>
           <BonusList items={rituals} done={[]} />
         </section>
       )}

@@ -14,10 +14,10 @@ export const metadata: Metadata = {
     template: "%s · Aeternum",
   },
   description:
-    "Yılbaşına kadar her gün kendin için küçük bir şey yap, kar küreni süsle, sevdiğinle Ay'ınızı ve gökyüzünüzü yap, vision board'unu kur, 2027'deki kendine mesaj bırak.",
+    "Doğduğunuz gecelerin Ay'ı, tanıştığınız gecenin gökyüzü, vision board ve 2027'ye mektup. Aralık'a özel 31 günlük küçük görevler.",
   openGraph: {
     title: "Aeternum · Anların sonsuza kaldığı yer",
-    description: "Anların sonsuza kaldığı yer: gökyüzü, Ay, dilek fenerleri, zaman kapsülü mektuplar ve Aralık için 31 günlük bir kar küresi.",
+    description: "Anların sonsuza kaldığı yer: gökyüzü, Ay, vision board, zaman kapsülü mektuplar ve Aralık'a özel 31 günlük görevler.",
     locale: "tr_TR",
     type: "website",
   },

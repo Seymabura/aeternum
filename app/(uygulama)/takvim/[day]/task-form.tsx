@@ -12,7 +12,7 @@ import { saveTask } from "@/app/actions/tasks";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/image";
 import type { Task, TaskAnswer } from "@/lib/tasks";
-import { GlobeHero } from "@/components/globe-hero";
+import { ProgressRing } from "@/components/progress-ring";
 
 export function TaskForm({
   task,
@@ -76,9 +76,9 @@ export function TaskForm({
       <form onSubmit={submit} className="mt-10 space-y-5">
         {task.kind === "letter" && (
           <div className="rounded-[14px] border border-champagne/15 bg-[rgba(14,13,18,0.55)] p-5 text-center">
-            <p className="text-ink-soft">Mektubunu kürenin içine kapatıyorsun. 31 Aralık 2027&apos;de açılacak.</p>
-            <Link href="/kure" className="btn btn-primary mt-4">
-              Küreye git ve yaz
+            <p className="text-ink-soft">Mektubunu yazıp mühürlüyorsun. 31 Aralık 2027&apos;de açılacak.</p>
+            <Link href="/mektup" className="btn btn-primary mt-4">
+              Mektubunu yaz
             </Link>
             <p className="mt-3 text-xs text-ink-soft">Mektubu kapattıysan aşağıdan günü tamamla.</p>
           </div>
@@ -112,7 +112,7 @@ export function TaskForm({
         {task.kind === "do" && (
           <>
             <div className="rounded-[14px] border border-champagne/15 bg-[rgba(14,13,18,0.55)] p-4 text-sm text-ink-soft">
-              Yaptığında aşağıdaki düğmeye bas. Kürene yeni bir süs eklenecek: <span className="text-gold">{task.gift}</span>.
+              Yaptığında aşağıdaki düğmeye bas; Aralık takımyıldızında bu günün yıldızı yanacak.
             </div>
             {task.ask && (
               <div>
@@ -181,12 +181,11 @@ export function TaskForm({
 
 function Celebration({ day, title, gift, days, onClose }: { day: number; title: string; gift: string; days: number[]; onClose: () => void }) {
   const all = Array.from(new Set([...days, day]));
-  const globeRef = useRef<HTMLDivElement>(null);
   const [sharing, setSharing] = useState(false);
   async function share() {
     setSharing(true);
     try {
-      const blob = await taskStoryCard({ day, title, gift, count: all.length, globe: globeRef.current?.querySelector("canvas") ?? null });
+      const blob = await taskStoryCard({ day, title, done: all });
       await shareOrDownload(blob, `aeternum-gun-${String(day).padStart(2, "0")}.png`, "Aeternum");
     } catch {
       toast.error("Kart hazırlanamadı. Tekrar dene.");
@@ -211,7 +210,7 @@ function Celebration({ day, title, gift, days, onClose }: { day: number; title: 
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label={`Kürene ${gift} eklendi`}
+      aria-label={`${day}. gün tamamlandı`}
     >
       <div aria-hidden className="pointer-events-none absolute inset-0">
         {sparks.map((p, i) => (
@@ -232,13 +231,14 @@ function Celebration({ day, title, gift, days, onClose }: { day: number; title: 
         transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div ref={globeRef}>
-          <GlobeHero days={all} fresh={day} autoRotate className="max-w-[340px]" />
-        </div>
-        <h2 className="display mt-2 text-[2.5rem] sm:text-[3rem]">
-          Kürene <em className="gold-shine italic">{gift}</em> eklendi.
+        <ProgressRing done={all} fresh={day} className="max-w-[300px]">
+          <span className="display num text-[3.6rem] leading-none">{String(day).padStart(2, "0")}</span>
+          <span className="mt-1 text-xs text-ink-soft">Aralık</span>
+        </ProgressRing>
+        <h2 className="display mt-4 text-[2.5rem] sm:text-[3rem]">
+          Bugün <em className="gold-shine italic">tamam.</em>
         </h2>
-        <p className="num mt-4 text-ink-soft">{all.length}/31 süs. Her gün biraz daha dolu.</p>
+        <p className="num mt-4 text-ink-soft">{all.length}/31 gün. Takımyıldızında bir yıldız daha yandı.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button type="button" className="btn btn-primary" onClick={share} disabled={sharing}>
             {sharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" strokeWidth={1.5} />} Hikâye olarak paylaş

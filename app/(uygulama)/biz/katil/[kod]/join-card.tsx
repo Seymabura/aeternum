@@ -1,63 +1,47 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { GlobeHero } from "@/components/globe-hero";
 import { joinCouple } from "@/app/actions/biz";
 
-export function JoinCard({ code, inviter, valid, reason }: { code: string; inviter: string; valid: boolean; reason: string }) {
-  const router = useRouter();
+export function JoinCard({ code, inviter }: { code: string; inviter: string }) {
   const [name, setName] = useState("");
+  const [err, setErr] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  const router = useRouter();
   return (
-    <div className="mx-auto max-w-md text-center">
-      <GlobeHero days={[1, 2, 4, 6, 9, 14]} className="max-w-[300px]" />
-      {valid ? (
-        <>
-          <p className="eyebrow mt-2">Davet</p>
-          <h1 className="display mt-5 text-[2.5rem]">
-            {inviter || "Biri"} seni <em className="gold-shine italic">ortak küresine</em> davet ediyor
-          </h1>
-          <p className="mt-4 text-ink-soft">Aralık boyunca ikiniz de görev yaptıkça aynı kar küresi süslenecek. Görev cevaplarınız birbirinize görünmez; sadece hangi günleri yaptığınız.</p>
-          <form
-            className="mx-auto mt-8 max-w-xs space-y-4 text-left"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!name.trim()) return void toast.error("Adını yaz.");
-              start(async () => {
-                const r = await joinCouple(code, name);
-                if (!r.ok) return void toast.error(r.error);
-                toast.success("Ortak küreniz hazır");
-                router.push("/biz/kure");
-              });
-            }}
-          >
-            <div>
-              <label className="label" htmlFor="ad">Adın</label>
-              <input id="ad" className="field" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div className="flex gap-3">
-              <button className="btn btn-primary flex-1" disabled={pending}>
-                {pending && <Loader2 className="h-4 w-4 animate-spin" />} Katıl
-              </button>
-              <Link href="/takvim" className="btn btn-ghost">
-                Hayır
-              </Link>
-            </div>
-          </form>
-        </>
-      ) : (
-        <>
-          <h1 className="display mt-6 text-[2.25rem]">Bu davet açılamadı</h1>
-          <p className="mt-4 text-ink-soft">{reason}</p>
-          <Link href="/biz" className="btn btn-ghost mt-8">
-            Biz sayfasına git
-          </Link>
-        </>
-      )}
+    <div>
+      <p className="text-sm text-[#ffb3bf]">Ortak defter</p>
+      <h1 className="display mt-3 text-[2.6rem] leading-[1.05] sm:text-[3.2rem]">
+        {inviter ? `${inviter} seninle bir defter tutmak istiyor.` : "Seninle bir defter tutmak isteyen biri var."}
+      </h1>
+      <p className="mt-4 text-ink-soft">30 gün boyunca her gün bir soru. İkiniz de cevaplayınca cevaplar birlikte açılır.</p>
+      <form
+        className="mt-8 text-left"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setErr(null);
+          start(async () => {
+            const r = await joinCouple(code, name);
+            if (!r.ok) return setErr(r.error);
+            router.push("/biz/defter");
+          });
+        }}
+      >
+        <label htmlFor="ad" className="label">
+          Adın
+        </label>
+        <input id="ad" className="field" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} placeholder="Defterde görünecek ad" />
+        {err && (
+          <p role="alert" className="mt-2 text-sm text-nar-soft">
+            {err}
+          </p>
+        )}
+        <button className="btn btn-primary mt-6 w-full" disabled={pending || !name.trim()}>
+          {pending && <Loader2 className="h-4 w-4 animate-spin" />} Deftere katıl
+        </button>
+      </form>
     </div>
   );
 }

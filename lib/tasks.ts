@@ -48,7 +48,7 @@ export const TASKS: Task[] = [
   { day: 28, kind: "do", title: "Kendine bir randevu ver", hint: "Tek başına bir kahve, bir sergi, bir yürüyüş. Kendinle vakit.", gift: "kardan kale", ask: "Nereye gittin?" },
   { day: 29, kind: "photo", title: "Bu yılın sen hali", hint: "Bir selfie ya da sana benzeyen bir köşe.", gift: "büyük kar tanesi" },
   { day: 30, kind: "list3", title: "2027'de başlayacağın 3 alışkanlık", hint: "Bu ay denediklerinden hangileri kalsın?", gift: "kayan yıldız", labels: ["Birinci alışkanlık", "İkinci alışkanlık", "Üçüncü alışkanlık"] },
-  { day: 31, kind: "letter", title: "Kürene 2027'ye mesajını bırak", hint: "Mektubun 31 Aralık 2027'de açılacak.", gift: "mühürlü mektup" },
+  { day: 31, kind: "letter", title: "2027'deki kendine bir mektup yaz", hint: "Mektubun 31 Aralık 2027'de açılacak.", gift: "mühürlü mektup" },
 ];
 
 export type Bonus = { id: number; openDay: number; prompt: string };

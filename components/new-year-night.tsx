@@ -204,7 +204,7 @@ function Welcome() {
       <motion.div className="relative" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}>
         <p className="display gold-shine text-[6rem] leading-none sm:text-[11rem]">2027</p>
         <p className="display mt-6 text-[2rem] sm:text-[3rem]">Hoş geldin.</p>
-        <p className="mx-auto mt-5 max-w-sm text-ink-soft">Kürende 2026&apos;dan kalanlar duruyor. Mutlu yıllar.</p>
+        <p className="mx-auto mt-5 max-w-sm text-ink-soft">2026&apos;dan kalanlar burada saklı. Mutlu yıllar.</p>
       </motion.div>
     </>
   );

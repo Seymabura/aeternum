@@ -470,3 +470,13 @@ body {
   text-shadow: 0 0 18px rgba(210, 70, 92, 0.65);
 }
 
+.pr-pulse { animation: pr-pulse 1.8s var(--ease-lux) infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes pr-pulse { 0%, 100% { opacity: .5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.5); } }
+@media (prefers-reduced-motion: reduce) { .pr-pulse { animation: none; } }
+
+/* anı kitapçığı yazdırma: beyaz kâğıt, menüler gizli */
+@media print {
+  html, body { background: #fff !important; color: #000 !important; }
+  header.sticky, nav, .safe-bottom, [aria-hidden="true"].fixed { display: none !important; }
+  .break-inside-avoid { break-inside: avoid; }
+}

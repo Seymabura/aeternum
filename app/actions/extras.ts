@@ -194,8 +194,8 @@ export async function sealCapsule(message: string, email: string) {
   if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return { ok: false as const, error: "E-posta adresi geçersiz görünüyor." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("ae_capsule_seal", { msg, mail: mail || null });
-  if (error) return { ok: false as const, error: error.message.includes("zaten") ? "Küren zaten kapatılmış." : "Kapatılamadı, tekrar dener misin?" };
-  revalidatePath("/kure");
+  if (error) return { ok: false as const, error: error.message.includes("zaten") ? "Mektubun zaten mühürlü." : "Kapatılamadı, tekrar dener misin?" };
+  revalidatePath("/mektup");
   return { ok: true as const };
 }
 

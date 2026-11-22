@@ -36,7 +36,11 @@ export default function Privacy() {
           görünen tarih metni, Ay ve yıldız hesap sonuçları) bağlantıyı bilen herkesin
           görebileceği bir sayfada saklanır. Bağlantıyı Biz sayfasından istediğin an silebilirsin; fotoğraflar da silinir.
         </li>
-        <li>Ortak kürede partnerin yalnızca adını ve hangi günleri tamamladığını görür; görev cevapların ona görünmez.</li>
+      </ul>
+      <h2>Ortak defter</h2>
+      <ul>
+        <li>Defterdeki cevapların yalnızca eşleştiğin kişiyle paylaşılır; o da kendi cevabını yazmadan seninkini göremez.</li>
+        <li>Eşleşmeden ayrıldığında defter ve içindeki tüm cevaplar silinir.</li>
       </ul>
       <h2>Dilek feneri</h2>
       <ul>

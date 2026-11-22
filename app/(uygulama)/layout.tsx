@@ -17,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <TopLinks />
           <div className="flex items-center gap-1.5">
             <span className="num hidden items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-ink-soft sm:flex" title="Seri: üst üste zamanında yapılan görevler">
-              <span className="text-champagne">✦</span> {p.entries.length}/31 süs, {p.streak} gün seri
+              <span className="text-champagne">✦</span> {p.entries.length}/31 gün, {p.streak} gün seri
             </span>
             <Link href="/profil" className="flex h-10 w-10 items-center justify-center rounded-full border border-champagne/15 text-ink-soft transition-colors hover:border-champagne/35 hover:text-ink" aria-label="Profil">
               <UserRound className="h-[18px] w-[18px]" strokeWidth={1.5} />

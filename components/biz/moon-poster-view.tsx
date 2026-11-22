@@ -177,7 +177,7 @@ async function skyFor(p: MoonPayload, W: number, H: number): Promise<SkyLayers |
     const cat = await loadCatalog();
     const v = p.a.v ?? [0.36, 0.86, 0.36];
     const scene = makeDirScene(v, unionFractionOf(p), W > H ? 95 : 70);
-    return await renderSky(scene, cat, W, H, { moonGlowOnly: true, cyFrac: moonLayout(W, H).cy / H, scale: Math.min(W, H) / 1080, limitMag: 8 });
+    return await renderSky(scene, cat, W, H, { moonGlowOnly: true, noMilkyWay: true, cyFrac: moonLayout(W, H).cy / H, scale: Math.min(W, H) / 1080, limitMag: 8 });
   } catch {
     return null;
   }

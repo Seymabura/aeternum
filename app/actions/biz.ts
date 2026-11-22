@@ -58,7 +58,7 @@ export async function listShares(): Promise<ShareRow[]> {
   });
 }
 
-// ---------------------------------------------------------------- ortak küre
+// ---------------------------------------------------------------- eşleşme (ortak defter)
 
 export type CoupleMember = { me: boolean; role: "owner" | "partner"; name: string; days: number[] };
 export type CoupleState = { id: string; members: CoupleMember[]; invite: { code: string; expires_at: string } | null } | null;
@@ -74,8 +74,8 @@ export async function coupleState(): Promise<CoupleState> {
 export async function createInvite(name: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("ae_couple_invite", { p_name: clip(name, 40) });
-  if (error) return { ok: false as const, error: error.message.includes("Zaten") ? "Zaten bir ortak küren var." : "Davet oluşturulamadı." };
-  revalidatePath("/biz/kure");
+  if (error) return { ok: false as const, error: error.message.includes("Zaten") ? "Zaten bir sevgilinle eşleşmişsin." : "Davet oluşturulamadı." };
+  revalidatePath("/biz/defter");
   return { ok: true as const, code: data as string };
 }
 
@@ -83,20 +83,20 @@ export async function joinCouple(code: string, name: string) {
   const supabase = await createClient();
   const { error } = await supabase.rpc("ae_couple_join", { p_code: clip(code, 20), p_name: clip(name, 40) });
   if (error) return { ok: false as const, error: error.message.replace(/^.*?: /, "") };
-  revalidatePath("/biz/kure");
+  revalidatePath("/biz/defter");
   return { ok: true as const };
 }
 
 export async function leaveCouple() {
   const supabase = await createClient();
   await supabase.rpc("ae_couple_leave");
-  revalidatePath("/biz/kure");
+  revalidatePath("/biz/defter");
   return { ok: true as const };
 }
 
 export async function renameMe(name: string) {
   const supabase = await createClient();
   await supabase.rpc("ae_couple_rename", { p_name: clip(name, 40) });
-  revalidatePath("/biz/kure");
+  revalidatePath("/biz/defter");
   return { ok: true as const };
 }

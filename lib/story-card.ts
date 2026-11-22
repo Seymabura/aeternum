@@ -1,4 +1,4 @@
-/** 1080×1920 hikâye kartı: gece siyahı gökyüzü, küre fotoğrafı, gün bilgisi. */
+/** 1080×1920 hikâye kartları: gece siyahı gökyüzü, Aralık takımyıldızı, gün bilgisi. */
 const W = 1080;
 const H = 1920;
 const SERIF = '"Bodoni Moda Variable", "Bodoni Moda", Didot, Georgia, serif';
@@ -65,52 +65,80 @@ export function wordmark(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.fillText("aeternum-26.netlify.app", w / 2, h - 100);
 }
 
-export async function taskStoryCard(o: { day: number; title: string; gift: string; count: number; globe: HTMLCanvasElement | null }) {
+/** 31 günlük halka: tamamlananlar altın, son gün nar */
+function drawRing(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, done: number[], fresh?: number) {
+  const set = new Set(done);
+  const pts = Array.from({ length: 31 }, (_, i) => {
+    const a = (i / 31) * Math.PI * 2 - Math.PI / 2;
+    return { d: i + 1, x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r };
+  });
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 1.25);
+  glow.addColorStop(0, "rgba(210,70,92,0.16)");
+  glow.addColorStop(1, "rgba(210,70,92,0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(cx - r * 1.3, cy - r * 1.3, r * 2.6, r * 2.6);
+  ctx.strokeStyle = "rgba(220,199,161,0.14)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(233,205,150,0.55)";
+  ctx.lineWidth = 2.4;
+  pts.forEach((p, i) => {
+    const n = pts[(i + 1) % 31];
+    if (p.d !== 31 && set.has(p.d) && set.has(n.d)) {
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(n.x, n.y);
+      ctx.stroke();
+    }
+  });
+  for (const p of pts) {
+    const on = set.has(p.d);
+    if (on) {
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.d === fresh ? 34 : 22);
+      g.addColorStop(0, p.d === fresh ? "rgba(255,140,160,0.55)" : "rgba(243,226,184,0.4)");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(p.x - 40, p.y - 40, 80, 80);
+    }
+    ctx.fillStyle = p.d === fresh ? "#ff9aab" : on ? "#f3e2b8" : "rgba(244,239,230,0.25)";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, on ? 8.5 : 4.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+export async function taskStoryCard(o: { day: number; title: string; done: number[] }) {
   await document.fonts.ready;
   const c = document.createElement("canvas");
   c.width = W;
   c.height = H;
   const ctx = c.getContext("2d")!;
   paintNight(ctx, W, H, o.day * 31 + 5);
-
   ctx.textAlign = "center";
-  ctx.fillStyle = "rgba(220,199,161,0.9)";
+  ctx.fillStyle = "rgba(255,180,190,0.9)";
   ctx.font = `400 34px ${SANS}`;
   ctx.fillText(`${o.day} Aralık`, W / 2, 210);
-
   ctx.fillStyle = "#f4efe6";
-  ctx.font = `500 92px ${SERIF}`;
+  ctx.font = `500 88px ${SERIF}`;
   const lines = wrap(ctx, o.title, 900).slice(0, 3);
-  lines.forEach((l, i) => ctx.fillText(l, W / 2, 330 + i * 104));
-
-  const top = 330 + lines.length * 104 + 10;
-  if (o.globe && o.globe.width > 0) {
-    const size = Math.min(900, H - top - 560);
-    const ratio = o.globe.height / o.globe.width;
-    const gw = size;
-    const gh = size * ratio;
-    const gx = (W - gw) / 2;
-    const gy = top + 20;
-    const glow = ctx.createRadialGradient(W / 2, gy + gh / 2, 0, W / 2, gy + gh / 2, gw * 0.6);
-    glow.addColorStop(0, "rgba(220,199,161,0.16)");
-    glow.addColorStop(1, "rgba(220,199,161,0)");
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, gy - 100, W, gh + 200);
-    ctx.drawImage(o.globe, gx, gy, gw, gh);
-  }
-
-  ctx.fillStyle = "#e9dcc0";
-  ctx.font = `italic 500 64px ${SERIF}`;
-  ctx.fillText(`✦ ${o.gift}`, W / 2, H - 400);
+  lines.forEach((l, i) => ctx.fillText(l, W / 2, 330 + i * 100));
+  const cy = 330 + lines.length * 100 + 400;
+  drawRing(ctx, W / 2, cy, 330, o.done, o.day);
+  ctx.fillStyle = "#f4efe6";
+  ctx.font = `500 160px ${SERIF}`;
+  ctx.textBaseline = "middle";
+  ctx.fillText(String(o.day).padStart(2, "0"), W / 2, cy - 10);
+  ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "rgba(244,239,230,0.72)";
   ctx.font = `400 36px ${SANS}`;
-  ctx.fillText(`${o.count}/31 süs  ·  kürem doluyor`, W / 2, H - 330);
-
+  ctx.fillText(`${o.done.length}/31 gün  ·  Aralık takımyıldızım`, W / 2, H - 330);
   wordmark(ctx, W, H);
   return new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("toBlob"))), "image/png"));
 }
 
-export async function yearStoryCard(o: { count: number; bestStreak: number; word: string | null; globe: HTMLCanvasElement | null }) {
+export async function yearStoryCard(o: { count: number; bestStreak: number; word: string | null; done: number[] }) {
   await document.fonts.ready;
   const c = document.createElement("canvas");
   c.width = W;
@@ -124,17 +152,7 @@ export async function yearStoryCard(o: { count: number; bestStreak: number; word
   ctx.fillStyle = "#f4efe6";
   ctx.font = `500 150px ${SERIF}`;
   ctx.fillText("2026", W / 2, 380);
-  if (o.globe && o.globe.width > 0) {
-    const size = 860;
-    const gh = size * (o.globe.height / o.globe.width);
-    const gy = 440;
-    const glow = ctx.createRadialGradient(W / 2, gy + gh / 2, 0, W / 2, gy + gh / 2, size * 0.6);
-    glow.addColorStop(0, "rgba(220,199,161,0.16)");
-    glow.addColorStop(1, "rgba(220,199,161,0)");
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, gy - 100, W, gh + 200);
-    ctx.drawImage(o.globe, (W - size) / 2, gy, size, gh);
-  }
+  drawRing(ctx, W / 2, 820, 330, o.done);
   const y = H - 560;
   const cols = [
     { n: `${o.count}/31`, l: "görev" },

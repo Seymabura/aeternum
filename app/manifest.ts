@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Aeternum",
     short_name: "Aeternum",
-    description: "31 günde kendine zaman ayır, kar küreni süsle.",
+    description: "Anların sonsuza kaldığı yer: Ay, gökyüzü, mektuplar ve vision board.",
     lang: "tr",
     start_url: "/takvim",
     scope: "/",

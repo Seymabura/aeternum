@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { listShares } from "@/app/actions/biz";
-import { GlobeHero } from "@/components/globe-hero";
 import { ShareList } from "./share-list";
 
 export const metadata = { title: "Biz" };
@@ -36,7 +35,7 @@ export default async function BizPage() {
 
       <ol className="mt-16 md:mt-24">
         {FEATURES.map((f, i) => (
-          <li key={f.href} className="border-t border-champagne/10">
+          <li key={f.href} className="border-t border-champagne/10 last:border-b">
             <Link href={f.href} className="group grid items-center gap-8 py-10 md:grid-cols-[1fr_15rem] md:gap-16 md:py-14">
               <div>
                 <span className="display num text-sm italic text-ink-mute">{String(i + 1).padStart(2, "0")}</span>
@@ -53,23 +52,38 @@ export default async function BizPage() {
           </li>
         ))}
         <li className="border-y border-champagne/10">
-          <Link href="/biz/kure" className="group grid items-center gap-8 py-10 md:grid-cols-[1fr_15rem] md:gap-16 md:py-14">
+          <Link href="/biz/defter" className="group grid items-center gap-8 py-10 md:grid-cols-[1fr_15rem] md:gap-16 md:py-14">
             <div>
               <span className="display num text-sm italic text-ink-mute">03</span>
-              <h2 className="display mt-3 text-[2.25rem] transition-colors duration-500 group-hover:text-gold sm:text-[3rem]">Ortak küre</h2>
-              <p className="mt-4 max-w-md text-ink-soft">Partnerini davet et; ikinizin tamamladığı günler aynı kar küresini süslesin. Bir de ortak 2027 listeniz olsun.</p>
-              <span className="mt-6 inline-flex items-center gap-1.5 text-sm text-champagne">
-                Davet et <ArrowUpRight className="h-4 w-4 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" strokeWidth={1.5} />
+              <h2 className="display mt-3 text-[2.25rem] transition-colors duration-500 group-hover:text-gold sm:text-[3rem]">Ortak defter</h2>
+              <p className="mt-4 max-w-md text-ink-soft">30 gün boyunca her gece ikinize aynı soru gelir. İkiniz de cevaplayınca cevaplar birlikte açılır; sonunda ikinizin anı kitapçığı olur.</p>
+              <span className="mt-6 inline-flex items-center gap-1.5 text-sm text-[#ff9aab]">
+                Defteri aç <ArrowUpRight className="h-4 w-4 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" strokeWidth={1.5} />
               </span>
             </div>
-            <div className="mx-auto w-48 md:w-60">
-              <GlobeHero days={[1, 2, 4, 6, 9, 10, 14, 22]} pairDays={[2, 9, 14]} autoRotate />
-            </div>
+            <JournalArt />
           </Link>
         </li>
       </ol>
 
       {shares.length > 0 && <ShareList initial={shares} />}
+    </div>
+  );
+}
+
+/** iki kâğıt sayfa: biri senin, biri onun cevabı */
+function JournalArt() {
+  return (
+    <div aria-hidden className="relative mx-auto h-64 w-48 md:w-60">
+      <div className="paper-tex absolute left-0 top-6 h-48 w-36 -rotate-6 rounded-[6px] p-4 text-[#1a1408] shadow-[0_30px_60px_-24px_rgba(0,0,0,.95)] transition-transform duration-700 group-hover:-rotate-8">
+        <p className="text-[0.6rem] opacity-60">7. gün</p>
+        <p className="hand mt-1 text-lg leading-tight">Beni üç kelimeyle anlat.</p>
+        <div className="mt-3 space-y-2">{[90, 70, 80].map((w, i) => <div key={i} className="h-px bg-[#1a1408]/20" style={{ width: `${w}%` }} />)}</div>
+      </div>
+      <div className="absolute right-0 top-0 h-48 w-36 rotate-6 rounded-[6px] border border-nar-soft/40 bg-gradient-to-b from-[#3a0a16] to-[#1a0409] p-4 shadow-[0_30px_60px_-24px_rgba(0,0,0,.95),0_0_40px_-16px_rgba(210,70,92,.8)] transition-transform duration-700 group-hover:rotate-[8deg]">
+        <p className="text-[0.6rem] text-[#ffb3bf]">Onun cevabı</p>
+        <div className="mt-6 grid h-20 place-items-center rounded-[6px] border border-dashed border-[#ffb3bf]/40 text-2xl">🔒</div>
+      </div>
     </div>
   );
 }
