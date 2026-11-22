@@ -110,7 +110,84 @@ function Invite({ couple, myName }: { couple: CoupleState; myName: string }) {
           </div>
         )}
       </div>
+      <Preview />
     </section>
+  );
+}
+
+/** Sevgilin katılmadan önce defterin nasıl görüneceğini gösteren örnek (gerçek veri değil) */
+function Preview() {
+  const sample: { q: number; me: string; them: string | null; state: "both" | "theirs" }[] = [
+    { q: 1, me: "Çok sakin göründün; sonra bir güldün ve hepsi değişti.", them: "Bu kadar güzel gülen biri bana yazar mı diye düşündüm.", state: "both" },
+    { q: 6, me: "", them: null, state: "theirs" },
+  ];
+  return (
+    <div className="mt-14">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="display text-[2rem]">Defter böyle görünecek</h2>
+        <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-ink-mute">Örnek</span>
+      </div>
+      <p className="mt-2 max-w-lg text-sm text-ink-soft">Aşağıdakiler örnek cevaplar. Sevgilin katılıp defteri başlatınca ilk soru sizin için açılır.</p>
+
+      <div aria-hidden className="mt-6 grid grid-cols-10 gap-1.5 sm:grid-cols-15">
+        {Array.from({ length: 30 }, (_, i) => (
+          <span
+            key={i}
+            className={cn(
+              "grid aspect-[3/4] place-items-center rounded-[6px] border text-[0.65rem] num",
+              i < 4
+                ? "border-champagne/50 bg-gradient-to-b from-[#f3e2b8] to-[#c9a865] text-[#2a1d08]"
+                : i === 4
+                  ? "border-nar-soft/60 bg-nar/20 text-[#ffd6dc]"
+                  : i === 5
+                    ? "border-white/15 bg-white/[.04] text-ink-soft"
+                    : "border-white/[.05] bg-white/[.015] text-ink-mute/50",
+            )}
+          >
+            {i + 1}
+          </span>
+        ))}
+      </div>
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        {sample.map((x) => (
+          <div key={x.q} aria-label="Örnek defter sayfası" className="sheet relative overflow-hidden p-6" style={{ borderColor: "rgba(220,199,161,.18)" }}>
+            <p className="text-xs text-ink-mute">{x.q}. gün</p>
+            <h3 className="display mt-2 text-[1.5rem] leading-snug">{JOURNAL_QUESTIONS[x.q - 1]}</h3>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-[14px] border border-champagne/25 bg-champagne/[.05] p-4">
+                <p className="text-[0.7rem] text-ink-mute">Sen</p>
+                {x.me ? <p className="mt-1 text-sm text-ink">{x.me}</p> : <p className="hand mt-1 text-lg text-ink-mute">Bir dakikanı al, aklına geleni yaz.</p>}
+              </div>
+              {x.state === "both" ? (
+                <div className="rounded-[14px] border border-nar-soft/35 bg-nar/[.12] p-4">
+                  <p className="text-[0.7rem] text-ink-mute">Sevgilin</p>
+                  <p className="mt-1 text-sm text-ink">{x.them}</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center rounded-[14px] border border-dashed border-white/15 p-4 text-center">
+                  <Lock className="h-4 w-4 text-[#ff9aab]" />
+                  <p className="mt-1.5 text-xs text-ink">Sevgilin cevapladı.</p>
+                  <p className="text-[0.7rem] text-ink-soft">Okumak için önce sen yaz.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <details className="mt-6 rounded-[18px] border border-white/[.08] bg-white/[.02] p-5">
+        <summary className="cursor-pointer text-sm text-ink">30 sorunun hepsini gör</summary>
+        <ol className="mt-4 grid gap-x-8 gap-y-2 text-sm text-ink-soft sm:grid-cols-2">
+          {JOURNAL_QUESTIONS.map((q, i) => (
+            <li key={i} className="flex gap-3">
+              <span className="num w-6 shrink-0 text-right text-ink-mute">{i + 1}</span>
+              <span>{q}</span>
+            </li>
+          ))}
+        </ol>
+      </details>
+    </div>
   );
 }
 
