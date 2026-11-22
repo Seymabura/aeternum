@@ -10,13 +10,13 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
-    default: "Aeternum · Bu yıldan sonsuza kalanlar",
+    default: "Aeternum · Anların sonsuza kaldığı yer",
     template: "%s · Aeternum",
   },
   description:
     "Yılbaşına kadar her gün kendin için küçük bir şey yap, kar küreni süsle, sevdiğinle Ay'ınızı ve gökyüzünüzü yap, vision board'unu kur, 2027'deki kendine mesaj bırak.",
   openGraph: {
-    title: "Aeternum · Bu yıldan sonsuza kalanlar",
+    title: "Aeternum · Anların sonsuza kaldığı yer",
     description: "Anların sonsuza kaldığı yer: gökyüzü, Ay, dilek fenerleri, zaman kapsülü mektuplar ve Aralık için 31 günlük bir kar küresi.",
     locale: "tr_TR",
     type: "website",

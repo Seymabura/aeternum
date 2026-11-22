@@ -15,6 +15,8 @@ import {
   Palette,
   Redo2,
   RotateCcw,
+  RotateCw,
+  Sparkles,
   Search,
   SendToBack,
   Trash2,
@@ -23,14 +25,14 @@ import {
   X,
 } from "lucide-react";
 import { addVision, deleteVision, setVisionBg, updateVision, type VisionItem, type VisionLayout } from "@/app/actions/extras";
-import { VISION_CATS, VISION_LIBRARY, type VisionCat } from "@/lib/vision-library";
+import { isSticker, VISION_CATS, VISION_LIBRARY, VISION_STICKERS, type VisionCat } from "@/lib/vision-library";
 import { applyTemplate, BGS, BH, BW, CLOCK_SAFE, FONT_CSS, maxZ, photoMeta, renderBoard, TEMPLATES, TONES, VISION_EXPORTS, wordFontSize } from "@/lib/vision/board";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/image";
 import { shareOrDownload } from "@/lib/share";
 import { cn } from "@/lib/utils";
 
-type Tab = "foto" | "yazi" | "arka" | "duzen";
+type Tab = "foto" | "sus" | "yazi" | "arka" | "duzen";
 type Gesture =
   | { kind: "move"; id: string; sx: number; sy: number; l0: VisionLayout }
   | { kind: "scale"; id: string; cx: number; cy: number; d0: number; l0: VisionLayout; free: boolean }
@@ -140,7 +142,7 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
       patch(r.item.id, { x: Math.round(at.x - l.w / 2), y: Math.round(at.y - l.h / 2) }, false);
     }
   }
-  function placeFor(aspect: number, w = 540): VisionLayout {
+  function placeFor(aspect: number, w = 540, frame: VisionLayout["frame"] = "beyaz"): VisionLayout {
     const h = Math.round(w * aspect);
     const n = itemsRef.current.length;
     return {
@@ -150,13 +152,14 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
       h,
       r: ((n * 29) % 7) - 3,
       z: maxZ(itemsRef.current) + 1,
-      frame: "yok",
+      frame,
       font: "serif",
     };
   }
   function addPhoto(src: string, at?: { x: number; y: number }) {
     const m = photoMeta(src);
-    void add({ kind: "image", src, size: "m", layout: placeFor(m ? m.h / m.w : 1.3) }, at);
+    const sticker = isSticker(src);
+    void add({ kind: "image", src, size: "s", layout: placeFor(m ? m.h / m.w : 1.3, sticker ? 260 : 540, sticker ? "yok" : "beyaz") }, at);
   }
   async function upload(f?: File) {
     if (!f) return;
@@ -436,7 +439,7 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
             role="application"
             aria-label="Vision board panosu. Bir parçayı seçip ok tuşlarıyla taşıyabilir, artı ve eksiyle büyütüp küçültebilirsin."
           >
-            {(bg === "gece" || bg === "nar") && <div aria-hidden className="night-stars pointer-events-none absolute inset-0 opacity-70" />}
+            {BGS[bg]?.stars && <div aria-hidden className="night-stars pointer-events-none absolute inset-0 opacity-70" />}
             {/* kilit ekranı saati alanı */}
             <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 flex flex-col items-center pt-[7%] opacity-[.18]" style={{ height: `${(CLOCK_SAFE / BH) * 100}%`, color: ink }}>
               <span className="text-[calc(var(--s)*40px)]">Cuma 1 Ocak</span>
@@ -503,16 +506,24 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
                 <IconBtn label="Arkaya gönder" onClick={() => layer(selected.id, -1)}>
                   <SendToBack className="h-4 w-4" />
                 </IconBtn>
+                <IconBtn label="Sola döndür" onClick={() => patch(selected.id, { r: Math.round((selected.layout?.r ?? 0) - 10) })}>
+                  <RotateCcw className="h-4 w-4" />
+                </IconBtn>
+                <IconBtn label="Sağa döndür" onClick={() => patch(selected.id, { r: Math.round((selected.layout?.r ?? 0) + 10) })}>
+                  <RotateCw className="h-4 w-4" />
+                </IconBtn>
                 {selected.kind === "image" ? (
-                  <TextBtn
-                    label={`Çerçeve: ${{ yok: "Yumuşak", polaroid: "Polaroid", keskin: "Keskin" }[selected.layout?.frame ?? "yok"]}`}
-                    icon={Frame}
-                    onClick={() => {
-                      const order = ["yok", "polaroid", "keskin"] as const;
-                      const cur = order.indexOf(selected.layout?.frame ?? "yok");
-                      patch(selected.id, { frame: order[(cur + 1) % 3] });
-                    }}
-                  />
+                  isSticker(selected.src) ? null : (
+                    <TextBtn
+                      label={{ beyaz: "Çerçeveli", polaroid: "Polaroid", keskin: "Keskin", yok: "Çerçevesiz" }[selected.layout?.frame ?? "yok"]}
+                      icon={Frame}
+                      onClick={() => {
+                        const order = ["beyaz", "polaroid", "keskin", "yok"] as const;
+                        const cur = order.indexOf(selected.layout?.frame ?? "yok");
+                        patch(selected.id, { frame: order[(cur + 1) % order.length] });
+                      }}
+                    />
+                  )
                 ) : (
                   <TextBtn
                     label={`Yazı tipi: ${{ serif: "Zarif", sans: "Sade", el: "El yazısı" }[selected.layout?.font ?? "serif"]}`}
@@ -524,9 +535,9 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
                     }}
                   />
                 )}
-                <IconBtn label="Düz yap" onClick={() => patch(selected.id, { r: 0 })}>
-                  <RotateCcw className="h-4 w-4" />
-                </IconBtn>
+                {selected.layout?.r ? (
+                  <TextBtn label="Düzelt" icon={Undo2} onClick={() => patch(selected.id, { r: 0 })} />
+                ) : null}
                 <IconBtn label="Sil" onClick={() => remove(selected.id)}>
                   <Trash2 className="h-4 w-4" />
                 </IconBtn>
@@ -537,12 +548,13 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
           </div>
 
           {/* telefon: panel düğmeleri */}
-          <div className="mt-4 grid w-full max-w-[460px] grid-cols-4 gap-2 lg:hidden">
+          <div className="mt-4 grid w-full max-w-[460px] grid-cols-5 gap-1.5 lg:hidden">
             {(
               [
                 { t: "foto", label: "Fotoğraf", icon: Library },
+                { t: "sus", label: "Süs", icon: Sparkles },
                 { t: "yazi", label: "Yazı", icon: Type },
-                { t: "arka", label: "Arka plan", icon: Palette },
+                { t: "arka", label: "Tema", icon: Palette },
                 { t: "duzen", label: "Düzen", icon: LayoutGrid },
               ] as const
             ).map(({ t, label, icon: Icon }) => (
@@ -561,7 +573,7 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
         </div>
 
         <aside className="hidden lg:block">
-          <div className="sticky top-24 rounded-[26px] border border-white/[.08] bg-[rgba(10,9,13,0.72)] p-5 backdrop-blur-xl">{panel}</div>
+          <div className="sticky top-24 flex max-h-[calc(100dvh-7.5rem)] flex-col rounded-[26px] border border-white/[.08] bg-[rgba(10,9,13,0.72)] p-5 backdrop-blur-xl">{panel}</div>
         </aside>
       </div>
 
@@ -569,7 +581,7 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
 
       {sheet && (
         <div className="fixed inset-0 z-[70] flex items-end bg-[rgba(2,2,3,0.6)] backdrop-blur-sm lg:hidden" onClick={() => setSheet(false)}>
-          <div className="safe-bottom max-h-[78dvh] w-full overflow-y-auto rounded-t-[28px] border border-white/10 bg-[#0c0b0f] p-5" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Pano araçları">
+          <div className="safe-bottom flex h-[78dvh] w-full flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-[#0c0b0f] p-5" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Pano araçları">
             <div className="mb-3 flex justify-end">
               <button onClick={() => setSheet(false)} aria-label="Kapat" className="grid h-10 w-10 place-items-center rounded-full text-ink-soft hover:text-ink">
                 <X className="h-5 w-5" />
@@ -592,6 +604,10 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
 
 function Piece({ it, src, bgInk }: { it: VisionItem; src?: string; bgInk: string }) {
   const l = it.layout!;
+  if (it.kind === "image" && isSticker(it.src)) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={it.src!} alt="" draggable={false} className="h-full w-full object-contain drop-shadow-[0_calc(var(--s)*8px)_calc(var(--s)*14px)_rgba(0,0,0,.35)]" />;
+  }
   if (it.kind === "image") {
     const img = src ? (
       // eslint-disable-next-line @next/next/no-img-element
@@ -599,6 +615,12 @@ function Piece({ it, src, bgInk }: { it: VisionItem; src?: string; bgInk: string
     ) : (
       <span className="shimmer block h-full w-full" />
     );
+    if (l.frame === "beyaz")
+      return (
+        <div className="h-full w-full rounded-[calc(var(--s)*6px)] bg-[#fbf9f4] shadow-[0_calc(var(--s)*10px)_calc(var(--s)*26px)_rgba(0,0,0,.4)]" style={{ padding: `calc(var(--s) * ${Math.min(l.w, l.h) * 0.035}px)` }}>
+          <div className="h-full w-full overflow-hidden rounded-[calc(var(--s)*3px)]">{img}</div>
+        </div>
+      );
     if (l.frame === "polaroid")
       return (
         <div className="h-full w-full bg-[#faf7f1] shadow-[0_calc(var(--s)*14px)_calc(var(--s)*36px)_rgba(0,0,0,.45)]" style={{ padding: `${(l.w * 0.045 * 100) / l.h}% 4.5% ${(l.w * 0.16 * 100) / l.h}%` }}>
@@ -647,13 +669,14 @@ function StudioPanel({
   onTemplate: (t: (typeof TEMPLATES)[number]["id"]) => void;
 }) {
   return (
-    <div>
-      <div className="mb-5 grid grid-cols-4 gap-1 rounded-full border border-white/[.08] bg-black/30 p-1" role="tablist">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="mb-4 grid shrink-0 grid-cols-5 gap-1 rounded-full border border-white/[.08] bg-black/30 p-1" role="tablist">
         {(
           [
             ["foto", "Fotoğraf"],
+            ["sus", "Süs"],
             ["yazi", "Yazı"],
-            ["arka", "Arka plan"],
+            ["arka", "Tema"],
             ["duzen", "Düzen"],
           ] as const
         ).map(([t, label]) => (
@@ -668,7 +691,29 @@ function StudioPanel({
           </button>
         ))}
       </div>
+      <div className="-mx-1 min-h-0 flex-1 overflow-y-auto overscroll-contain px-1 pb-2">
       {tab === "foto" && <PhotoTab onPhoto={onPhoto} onUpload={onUpload} />}
+      {tab === "sus" && (
+        <div>
+          <p className="mb-4 text-sm text-ink-soft">Dokun ya da panoya sürükle. Süsleri de büyütüp döndürebilirsin.</p>
+          <div className="grid grid-cols-4 gap-2">
+            {VISION_STICKERS.map((v) => (
+              <button
+                key={v.src}
+                draggable
+                onDragStart={(e) => e.dataTransfer.setData("text/vision", v.src)}
+                onClick={() => onPhoto(v.src)}
+                title={v.alt}
+                aria-label={`${v.alt} süsünü ekle`}
+                className="grid aspect-square place-items-center rounded-[14px] border border-white/[.06] bg-white/[.03] p-2.5 transition-colors hover:border-champagne/40"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={v.src} alt="" className="h-full w-full object-contain" draggable={false} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {tab === "yazi" && <WordTab onWord={onWord} />}
       {tab === "arka" && (
         <div className="grid grid-cols-3 gap-3">
@@ -693,6 +738,7 @@ function StudioPanel({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

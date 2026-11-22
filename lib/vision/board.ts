@@ -1,5 +1,5 @@
 import type { VisionItem, VisionLayout } from "@/app/actions/extras";
-import { VISION_LIBRARY } from "@/lib/vision-library";
+import { isSticker, VISION_LIBRARY, VISION_STICKERS } from "@/lib/vision-library";
 
 /** Pano mantıksal boyutu: modern telefon ekranı oranı (9:19.5). Tüm konumlar bu birimde. */
 export const BW = 1179;
@@ -17,9 +17,21 @@ export const TONES: Record<string, { bg: string | null; fg: string; label: strin
   yazi: { bg: null, fg: "#f3eee6", label: "Sadece yazı" },
 };
 
-export const BGS: Record<string, { css: string; label: string; ink: string }> = {
-  gece: { css: "radial-gradient(120% 60% at 50% 0%, #17121a, #050406 60%, #020203)", label: "Gece", ink: "#f3eee6" },
-  nar: { css: "radial-gradient(120% 70% at 50% 0%, #6b1424, #2a0610 55%, #120306)", label: "Nar", ink: "#fbefe6" },
+export type BgDef = { css: string; label: string; ink: string; img?: string; stars?: boolean };
+const tema = (k: string) => `/vision/tema/${k}.svg`;
+export const BGS: Record<string, BgDef> = {
+  gece: { css: "radial-gradient(120% 60% at 50% 0%, #17121a, #050406 60%, #020203)", label: "Gece", ink: "#f3eee6", stars: true },
+  yildizli: { css: `#0b0710 url(${tema("yildizli")}) center/cover`, label: "Yıldızlı gece", ink: "#f3eee6", img: tema("yildizli") },
+  narbahce: { css: `#2a0610 url(${tema("narbahce")}) center/cover`, label: "Nar bahçesi", ink: "#fbefe6", img: tema("narbahce") },
+  nar: { css: "radial-gradient(120% 70% at 50% 0%, #6b1424, #2a0610 55%, #120306)", label: "Nar", ink: "#fbefe6", stars: true },
+  pembe: { css: `#f9c9d6 url(${tema("pembe")}) center/cover`, label: "Pembe fiyonk", ink: "#3a1422", img: tema("pembe") },
+  bahar: { css: `#f6eee0 url(${tema("bahar")}) center/cover`, label: "Bahar", ink: "#2c2418", img: tema("bahar") },
+  kar: { css: `#b9c9dc url(${tema("kar")}) center/cover`, label: "Kar", ink: "#14202e", img: tema("kar") },
+  konfeti: { css: `#f4e6c8 url(${tema("konfeti")}) center/cover`, label: "Konfeti", ink: "#2a1d08", img: tema("konfeti") },
+  lavanta: { css: `#cbb5e6 url(${tema("lavanta")}) center/cover`, label: "Lavanta", ink: "#241638", img: tema("lavanta") },
+  zumrut: { css: `#0e2b23 url(${tema("zumrut")}) center/cover`, label: "Zümrüt", ink: "#f0e6cf", img: tema("zumrut") },
+  kareli: { css: `#fbf2f3 url(${tema("kareli")}) center/cover`, label: "Pötikare", ink: "#3a1422", img: tema("kareli") },
+  cizgili: { css: `#fbf6ee url(${tema("cizgili")}) center/cover`, label: "Çizgili", ink: "#2c2418", img: tema("cizgili") },
   sampanya: { css: "linear-gradient(170deg, #f7efdf, #e6d6b6 60%, #d4bf97)", label: "Şampanya", ink: "#1a1408" },
   kagit: { css: "linear-gradient(170deg, #f3ece0, #e9dfcd)", label: "Kâğıt", ink: "#1a1408" },
   gul: { css: "linear-gradient(170deg, #f8e3df, #e8bdb8)", label: "Gül", ink: "#2a1220" },
@@ -32,8 +44,9 @@ export const FONT_CSS = {
 } as const;
 
 export function photoMeta(src: string | null) {
-  return VISION_LIBRARY.find((v) => v.src === src);
+  return VISION_LIBRARY.find((v) => v.src === src) ?? VISION_STICKERS.find((v) => v.src === src);
 }
+export { isSticker };
 
 /** Yazı boyutu (pano biriminde): kutuya sığacak en büyük boy */
 export function wordFontSize(text: string, w: number, h: number, font: keyof typeof FONT_CSS = "serif") {
@@ -69,7 +82,7 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, natural?: Reco
   const pad = 54;
   const top = CLOCK_SAFE;
   const bottom = BH - 150;
-  const list = [...items];
+  const list = items.filter((i) => !isSticker(i.src));
   if (t === "kolaj") {
     const cols = list.length > 6 ? 3 : 2;
     const gap = 18;
@@ -79,7 +92,7 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, natural?: Reco
       const c = hs.indexOf(Math.min(...hs));
       const a = Math.min(1.6, Math.max(0.42, aspectOf(it, natural)));
       const h = cw * a;
-      out[it.id] = { x: pad + c * (cw + gap), y: hs[c], w: cw, h, r: 0, z: i + 1, frame: "yok", font: it.layout?.font ?? "serif" };
+      out[it.id] = { x: pad + c * (cw + gap), y: hs[c], w: cw, h, r: 0, z: i + 1, frame: "beyaz", font: it.layout?.font ?? "serif" };
       hs[c] += h + gap;
     });
     // taşarsa hepsini üst-ortaya göre küçült
@@ -186,7 +199,18 @@ function rr(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: num
   g.closePath();
 }
 
-function paintBg(g: CanvasRenderingContext2D, W: number, H: number, bg: string) {
+async function paintBg(g: CanvasRenderingContext2D, W: number, H: number, bg: string) {
+  const def = BGS[bg] ?? BGS.gece;
+  if (def.img) {
+    const im = await loadImg(def.img).catch(() => null);
+    if (im) {
+      const k = Math.max(W / BW, H / BH);
+      const iw = BW * k;
+      const ih = BH * k;
+      g.drawImage(im, (W - iw) / 2, (H - ih) / 2, iw, ih);
+      return;
+    }
+  }
   const grad = (stops: [number, string][], radial = false) => {
     const gr = radial ? g.createRadialGradient(W / 2, 0, 0, W / 2, 0, H * 0.9) : g.createLinearGradient(0, 0, W * 0.2, H);
     stops.forEach(([o, c]) => gr.addColorStop(o, c));
@@ -220,7 +244,7 @@ export async function renderBoard(items: VisionItem[], bg: string, srcOf: (i: Vi
   cv.width = W;
   cv.height = H;
   const g = cv.getContext("2d")!;
-  paintBg(g, W, H, bg);
+  await paintBg(g, W, H, bg);
   const s = Math.min(W / BW, H / BH);
   const ox = (W - BW * s) / 2;
   const oy = (H - BH * s) / 2;
@@ -235,10 +259,26 @@ export async function renderBoard(items: VisionItem[], bg: string, srcOf: (i: Vi
     const h = l.h * s;
     const x = -w / 2;
     const y = -h / 2;
-    if (it.kind === "image") {
+    if (it.kind === "image" && isSticker(it.src)) {
+      const im = imgs[k];
+      if (im) {
+        const r = Math.min(w / im.width, h / im.height);
+        g.drawImage(im, -im.width * r / 2, -im.height * r / 2, im.width * r, im.height * r);
+      }
+    } else if (it.kind === "image") {
       const im = imgs[k];
       let ix = x, iy = y, iw = w, ih = h, rad = 16 * s;
-      if (l.frame === "polaroid") {
+      if (l.frame === "beyaz") {
+        g.shadowColor = "rgba(0,0,0,.35)";
+        g.shadowBlur = 24 * s;
+        g.shadowOffsetY = 10 * s;
+        g.fillStyle = "#fbf9f4";
+        rr(g, x, y, w, h, 6 * s);
+        g.fill();
+        g.shadowColor = "transparent";
+        const p = Math.min(w, h) * 0.035;
+        ix = x + p; iy = y + p; iw = w - p * 2; ih = h - p * 2; rad = 3 * s;
+      } else if (l.frame === "polaroid") {
         g.shadowColor = "rgba(0,0,0,.45)";
         g.shadowBlur = 30 * s;
         g.shadowOffsetY = 12 * s;

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient, getUser } from "@/lib/supabase/server";
-import { VISION_LIBRARY } from "@/lib/vision-library";
+import { VISION_LIBRARY, VISION_STICKERS } from "@/lib/vision-library";
 
 const clip = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(0, n) : "");
 
@@ -89,9 +89,9 @@ export type VisionItem = {
   layout: VisionLayout | null;
 };
 
-export type VisionLayout = { x: number; y: number; w: number; h: number; r: number; z: number; frame?: "yok" | "polaroid" | "keskin"; font?: "serif" | "sans" | "el" };
+export type VisionLayout = { x: number; y: number; w: number; h: number; r: number; z: number; frame?: "yok" | "beyaz" | "polaroid" | "keskin"; font?: "serif" | "sans" | "el" };
 
-const FRAMES = ["yok", "polaroid", "keskin"];
+const FRAMES = ["yok", "beyaz", "polaroid", "keskin"];
 const FONTS = ["serif", "sans", "el"];
 const num = (v: unknown, lo: number, hi: number) => (typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : null);
 function cleanLayout(l: unknown): VisionLayout | null {
@@ -107,7 +107,7 @@ function cleanLayout(l: unknown): VisionLayout | null {
 }
 
 const TONES = ["gece", "sampanya", "buz", "gul", "zumrut", "nar", "yazi"];
-const LIB = new Set(VISION_LIBRARY.map((v) => v.src));
+const LIB = new Set([...VISION_LIBRARY.map((v) => v.src), ...VISION_STICKERS.map((v) => v.src)]);
 
 export async function addVision(input: { kind: "image" | "word"; src?: string; text?: string; tone?: string; size?: string; layout?: VisionLayout }) {
   const user = await getUser();
