@@ -35,4 +35,4 @@ bu tabloya eklenmelidir.
 
 
 ## Vision board temaları ve süsleri
-`public/vision/tema/*.svg` ve `public/vision/sus/*.svg` bu proje için kodla çizildi.
+`public/vision/sus/*.svg` bu proje için kodla çizildi.

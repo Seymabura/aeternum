@@ -26,7 +26,7 @@ export default async function VisionPage() {
   const { data: prof } = await supabase.from("profiles").select("vision_bg").eq("id", user.id).maybeSingle();
   return (
     <>
-      <VisionStudio initial={items} urls={urls} userId={user.id} bg={prof?.vision_bg ?? "gece"} />
+      <VisionStudio initial={items} urls={urls} userId={user.id} bg={prof?.vision_bg ?? "sampanya"} />
       <Goals initial={(goals ?? []) as WishItem[]} />
     </>
   );

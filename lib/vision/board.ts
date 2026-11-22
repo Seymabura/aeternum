@@ -20,28 +20,35 @@ export const TONES: Record<string, { bg: string | null; fg: string; label: strin
 export type BgDef = { css: string; label: string; ink: string; img?: string; stars?: boolean };
 const tema = (k: string) => `/vision/tema/${k}.svg`;
 export const BGS: Record<string, BgDef> = {
-  gece: { css: "radial-gradient(120% 60% at 50% 0%, #17121a, #050406 60%, #020203)", label: "Gece", ink: "#f3eee6", stars: true },
-  yildizli: { css: `#0b0710 url(${tema("yildizli")}) center/cover`, label: "Yıldızlı gece", ink: "#f3eee6", img: tema("yildizli") },
-  narbahce: { css: `#2a0610 url(${tema("narbahce")}) center/cover`, label: "Nar bahçesi", ink: "#fbefe6", img: tema("narbahce") },
-  nar: { css: "radial-gradient(120% 70% at 50% 0%, #6b1424, #2a0610 55%, #120306)", label: "Nar", ink: "#fbefe6", stars: true },
-  pembe: { css: `#f9c9d6 url(${tema("pembe")}) center/cover`, label: "Pembe fiyonk", ink: "#3a1422", img: tema("pembe") },
-  bahar: { css: `#f6eee0 url(${tema("bahar")}) center/cover`, label: "Bahar", ink: "#2c2418", img: tema("bahar") },
-  kar: { css: `#b9c9dc url(${tema("kar")}) center/cover`, label: "Kar", ink: "#14202e", img: tema("kar") },
-  konfeti: { css: `#f4e6c8 url(${tema("konfeti")}) center/cover`, label: "Konfeti", ink: "#2a1d08", img: tema("konfeti") },
-  lavanta: { css: `#cbb5e6 url(${tema("lavanta")}) center/cover`, label: "Lavanta", ink: "#241638", img: tema("lavanta") },
-  zumrut: { css: `#0e2b23 url(${tema("zumrut")}) center/cover`, label: "Zümrüt", ink: "#f0e6cf", img: tema("zumrut") },
-  kareli: { css: `#fbf2f3 url(${tema("kareli")}) center/cover`, label: "Pötikare", ink: "#3a1422", img: tema("kareli") },
-  cizgili: { css: `#fbf6ee url(${tema("cizgili")}) center/cover`, label: "Çizgili", ink: "#2c2418", img: tema("cizgili") },
   sampanya: { css: "linear-gradient(170deg, #f7efdf, #e6d6b6 60%, #d4bf97)", label: "Şampanya", ink: "#1a1408" },
+  nar: { css: "radial-gradient(120% 70% at 50% 0%, #6b1424, #2a0610 55%, #120306)", label: "Nar", ink: "#fbefe6", stars: true },
+  gece: { css: "radial-gradient(120% 60% at 50% 0%, #17121a, #050406 60%, #020203)", label: "Gece", ink: "#f3eee6", stars: true },
   kagit: { css: "linear-gradient(170deg, #f3ece0, #e9dfcd)", label: "Kâğıt", ink: "#1a1408" },
   gul: { css: "linear-gradient(170deg, #f8e3df, #e8bdb8)", label: "Gül", ink: "#2a1220" },
 };
 
 export const FONT_CSS = {
   serif: '"Bodoni Moda Variable", "Bodoni Moda", Georgia, serif',
+  klasik: '"Fraunces Variable", Fraunces, Georgia, serif',
   sans: '"Geist Variable", Geist, system-ui, sans-serif',
   el: '"Caveat", "Segoe Print", cursive',
+  kaligrafi: '"Dancing Script", "Segoe Script", cursive',
+  defter: '"Patrick Hand", "Segoe Print", cursive',
 } as const;
+export const FONT_LABEL: Record<keyof typeof FONT_CSS, string> = { serif: "Zarif", klasik: "Klasik", sans: "Sade", el: "El yazısı", kaligrafi: "Kaligrafi", defter: "Defter" };
+/** Yazı tipine göre stil (italik/kalınlık) */
+export function fontStyle(f: keyof typeof FONT_CSS) {
+  return { italic: f === "serif" || f === "klasik", weight: f === "kaligrafi" ? 600 : f === "serif" || f === "klasik" ? 400 : f === "defter" ? 400 : 500 };
+}
+export const TEXT_COLORS = [
+  { c: "", label: "Otomatik" },
+  { c: "#f3eee6", label: "Fildişi" },
+  { c: "#e2c98f", label: "Altın" },
+  { c: "#9e1b32", label: "Nar" },
+  { c: "#d2465c", label: "Gül kurusu" },
+  { c: "#1a1408", label: "Siyah" },
+  { c: "#ffffff", label: "Beyaz" },
+];
 
 export function photoMeta(src: string | null) {
   return VISION_LIBRARY.find((v) => v.src === src) ?? VISION_STICKERS.find((v) => v.src === src);
@@ -49,8 +56,9 @@ export function photoMeta(src: string | null) {
 export { isSticker };
 
 /** Yazı boyutu (pano biriminde): kutuya sığacak en büyük boy */
-export function wordFontSize(text: string, w: number, h: number, font: keyof typeof FONT_CSS = "serif") {
-  const k = font === "el" ? 0.42 : font === "sans" ? 0.52 : 0.5;
+export function wordFontSize(text: string, w: number, h: number, font: keyof typeof FONT_CSS = "serif", caps = false) {
+  if (caps) return wordFontSize(text, w * 0.78, h, font);
+  const k = font === "el" || font === "defter" ? 0.42 : font === "kaligrafi" ? 0.46 : font === "sans" ? 0.52 : 0.5;
   const words = text.split(" ");
   const longest = Math.max(...words.map((x) => x.length), 3);
   const lines = Math.max(1, Math.ceil(text.length / Math.max(longest, 10)));
@@ -69,10 +77,16 @@ function aspectOf(it: VisionItem, natural?: Record<string, number>) {
 }
 
 /** Hazır düzenler: mevcut parçaları panoya yerleştirir */
-export type TemplateId = "kolaj" | "polaroid" | "izgara" | "odak";
+export type TemplateId = "kolaj" | "polaroid" | "izgara" | "odak" | "dergi" | "yelpaze" | "kalp" | "daire" | "film" | "defter";
 export const TEMPLATES: { id: TemplateId; label: string }[] = [
   { id: "kolaj", label: "Kolaj" },
+  { id: "dergi", label: "Dergi kapağı" },
   { id: "polaroid", label: "Polaroid" },
+  { id: "defter", label: "Anı defteri" },
+  { id: "yelpaze", label: "Yelpaze" },
+  { id: "kalp", label: "Kalp" },
+  { id: "daire", label: "Çember" },
+  { id: "film", label: "Film şeridi" },
   { id: "izgara", label: "Izgara" },
   { id: "odak", label: "Tek büyük" },
 ];
@@ -140,6 +154,129 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, natural?: Reco
       const c = i % cols;
       const r = Math.floor(i / cols);
       out[it.id] = { x: pad + c * (cw + gap), y: top + r * (ch + gap), w: cw, h: ch, r: 0, z: i + 1, frame: "keskin", font: it.layout?.font ?? "serif" };
+    });
+  } else if (t === "dergi") {
+    // dergi kapağı: üstte büyük kapak fotoğrafı, altında iki sütun; kelimeler başlık gibi
+    const photos = list.filter((i) => i.kind === "image");
+    const words = list.filter((i) => i.kind === "word");
+    const w = BW - pad * 2;
+    let y = top;
+    words.slice(0, 1).forEach((it, i) => {
+      out[it.id] = { x: pad, y, w, h: 190, r: 0, z: 100 + i, frame: "yok", font: "serif" };
+      y += 200;
+    });
+    const hero = photos[0];
+    if (hero) {
+      const h = Math.min(w * 0.85, (bottom - y) * 0.42);
+      out[hero.id] = { x: pad, y, w, h, r: 0, z: 1, frame: "keskin", font: "serif" };
+      y += h + 18;
+    }
+    const rest = [...photos.slice(1), ...words.slice(1)];
+    const cols = rest.length > 6 ? 3 : 2;
+    const gap = 18;
+    const cw = (w - gap * (cols - 1)) / cols;
+    const rows = Math.ceil(rest.length / cols);
+    const ch = Math.min(cw * 1.25, (bottom - y - gap * (rows - 1)) / Math.max(1, rows));
+    rest.forEach((it, i) => {
+      out[it.id] = { x: pad + (i % cols) * (cw + gap), y: y + Math.floor(i / cols) * (ch + gap), w: cw, h: ch, r: 0, z: i + 2, frame: it.kind === "image" ? "keskin" : "yok", font: it.layout?.font ?? "serif" };
+    });
+  } else if (t === "yelpaze") {
+    // yelpaze: fotoğraflar alttaki bir noktadan açılan yay üzerinde
+    const n = list.length;
+    const w = Math.min(500, Math.max(300, 2200 / Math.max(n, 1)));
+    const R = BW * 0.78;
+    const maxHalf = (Math.asin(Math.min(1, (BW / 2 - pad - w * 0.55) / R)) * 180) / Math.PI;
+    const spread = Math.min(maxHalf * 2, 14 * (n - 1));
+    const pivot = { x: BW / 2, y: BH * 0.62 + R };
+    list.forEach((it, i) => {
+      const a = n === 1 ? 0 : -spread / 2 + (spread * i) / (n - 1);
+      const rad = (a * Math.PI) / 180;
+      const h = w * Math.min(1.45, Math.max(0.5, aspectOf(it, natural)));
+      const cx = pivot.x + Math.sin(rad) * R;
+      const cy = pivot.y - Math.cos(rad) * R;
+      out[it.id] = { x: cx - w / 2, y: cy - h / 2, w, h, r: a, z: i + 1, frame: it.kind === "image" ? "beyaz" : "yok", font: it.layout?.font ?? "serif" };
+    });
+  } else if (t === "kalp") {
+    // kalp: fotoğraflar kalp eğrisi boyunca eşit aralıkla, hafif üst üste; ortada ilk kelime
+    const words = list.filter((i) => i.kind === "word");
+    const photos = list.filter((i) => i.kind === "image");
+    const n = Math.max(photos.length, 1);
+    const curve = (tt: number) => ({ x: 16 * Math.sin(tt) ** 3, y: -(13 * Math.cos(tt) - 5 * Math.cos(2 * tt) - 2 * Math.cos(3 * tt) - Math.cos(4 * tt)) });
+    // yay uzunluğuna göre örnekle
+    const N = 720;
+    const pts = Array.from({ length: N + 1 }, (_, i) => curve((i / N) * Math.PI * 2));
+    const acc = [0];
+    for (let i = 1; i <= N; i++) acc.push(acc[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+    const per = acc[N];
+    let size = 260;
+    let S = 26;
+    for (let k = 0; k < 6; k++) {
+      S = (BW - pad * 2 - size) / 32;
+      size = Math.max(150, Math.min(340, ((per * S) / n) * 1.15));
+    }
+    const cx = BW / 2;
+    const cy = BH * 0.5;
+    photos.forEach((it, i) => {
+      const target = (per * i) / n;
+      let j = 0;
+      while (j < N && acc[j] < target) j++;
+      const pt = pts[j];
+      out[it.id] = { x: cx + pt.x * S - size / 2, y: cy + pt.y * S - size / 2, w: size, h: size, r: ((i * 23) % 11) - 5, z: i + 1, frame: "beyaz", font: "serif" };
+    });
+    words.forEach((it, i) => {
+      out[it.id] = { x: cx - 240, y: cy + 2 * S - 65 + i * 140, w: 480, h: 130, r: 0, z: 100 + i, frame: "yok", font: it.layout?.font ?? "kaligrafi" };
+    });
+  } else if (t === "daire") {
+    // çember: fotoğraflar bir halka üzerinde, ortada kelime
+    const words = list.filter((i) => i.kind === "word");
+    const photos = list.filter((i) => i.kind === "image");
+    const n = Math.max(photos.length, 1);
+    const cx = BW / 2;
+    const cy = BH * 0.56;
+    const R = BW * 0.36;
+    const size = Math.max(180, Math.min(320, (2 * Math.PI * R) / n * 0.92));
+    photos.forEach((it, i) => {
+      const a = (i / n) * Math.PI * 2 - Math.PI / 2;
+      out[it.id] = { x: cx + Math.cos(a) * R - size / 2, y: cy + Math.sin(a) * R - size / 2, w: size, h: size, r: 0, z: i + 1, frame: "beyaz", font: "serif" };
+    });
+    words.forEach((it, i) => {
+      out[it.id] = { x: cx - 230, y: cy - 75 + (i - (words.length - 1) / 2) * 150, w: 460, h: 140, r: 0, z: 100 + i, frame: "yok", font: it.layout?.font ?? "serif" };
+    });
+  } else if (t === "film") {
+    // film şeridi: ortada tek sütun, eşit kareler, hafif eğik
+    const n = Math.max(list.length, 1);
+    const gap = 16;
+    const h = Math.min(520, (bottom - top - gap * (n - 1)) / n);
+    const w = Math.min(BW * 0.72, h * 1.25);
+    list.forEach((it, i) => {
+      out[it.id] = { x: (BW - w) / 2, y: top + i * (h + gap), w, h, r: 0, z: i + 1, frame: it.kind === "image" ? "keskin" : "yok", font: it.layout?.font ?? "serif" };
+    });
+  } else if (t === "defter") {
+    // anı defteri: farklı boylarda, üst üste binen, eğik fotoğraflar
+    const n = Math.max(list.length, 1);
+    const cols = n > 5 ? 2 : 1;
+    const rows = Math.ceil(n / cols);
+    const cellH = (bottom - top) / rows;
+    list.forEach((it, i) => {
+      const big = i % 3 === 0;
+      const a = Math.min(1.35, Math.max(0.42, aspectOf(it, natural)));
+      const w = (cols === 1 ? BW * 0.66 : BW * 0.5) * (big ? 1.1 : 0.88);
+      const h = Math.min(w * a, cellH * 1.25);
+      const ww = h / a;
+      const c = i % cols;
+      const r = Math.floor(i / cols);
+      const cx = cols === 1 ? BW / 2 + (i % 2 ? 90 : -90) : BW * (c === 0 ? 0.3 : 0.7);
+      const cy = top + r * cellH + cellH / 2 + ((i * 41) % 60) - 30;
+      out[it.id] = {
+        x: cx - ww / 2,
+        y: cy - h / 2,
+        w: ww,
+        h,
+        r: ((i * 37) % 15) - 7,
+        z: i + 1,
+        frame: it.kind === "image" ? (i % 2 ? "polaroid" : "beyaz") : "yok",
+        font: it.layout?.font ?? (it.kind === "word" ? "el" : "serif"),
+      };
     });
   } else {
     // odak: ilk fotoğraf büyük, diğerleri altta küçük şerit
@@ -239,6 +376,9 @@ export async function renderBoard(items: VisionItem[], bg: string, srcOf: (i: Vi
     document.fonts.load(`italic 400 80px ${FONT_CSS.serif}`),
     document.fonts.load(`500 60px ${FONT_CSS.sans}`),
     document.fonts.load(`500 60px ${FONT_CSS.el}`),
+    document.fonts.load(`600 60px ${FONT_CSS.kaligrafi}`),
+    document.fonts.load(`italic 400 60px ${FONT_CSS.klasik}`),
+    document.fonts.load(`400 60px ${FONT_CSS.defter}`),
   ]).catch(() => null);
   const cv = document.createElement("canvas");
   cv.width = W;
@@ -248,6 +388,8 @@ export async function renderBoard(items: VisionItem[], bg: string, srcOf: (i: Vi
   const s = Math.min(W / BW, H / BH);
   const ox = (W - BW * s) / 2;
   const oy = (H - BH * s) / 2;
+  // Türkçe ve Latin karakterleri de yükle
+  await Promise.all(items.filter((i) => i.kind === "word" && i.layout?.font).map((i) => document.fonts.load(`60px ${FONT_CSS[i.layout!.font!]}`, i.text ?? "a"))).catch(() => null);
   const sorted = [...items].filter((i) => i.layout).sort((a, b) => a.layout!.z - b.layout!.z);
   const imgs = await Promise.all(sorted.map((it) => (it.kind === "image" && srcOf(it) ? loadImg(srcOf(it)!).catch(() => null) : Promise.resolve(null))));
   sorted.forEach((it, k) => {
@@ -311,12 +453,14 @@ export async function renderBoard(items: VisionItem[], bg: string, srcOf: (i: Vi
         g.fill();
       }
       const font = l.font ?? "serif";
-      const fs = wordFontSize(it.text ?? "", l.w, l.h, font) * s;
-      g.fillStyle = it.tone === "yazi" ? BGS[bg]?.ink ?? tone.fg : tone.fg;
-      g.font = `${font === "serif" ? "italic 400" : "500"} ${fs}px ${FONT_CSS[font]}`;
+      const fs = wordFontSize(it.text ?? "", l.w, l.h, font, l.caps) * s;
+      g.fillStyle = l.c || (it.tone === "yazi" ? BGS[bg]?.ink ?? tone.fg : tone.fg);
+      const st = fontStyle(font);
+      g.font = `${st.italic ? "italic " : ""}${st.weight} ${fs}px ${FONT_CSS[font]}`;
+      if (l.caps) (g as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = `${fs * 0.12}px`;
       g.textAlign = "center";
       g.textBaseline = "middle";
-      const words = (it.text ?? "").split(" ");
+      const words = (l.caps ? (it.text ?? "").toLocaleUpperCase("tr") : it.text ?? "").split(" ");
       const lines: string[] = [];
       let cur = "";
       for (const wd of words) {

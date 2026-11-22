@@ -24,9 +24,9 @@ import {
   Undo2,
   X,
 } from "lucide-react";
-import { addVision, deleteVision, setVisionBg, updateVision, type VisionItem, type VisionLayout } from "@/app/actions/extras";
+import { addVision, deleteVision, setVisionBg, updateVision, type VisionFont, type VisionItem, type VisionLayout } from "@/app/actions/extras";
 import { isSticker, VISION_CATS, VISION_LIBRARY, VISION_STICKERS, type VisionCat } from "@/lib/vision-library";
-import { applyTemplate, BGS, BH, BW, CLOCK_SAFE, FONT_CSS, maxZ, photoMeta, renderBoard, TEMPLATES, TONES, VISION_EXPORTS, wordFontSize } from "@/lib/vision/board";
+import { applyTemplate, BGS, BH, BW, CLOCK_SAFE, FONT_CSS, FONT_LABEL, fontStyle, TEXT_COLORS, maxZ, photoMeta, renderBoard, TEMPLATES, TONES, VISION_EXPORTS, wordFontSize } from "@/lib/vision/board";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/image";
 import { shareOrDownload } from "@/lib/share";
@@ -51,7 +51,7 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
     return initial.map((i) => (i.layout ? i : { ...i, layout: lay[i.id] }));
   });
   const [urls, setUrls] = useState(initialUrls);
-  const [bg, setBg] = useState(BGS[initialBg] ? initialBg : "gece");
+  const [bg, setBg] = useState(BGS[initialBg] ? initialBg : "sampanya");
   const [sel, setSel] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("foto");
   const [sheet, setSheet] = useState(false);
@@ -376,9 +376,19 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
         setSheet(false);
       }}
       onUpload={() => fileRef.current?.click()}
-      onWord={async (text, tone, font) => {
-        const w = Math.min(760, Math.max(360, text.length * 46));
-        await add({ kind: "word", text, tone, size: "s", layout: { ...placeFor(tone === "yazi" ? 0.36 : 0.42, w), r: 0, font } });
+      editing={selected?.kind === "word" ? selected : null}
+      onWord={async (w) => {
+        if (selected?.kind === "word") {
+          // seçili yazıyı güncelle
+          const id = selected.id;
+          setItems((xs) => xs.map((i) => (i.id === id ? { ...i, text: w.text, tone: w.tone, layout: { ...i.layout!, font: w.font, c: w.c || undefined, caps: w.caps || undefined } } : i)));
+          const it = itemsRef.current.find((i) => i.id === id)!;
+          await updateVision(id, { text: w.text, tone: w.tone, layout: { ...it.layout!, font: w.font, c: w.c || undefined, caps: w.caps || undefined } });
+          toast.success("Yazı güncellendi");
+        } else {
+          const width = Math.min(860, Math.max(380, w.text.length * (w.caps ? 58 : 46)));
+          await add({ kind: "word", text: w.text, tone: w.tone, size: "s", layout: { ...placeFor(w.tone === "yazi" ? 0.34 : 0.42, width, "yok"), r: 0, font: w.font, c: w.c || undefined, caps: w.caps || undefined } });
+        }
         setSheet(false);
       }}
       bg={bg}
@@ -526,12 +536,11 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
                   )
                 ) : (
                   <TextBtn
-                    label={`Yazı tipi: ${{ serif: "Zarif", sans: "Sade", el: "El yazısı" }[selected.layout?.font ?? "serif"]}`}
+                    label="Yazıyı düzenle"
                     icon={Type}
                     onClick={() => {
-                      const order = ["serif", "sans", "el"] as const;
-                      const cur = order.indexOf(selected.layout?.font ?? "serif");
-                      patch(selected.id, { font: order[(cur + 1) % 3] });
+                      setTab("yazi");
+                      if (window.matchMedia("(max-width: 1023px)").matches) setSheet(true);
                     }}
                   />
                 )}
@@ -631,17 +640,20 @@ function Piece({ it, src, bgInk }: { it: VisionItem; src?: string; bgInk: string
   }
   const tone = TONES[it.tone ?? "gece"] ?? TONES.gece;
   const font = l.font ?? "serif";
-  const fs = wordFontSize(it.text ?? "", l.w, l.h, font);
+  const fs = wordFontSize(it.text ?? "", l.w, l.h, font, l.caps);
+  const st = fontStyle(font);
   return (
     <div
       className="flex h-full w-full items-center justify-center rounded-[calc(var(--s)*18px)] px-[6%] text-center leading-[1.08]"
       style={{
         background: tone.bg ?? "transparent",
-        color: it.tone === "yazi" ? bgInk : tone.fg,
+        color: l.c || (it.tone === "yazi" ? bgInk : tone.fg),
         fontFamily: FONT_CSS[font],
-        fontStyle: font === "serif" ? "italic" : "normal",
-        fontWeight: font === "serif" ? 400 : 500,
+        fontStyle: st.italic ? "italic" : "normal",
+        fontWeight: st.weight,
         fontSize: `calc(var(--s) * ${fs}px)`,
+        textTransform: l.caps ? "uppercase" : undefined,
+        letterSpacing: l.caps ? "0.12em" : undefined,
       }}
     >
       {it.text}
@@ -655,6 +667,7 @@ function StudioPanel({
   onPhoto,
   onUpload,
   onWord,
+  editing,
   bg,
   onBg,
   onTemplate,
@@ -663,7 +676,8 @@ function StudioPanel({
   setTab: (t: Tab) => void;
   onPhoto: (src: string) => void;
   onUpload: () => void;
-  onWord: (text: string, tone: string, font: "serif" | "sans" | "el") => Promise<void>;
+  onWord: (w: WordSpec) => Promise<void>;
+  editing: VisionItem | null;
   bg: string;
   onBg: (b: string) => void;
   onTemplate: (t: (typeof TEMPLATES)[number]["id"]) => void;
@@ -714,7 +728,7 @@ function StudioPanel({
           </div>
         </div>
       )}
-      {tab === "yazi" && <WordTab onWord={onWord} />}
+      {tab === "yazi" && <WordTab key={editing?.id ?? "yeni"} onWord={onWord} editing={editing} bg={bg} />}
       {tab === "arka" && (
         <div className="grid grid-cols-3 gap-3">
           {Object.entries(BGS).map(([k, b]) => (
@@ -728,7 +742,7 @@ function StudioPanel({
       {tab === "duzen" && (
         <div>
           <p className="mb-4 text-sm text-ink-soft">Panodaki parçaları tek dokunuşla yerleştir. Sonra istediğin gibi oynatabilirsin; beğenmezsen geri al.</p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2.5">
             {TEMPLATES.map((t) => (
               <button key={t.id} onClick={() => onTemplate(t.id)} className="rounded-[16px] border border-white/10 bg-white/[.02] p-3 text-left text-sm transition-colors hover:border-champagne/40">
                 <TemplateGlyph id={t.id} />
@@ -743,39 +757,34 @@ function StudioPanel({
   );
 }
 
-function TemplateGlyph({ id }: { id: string }) {
-  const c = "fill-champagne/25 stroke-champagne/60";
+const GLYPH_ITEMS: VisionItem[] = Array.from({ length: 7 }, (_, i) => ({
+  id: `g${i}`,
+  kind: i === 6 ? "word" : "image",
+  src: null,
+  text: i === 6 ? "2027" : null,
+  tone: null,
+  size: "m",
+  layout: null,
+}));
+
+function TemplateGlyph({ id }: { id: (typeof TEMPLATES)[number]["id"] }) {
+  const lay = useMemo(() => applyTemplate(GLYPH_ITEMS, id), [id]);
   return (
-    <svg viewBox="0 0 60 100" className="h-24 w-full" aria-hidden>
-      <rect x="1" y="1" width="58" height="98" rx="8" className="fill-black/30 stroke-white/10" />
-      {id === "kolaj" && (
-        <g className={c}>
-          <rect x="7" y="26" width="22" height="30" rx="2" />
-          <rect x="31" y="26" width="22" height="20" rx="2" />
-          <rect x="7" y="58" width="22" height="20" rx="2" />
-          <rect x="31" y="48" width="22" height="34" rx="2" />
-        </g>
-      )}
-      {id === "polaroid" && (
-        <g className={c}>
-          <rect x="8" y="28" width="22" height="26" transform="rotate(-6 19 41)" />
-          <rect x="30" y="34" width="22" height="26" transform="rotate(5 41 47)" />
-          <rect x="14" y="60" width="22" height="26" transform="rotate(3 25 73)" />
-        </g>
-      )}
-      {id === "izgara" && (
-        <g className={c}>
-          {[0, 1, 2].flatMap((r) => [0, 1, 2].map((k) => <rect key={`${r}${k}`} x={7 + k * 16} y={28 + r * 20} width="14" height="18" />))}
-        </g>
-      )}
-      {id === "odak" && (
-        <g className={c}>
-          <rect x="7" y="26" width="46" height="36" rx="2" />
-          <rect x="7" y="65" width="14" height="16" rx="2" />
-          <rect x="23" y="65" width="14" height="16" rx="2" />
-          <rect x="39" y="65" width="14" height="16" rx="2" />
-        </g>
-      )}
+    <svg viewBox={`0 0 ${BW} ${BH}`} className="h-28 w-full" aria-hidden>
+      <rect x="8" y="8" width={BW - 16} height={BH - 16} rx="110" className="fill-black/30 stroke-white/15" strokeWidth="10" />
+      {Object.entries(lay).map(([k, l]) => (
+        <rect
+          key={k}
+          x={l.x}
+          y={l.y}
+          width={l.w}
+          height={l.h}
+          rx="18"
+          transform={`rotate(${l.r} ${l.x + l.w / 2} ${l.y + l.h / 2})`}
+          className={k === "g6" ? "fill-nar-soft/50" : "fill-champagne/30 stroke-champagne/70"}
+          strokeWidth="10"
+        />
+      ))}
     </svg>
   );
 }
@@ -835,42 +844,106 @@ function PhotoTab({ onPhoto, onUpload }: { onPhoto: (src: string) => void; onUpl
   );
 }
 
-function WordTab({ onWord }: { onWord: (text: string, tone: string, font: "serif" | "sans" | "el") => Promise<void> }) {
-  const [text, setText] = useState("");
-  const [tone, setTone] = useState("yazi");
-  const [font, setFont] = useState<"serif" | "sans" | "el">("serif");
+type WordSpec = { text: string; tone: string; font: VisionFont; c: string; caps: boolean };
+
+const IDEAS: Record<string, string[]> = {
+  Kelimeler: ["huzur", "cesaret", "bolluk", "özgürlük", "aşk", "sağlık", "denge", "şükür", "2027"],
+  Olumlamalar: ["Hak ettiğim her şey bana geliyor", "Kendime nazik davranıyorum", "Her gün biraz daha güçlüyüm", "Bolluk ve bereket içindeyim", "Sevilmeyi hak ediyorum"],
+  Hedefler: ["Yeni şehirler görmek", "Mezun oluyorum", "Hayalimdeki iş", "Kendi arabam", "Sağlıklı bir beden", "Kendi evim"],
+  Başlıklar: ["2027 benim yılım", "Vision board 2027", "Hayallerim gerçek oluyor", "Bu yıl, benim yılım"],
+};
+
+function WordTab({ onWord, editing, bg }: { onWord: (w: WordSpec) => Promise<void>; editing: VisionItem | null; bg: string }) {
+  const [text, setText] = useState(editing?.text ?? "");
+  const [tone, setTone] = useState(editing?.tone ?? "yazi");
+  const [font, setFont] = useState<VisionFont>(editing?.layout?.font ?? "serif");
+  const [c, setC] = useState(editing?.layout?.c ?? "");
+  const [caps, setCaps] = useState(!!editing?.layout?.caps);
+  const [group, setGroup] = useState("Kelimeler");
   const [pending, start] = useTransition();
-  const ideas = ["huzur", "cesaret", "yeni şehirler", "sağlık", "aşk", "bolluk", "özgürlük", "kendime iyi bak", "2027"];
-  const t = TONES[tone];
+  const t = TONES[tone] ?? TONES.yazi;
+  const st = fontStyle(font);
+  const color = c || (tone === "yazi" ? BGS[bg]?.ink ?? "#f3eee6" : t.fg);
   return (
     <div>
-      <div className="mb-4 flex aspect-[2.2/1] items-center justify-center rounded-[18px] border border-white/[.06] p-4 text-center" style={{ background: t.bg ?? "radial-gradient(circle at 50% 0%, #17121a, #050406)" }}>
-        <span className="text-[2rem] leading-tight" style={{ color: tone === "yazi" ? "#f3eee6" : t.fg, fontFamily: FONT_CSS[font], fontStyle: font === "serif" ? "italic" : "normal" }}>
+      {editing && <p className="mb-3 rounded-[12px] border border-champagne/25 bg-champagne/[.06] px-3 py-2 text-xs text-gold">Seçili yazıyı düzenliyorsun. Yeni yazı eklemek için panoda boş bir yere dokun.</p>}
+      {/* önizleme: panonun temasının üstünde */}
+      <div className="mb-4 flex aspect-[2.2/1] items-center justify-center overflow-hidden rounded-[18px] border border-white/[.06] p-4 text-center" style={{ background: BGS[bg]?.css }}>
+        <span
+          className="max-w-full rounded-[10px] px-4 py-2 leading-tight"
+          style={{
+            background: t.bg ?? "transparent",
+            color,
+            fontFamily: FONT_CSS[font],
+            fontStyle: st.italic ? "italic" : "normal",
+            fontWeight: st.weight,
+            fontSize: text.length > 24 ? "1.35rem" : "2rem",
+            textTransform: caps ? "uppercase" : undefined,
+            letterSpacing: caps ? "0.12em" : undefined,
+          }}
+        >
           {text || "huzur"}
         </span>
       </div>
-      <input className="field" value={text} onChange={(e) => setText(e.target.value)} maxLength={80} placeholder="Bir kelime ya da kısa bir cümle" aria-label="Yazı" />
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {ideas.map((i) => (
-          <button key={i} onClick={() => setText(i)} className="min-h-8 rounded-full border border-white/10 px-3 text-[0.8rem] text-ink-soft hover:text-ink">
+      <textarea className="field resize-none" rows={2} value={text} onChange={(e) => setText(e.target.value)} maxLength={80} placeholder="Bir kelime, bir hedef ya da bir cümle" aria-label="Yazı" />
+      <div className="mt-1 text-right text-[0.7rem] text-ink-mute num">{text.length}/80</div>
+
+      <div className="no-scrollbar mt-2 flex gap-1 overflow-x-auto">
+        {Object.keys(IDEAS).map((g) => (
+          <button key={g} onClick={() => setGroup(g)} aria-pressed={group === g} className={cn("min-h-8 shrink-0 rounded-full px-3 text-[0.78rem]", group === g ? "bg-white/10 text-ink" : "text-ink-mute hover:text-ink")}>
+            {g}
+          </button>
+        ))}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {IDEAS[group].map((i) => (
+          <button key={i} onClick={() => setText(i)} className="min-h-8 rounded-full border border-white/10 px-3 text-left text-[0.8rem] text-ink-soft hover:border-champagne/40 hover:text-ink">
             {i}
           </button>
         ))}
       </div>
+
       <p className="mb-2 mt-5 text-xs text-ink-mute">Yazı tipi</p>
       <div className="grid grid-cols-3 gap-2">
-        {(
-          [
-            ["serif", "Zarif"],
-            ["sans", "Sade"],
-            ["el", "El yazısı"],
-          ] as const
-        ).map(([f, label]) => (
-          <button key={f} onClick={() => setFont(f)} aria-pressed={font === f} className={cn("min-h-10 rounded-[12px] border text-sm", font === f ? "border-champagne/60 text-gold" : "border-white/10 text-ink-soft")} style={{ fontFamily: FONT_CSS[f] }}>
-            {label}
+        {(Object.keys(FONT_CSS) as VisionFont[]).map((f) => {
+          const fs = fontStyle(f);
+          return (
+            <button
+              key={f}
+              onClick={() => setFont(f)}
+              aria-pressed={font === f}
+              className={cn("min-h-12 rounded-[12px] border text-[1.05rem]", font === f ? "border-champagne/60 bg-champagne/[.06] text-gold" : "border-white/10 text-ink-soft hover:text-ink")}
+              style={{ fontFamily: FONT_CSS[f], fontStyle: fs.italic ? "italic" : "normal", fontWeight: fs.weight }}
+            >
+              {FONT_LABEL[f]}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-5 flex items-center justify-between">
+        <p className="text-xs text-ink-mute">Renk</p>
+        <label className="flex items-center gap-2 text-xs text-ink-soft">
+          <input type="checkbox" checked={caps} onChange={(e) => setCaps(e.target.checked)} className="h-4 w-4 accent-[#dcc7a1]" />
+          BÜYÜK HARF
+        </label>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {TEXT_COLORS.map((x) => (
+          <button
+            key={x.label}
+            onClick={() => setC(x.c)}
+            aria-label={x.label}
+            aria-pressed={c === x.c}
+            title={x.label}
+            className={cn("grid h-9 w-9 place-items-center rounded-full border-2 text-[0.6rem] text-ink-soft", c === x.c ? "border-champagne" : "border-white/10")}
+            style={{ background: x.c || "conic-gradient(#f3eee6, #e2c98f, #9e1b32, #1a1408, #f3eee6)" }}
+          >
+            {!x.c && <span className="rounded-full bg-black/60 px-1">A</span>}
           </button>
         ))}
       </div>
+
       <p className="mb-2 mt-5 text-xs text-ink-mute">Zemin</p>
       <div className="flex flex-wrap gap-2">
         {Object.entries(TONES).map(([k, v]) => (
@@ -885,8 +958,17 @@ function WordTab({ onWord }: { onWord: (text: string, tone: string, font: "serif
           />
         ))}
       </div>
-      <button className="btn btn-primary mt-6 w-full" disabled={pending || !text.trim()} onClick={() => start(async () => { await onWord(text.trim(), tone, font); setText(""); })}>
-        {pending && <Loader2 className="h-4 w-4 animate-spin" />} Panoya ekle
+      <button
+        className="btn btn-primary mt-6 w-full"
+        disabled={pending || !text.trim()}
+        onClick={() =>
+          start(async () => {
+            await onWord({ text: text.trim(), tone, font, c, caps });
+            if (!editing) setText("");
+          })
+        }
+      >
+        {pending && <Loader2 className="h-4 w-4 animate-spin" />} {editing ? "Değişiklikleri kaydet" : "Panoya ekle"}
       </button>
     </div>
   );

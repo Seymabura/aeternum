@@ -89,10 +89,11 @@ export type VisionItem = {
   layout: VisionLayout | null;
 };
 
-export type VisionLayout = { x: number; y: number; w: number; h: number; r: number; z: number; frame?: "yok" | "beyaz" | "polaroid" | "keskin"; font?: "serif" | "sans" | "el" };
+export type VisionLayout = { x: number; y: number; w: number; h: number; r: number; z: number; frame?: "yok" | "beyaz" | "polaroid" | "keskin"; font?: VisionFont; c?: string; caps?: boolean };
+export type VisionFont = "serif" | "sans" | "el" | "kaligrafi" | "klasik" | "defter";
 
 const FRAMES = ["yok", "beyaz", "polaroid", "keskin"];
-const FONTS = ["serif", "sans", "el"];
+const FONTS = ["serif", "sans", "el", "kaligrafi", "klasik", "defter"];
 const num = (v: unknown, lo: number, hi: number) => (typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : null);
 function cleanLayout(l: unknown): VisionLayout | null {
   if (!l || typeof l !== "object") return null;
@@ -103,6 +104,8 @@ function cleanLayout(l: unknown): VisionLayout | null {
     x: Math.round(x!), y: Math.round(y!), w: Math.round(w!), h: Math.round(h!), r: Math.round(r! * 10) / 10, z: Math.round(z!),
     frame: FRAMES.includes(String(o.frame)) ? (o.frame as VisionLayout["frame"]) : "yok",
     font: FONTS.includes(String(o.font)) ? (o.font as VisionLayout["font"]) : "serif",
+    ...(typeof o.c === "string" && /^#[0-9a-f]{6}$/i.test(o.c) ? { c: o.c } : {}),
+    ...(o.caps === true ? { caps: true } : {}),
   };
 }
 
