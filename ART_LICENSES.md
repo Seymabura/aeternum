@@ -84,3 +84,6 @@ bu tabloya eklenmelidir.
 - **Yıldız ve takımyıldız verisi** (`public/sky/*.json`): d3-celestial, © 2015 Olaf Frohn, BSD-3-Clause lisansı (https://github.com/ofrohn/d3-celestial). Kaynak veriler: Hipparcos/Yale Bright Star katalogları. `scripts/sky/build.mjs` ile küçültüldü.
 - **Gökbilim hesapları**: astronomy-engine, © Don Cross, MIT lisansı (https://github.com/cosinekitty/astronomy).
 - **Şehir arama**: Open-Meteo Geocoding API (CC BY 4.0, GeoNames verisi).
+
+## Vision board kütüphanesi (site sahibinin arşivi)
+`public/vision/` altındaki `stil-*`, `guzellik-*`, `luks-*` dosyaları ile `basari-5…9`, `sevgi-*`, `seyahat-*`, `saglik-*`, `huzur-*`, `sanat-*` dosyalarının bir kısmı site sahibinin verdiği klasörden alındı (Kasım 2026). Kaynakları (çoğu Pinterest) ve kullanım hakları doğrulanmadı; hak sahibi talep ederse `lib/vision-library.ts` içinden ilgili satır ve dosya kaldırılmalıdır.

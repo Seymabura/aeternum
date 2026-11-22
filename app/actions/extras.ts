@@ -86,12 +86,30 @@ export type VisionItem = {
   text: string | null;
   tone: string | null;
   size: "s" | "m" | "l";
+  layout: VisionLayout | null;
 };
 
-const TONES = ["gece", "sampanya", "buz", "gul", "zumrut"];
+export type VisionLayout = { x: number; y: number; w: number; h: number; r: number; z: number; frame?: "yok" | "polaroid" | "keskin"; font?: "serif" | "sans" | "el" };
+
+const FRAMES = ["yok", "polaroid", "keskin"];
+const FONTS = ["serif", "sans", "el"];
+const num = (v: unknown, lo: number, hi: number) => (typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : null);
+function cleanLayout(l: unknown): VisionLayout | null {
+  if (!l || typeof l !== "object") return null;
+  const o = l as Record<string, unknown>;
+  const x = num(o.x, -2000, 4000), y = num(o.y, -2000, 5000), w = num(o.w, 40, 4000), h = num(o.h, 40, 6000), r = num(o.r, -360, 360), z = num(o.z, 0, 10000);
+  if ([x, y, w, h, r, z].some((v) => v === null)) return null;
+  return {
+    x: Math.round(x!), y: Math.round(y!), w: Math.round(w!), h: Math.round(h!), r: Math.round(r! * 10) / 10, z: Math.round(z!),
+    frame: FRAMES.includes(String(o.frame)) ? (o.frame as VisionLayout["frame"]) : "yok",
+    font: FONTS.includes(String(o.font)) ? (o.font as VisionLayout["font"]) : "serif",
+  };
+}
+
+const TONES = ["gece", "sampanya", "buz", "gul", "zumrut", "nar", "yazi"];
 const LIB = new Set(VISION_LIBRARY.map((v) => v.src));
 
-export async function addVision(input: { kind: "image" | "word"; src?: string; text?: string; tone?: string; size?: string }) {
+export async function addVision(input: { kind: "image" | "word"; src?: string; text?: string; tone?: string; size?: string; layout?: VisionLayout }) {
   const user = await getUser();
   if (!user) return { ok: false as const, error: "Oturum yok" };
   const supabase = await createClient();
@@ -114,17 +132,23 @@ export async function addVision(input: { kind: "image" | "word"; src?: string; t
       text,
       tone: TONES.includes(String(input.tone)) ? input.tone : "gece",
       size: ["s", "m", "l"].includes(String(input.size)) ? input.size : "m",
+      layout: cleanLayout(input.layout),
     })
-    .select("id,kind,src,text,tone,size")
+    .select("id,kind,src,text,tone,size,layout")
     .single();
   if (error) return { ok: false as const, error: error.message.includes("dolu") ? "Pano dolu (60 parça)." : "Eklenemedi." };
   revalidatePath("/vision");
   return { ok: true as const, item: data as VisionItem };
 }
 
-export async function updateVision(id: string, patch: { size?: string; tone?: string }) {
+export async function updateVision(id: string, patch: { size?: string; tone?: string; layout?: VisionLayout; text?: string }) {
   const supabase = await createClient();
-  const p: Record<string, string> = {};
+  const p: Record<string, unknown> = {};
+  if (patch.layout) {
+    const l = cleanLayout(patch.layout);
+    if (l) p.layout = l;
+  }
+  if (typeof patch.text === "string" && patch.text.trim()) p.text = clip(patch.text, 80);
   if (patch.size && ["s", "m", "l"].includes(patch.size)) p.size = patch.size;
   if (patch.tone && TONES.includes(patch.tone)) p.tone = patch.tone;
   const { error } = await supabase.from("vision_items").update(p).eq("id", id);
@@ -155,4 +179,13 @@ export async function sealCapsule(message: string, email: string) {
   if (error) return { ok: false as const, error: error.message.includes("zaten") ? "Küren zaten kapatılmış." : "Kapatılamadı, tekrar dener misin?" };
   revalidatePath("/kure");
   return { ok: true as const };
+}
+
+export async function setVisionBg(bg: string) {
+  const user = await getUser();
+  if (!user) return { ok: false as const };
+  if (!/^[a-z]{2,20}$/.test(bg)) return { ok: false as const };
+  const supabase = await createClient();
+  const { error } = await supabase.from("profiles").update({ vision_bg: bg }).eq("id", user.id);
+  return { ok: !error };
 }
