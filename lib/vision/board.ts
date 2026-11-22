@@ -23,8 +23,19 @@ export const BGS: Record<string, BgDef> = {
   sampanya: { css: "linear-gradient(170deg, #f7efdf, #e6d6b6 60%, #d4bf97)", label: "Şampanya", ink: "#1a1408" },
   nar: { css: "radial-gradient(120% 70% at 50% 0%, #6b1424, #2a0610 55%, #120306)", label: "Nar", ink: "#fbefe6", stars: true },
   gece: { css: "radial-gradient(120% 60% at 50% 0%, #17121a, #050406 60%, #020203)", label: "Gece", ink: "#f3eee6", stars: true },
-  kagit: { css: "linear-gradient(170deg, #f3ece0, #e9dfcd)", label: "Kâğıt", ink: "#1a1408" },
+  altin: { css: "linear-gradient(165deg, #fbf1d6, #e2c48a 45%, #b48a45 100%)", label: "Altın", ink: "#2a1d08" },
+  inci: { css: "radial-gradient(120% 80% at 30% 10%, #ffffff, #f3eee8 45%, #ddd4cb)", label: "İnci", ink: "#2a2420" },
+  pudra: { css: "linear-gradient(170deg, #fbefec, #f1d4d0 55%, #e2b7b4)", label: "Pudra", ink: "#3a1a1e" },
   gul: { css: "linear-gradient(170deg, #f8e3df, #e8bdb8)", label: "Gül", ink: "#2a1220" },
+  bordo: { css: "radial-gradient(120% 70% at 50% 0%, #4a0f1c, #23060d 60%, #0e0205)", label: "Bordo", ink: "#f6e6dc" },
+  murdum: { css: "radial-gradient(120% 70% at 50% 0%, #3e1838, #1b0a19 60%, #0a0309)", label: "Mürdüm", ink: "#f4e6ee", stars: true },
+  lavanta: { css: "linear-gradient(170deg, #efe8f7, #d7c8ea 55%, #b9a3d6)", label: "Lavanta", ink: "#241638" },
+  zeytin: { css: "radial-gradient(120% 70% at 50% 0%, #4a4a2c, #23231a 60%, #0f0f0a)", label: "Zeytin", ink: "#f1ead6" },
+  zumrut: { css: "radial-gradient(120% 70% at 50% 0%, #1f5446, #0e2b23 60%, #061510)", label: "Zümrüt", ink: "#f0e6cf" },
+  mermer: { css: "linear-gradient(160deg, #f6f4f0 0%, #ece8e2 40%, #f8f6f2 55%, #e4dfd7 100%)", label: "Mermer", ink: "#22201c" },
+  kagit: { css: "linear-gradient(170deg, #f3ece0, #e9dfcd)", label: "Kâğıt", ink: "#1a1408" },
+  kahve: { css: "radial-gradient(120% 70% at 50% 0%, #5a3f2c, #2c1e15 60%, #120c08)", label: "Kahve", ink: "#f3e7d8" },
+  buz: { css: "linear-gradient(170deg, #f1f4f8, #d9e0ea 55%, #bcc7d6)", label: "Buz", ink: "#16202c" },
 };
 
 export const FONT_CSS = {
@@ -354,12 +365,11 @@ async function paintBg(g: CanvasRenderingContext2D, W: number, H: number, bg: st
     g.fillStyle = gr;
     g.fillRect(0, 0, W, H);
   };
-  if (bg === "nar") grad([[0, "#6b1424"], [0.55, "#2a0610"], [1, "#120306"]], true);
-  else if (bg === "sampanya") grad([[0, "#f7efdf"], [0.6, "#e6d6b6"], [1, "#d4bf97"]]);
-  else if (bg === "kagit") grad([[0, "#f3ece0"], [1, "#e9dfcd"]]);
-  else if (bg === "gul") grad([[0, "#f8e3df"], [1, "#e8bdb8"]]);
-  else grad([[0, "#17121a"], [0.6, "#050406"], [1, "#020203"]], true);
-  if (bg === "gece" || bg === "nar") {
+  // css degradesindeki renkleri sırayla kullan
+  const cols = (def.css.match(/#[0-9a-f]{6}/gi) ?? ["#17121a", "#050406", "#020203"]).slice(0, 4);
+  const radial = def.css.startsWith("radial");
+  grad(cols.map((c, i) => [i / Math.max(1, cols.length - 1), c] as [number, string]), radial);
+  if (def.stars) {
     let s = 9;
     const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
     for (let i = 0; i < 260; i++) {

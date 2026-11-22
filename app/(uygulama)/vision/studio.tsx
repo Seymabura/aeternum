@@ -55,6 +55,8 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
   const [sel, setSel] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("foto");
   const [sheet, setSheet] = useState(false);
+  // yalnızca "Yazıyı düzenle" denince düzenleme moduna geçilir
+  const [editId, setEditId] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [guides, setGuides] = useState<{ v: boolean; h: boolean }>({ v: false, h: false });
   const [scale, setScale] = useState(0.3);
@@ -376,11 +378,14 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
         setSheet(false);
       }}
       onUpload={() => fileRef.current?.click()}
-      editing={selected?.kind === "word" ? selected : null}
+      editing={items.find((i) => i.id === editId && i.kind === "word") ?? null}
+      onNewWord={() => setEditId(null)}
       onWord={async (w) => {
-        if (selected?.kind === "word") {
+        const editing = items.find((i) => i.id === editId && i.kind === "word");
+        if (editing) {
           // seçili yazıyı güncelle
-          const id = selected.id;
+          const id = editing.id;
+          setEditId(null);
           setItems((xs) => xs.map((i) => (i.id === id ? { ...i, text: w.text, tone: w.tone, layout: { ...i.layout!, font: w.font, c: w.c || undefined, caps: w.caps || undefined } } : i)));
           const it = itemsRef.current.find((i) => i.id === id)!;
           await updateVision(id, { text: w.text, tone: w.tone, layout: { ...it.layout!, font: w.font, c: w.c || undefined, caps: w.caps || undefined } });
@@ -539,6 +544,7 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
                     label="Yazıyı düzenle"
                     icon={Type}
                     onClick={() => {
+                      setEditId(selected.id);
                       setTab("yazi");
                       if (window.matchMedia("(max-width: 1023px)").matches) setSheet(true);
                     }}
@@ -668,6 +674,7 @@ function StudioPanel({
   onUpload,
   onWord,
   editing,
+  onNewWord,
   bg,
   onBg,
   onTemplate,
@@ -678,6 +685,7 @@ function StudioPanel({
   onUpload: () => void;
   onWord: (w: WordSpec) => Promise<void>;
   editing: VisionItem | null;
+  onNewWord: () => void;
   bg: string;
   onBg: (b: string) => void;
   onTemplate: (t: (typeof TEMPLATES)[number]["id"]) => void;
@@ -728,7 +736,7 @@ function StudioPanel({
           </div>
         </div>
       )}
-      {tab === "yazi" && <WordTab key={editing?.id ?? "yeni"} onWord={onWord} editing={editing} bg={bg} />}
+      {tab === "yazi" && <WordTab key={editing?.id ?? "yeni"} onWord={onWord} editing={editing} onNew={onNewWord} bg={bg} />}
       {tab === "arka" && (
         <div className="grid grid-cols-3 gap-3">
           {Object.entries(BGS).map(([k, b]) => (
@@ -853,7 +861,7 @@ const IDEAS: Record<string, string[]> = {
   Başlıklar: ["2027 benim yılım", "Vision board 2027", "Hayallerim gerçek oluyor", "Bu yıl, benim yılım"],
 };
 
-function WordTab({ onWord, editing, bg }: { onWord: (w: WordSpec) => Promise<void>; editing: VisionItem | null; bg: string }) {
+function WordTab({ onWord, editing, onNew, bg }: { onWord: (w: WordSpec) => Promise<void>; editing: VisionItem | null; onNew: () => void; bg: string }) {
   const [text, setText] = useState(editing?.text ?? "");
   const [tone, setTone] = useState(editing?.tone ?? "yazi");
   const [font, setFont] = useState<VisionFont>(editing?.layout?.font ?? "serif");
@@ -866,7 +874,14 @@ function WordTab({ onWord, editing, bg }: { onWord: (w: WordSpec) => Promise<voi
   const color = c || (tone === "yazi" ? BGS[bg]?.ink ?? "#f3eee6" : t.fg);
   return (
     <div>
-      {editing && <p className="mb-3 rounded-[12px] border border-champagne/25 bg-champagne/[.06] px-3 py-2 text-xs text-gold">Seçili yazıyı düzenliyorsun. Yeni yazı eklemek için panoda boş bir yere dokun.</p>}
+      {editing && (
+        <div className="mb-3 flex items-center justify-between gap-2 rounded-[12px] border border-champagne/25 bg-champagne/[.06] px-3 py-2 text-xs text-gold">
+          <span>Seçili yazıyı düzenliyorsun.</span>
+          <button onClick={onNew} className="shrink-0 rounded-full border border-champagne/40 px-2.5 py-1 text-[0.7rem] hover:bg-champagne/10">
+            Yeni yazı ekle
+          </button>
+        </div>
+      )}
       {/* önizleme: panonun temasının üstünde */}
       <div className="mb-4 flex aspect-[2.2/1] items-center justify-center overflow-hidden rounded-[18px] border border-white/[.06] p-4 text-center" style={{ background: BGS[bg]?.css }}>
         <span
