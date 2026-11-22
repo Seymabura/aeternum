@@ -20,3 +20,14 @@ export function Moons({ className, strokeWidth = 1.5 }: { className?: string; st
   );
 }
 
+
+export function Lantern({ className, strokeWidth = 1.5 }: { className?: string; strokeWidth?: number }) {
+  // kâğıt dilek feneri
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M6.5 4.5h11l-1.4 12.5H7.9L6.5 4.5Z" />
+      <path d="M10 4.5 10.6 17M14 4.5 13.4 17" opacity=".55" />
+      <path d="M12 19.2c.9 0 1.4-.6 1.4-1.2 0-.7-.6-1-1.4-2-.8 1-1.4 1.3-1.4 2 0 .6.5 1.2 1.4 1.2Z" />
+    </svg>
+  );
+}

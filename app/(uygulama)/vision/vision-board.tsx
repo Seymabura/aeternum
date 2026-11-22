@@ -13,9 +13,9 @@ import { shareOrDownload } from "@/lib/share";
 import { cn } from "@/lib/utils";
 
 export const TONES: Record<string, { bg: string; fg: string; label: string }> = {
-  gece: { bg: "linear-gradient(160deg,#1d2a52,#0a1122)", fg: "#e9dcc0", label: "Gece" },
-  sampanya: { bg: "linear-gradient(160deg,#f6eedc,#cdb892)", fg: "#0a1122", label: "Şampanya" },
-  buz: { bg: "linear-gradient(160deg,#e8f0ff,#a9bfe8)", fg: "#0a1122", label: "Buz" },
+  gece: { bg: "linear-gradient(160deg,#2a1219,#0b0a10)", fg: "#e9dcc0", label: "Gece" },
+  sampanya: { bg: "linear-gradient(160deg,#f6eedc,#cdb892)", fg: "#0b0a10", label: "Şampanya" },
+  buz: { bg: "linear-gradient(160deg,#e8f0ff,#a9bfe8)", fg: "#0b0a10", label: "Buz" },
   gul: { bg: "linear-gradient(160deg,#f3d6d2,#c98b8b)", fg: "#2a1220", label: "Gül" },
   zumrut: { bg: "linear-gradient(160deg,#2f5a4f,#13281f)", fg: "#e9dcc0", label: "Zümrüt" },
 };
@@ -84,7 +84,7 @@ export function VisionBoard({ initial, urls: initialUrls, userId }: { initial: V
         </button>
       </section>
 
-      <div className="mt-12 inline-flex max-w-full flex-wrap items-center gap-1 rounded-full border border-champagne/12 bg-[rgba(18,26,46,0.55)] p-1 backdrop-blur-xl">
+      <div className="mt-12 inline-flex max-w-full flex-wrap items-center gap-1 rounded-full border border-champagne/12 bg-[rgba(14,13,18,0.55)] p-1 backdrop-blur-xl">
         <Tool icon={Library} label="Kütüphane" onClick={() => setPanel("lib")} />
         <Tool icon={ImagePlus} label="Fotoğraf yükle" onClick={() => fileRef.current?.click()} />
         <Tool icon={Type} label="Kelime" onClick={() => setPanel("word")} />
@@ -140,7 +140,7 @@ export function VisionBoard({ initial, urls: initialUrls, userId }: { initial: V
                     )}
                   </button>
                   {sel === it.id && (
-                    <div className="absolute inset-x-2 bottom-2 flex justify-center gap-1 rounded-full border border-white/10 bg-[rgba(4,6,12,.7)] p-1 backdrop-blur-md">
+                    <div className="absolute inset-x-2 bottom-2 flex justify-center gap-1 rounded-full border border-white/10 bg-[rgba(2,2,3,.7)] p-1 backdrop-blur-md">
                       <IconBtn
                         label="Boyut"
                         onClick={async () => {
@@ -180,7 +180,7 @@ export function VisionBoard({ initial, urls: initialUrls, userId }: { initial: V
         />
       )}
       {busy && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(4,6,12,0.6)] backdrop-blur-sm">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(2,2,3,0.6)] backdrop-blur-sm">
           <Loader2 className="h-8 w-8 animate-spin text-champagne" />
         </div>
       )}
@@ -215,7 +215,7 @@ function LibraryPanel({ onClose, onPick }: { onClose: () => void; onPick: (src: 
             className="relative aspect-[3/4] overflow-hidden rounded-[14px] border border-champagne/10"
           >
             <Image src={v.src} alt={v.alt} fill sizes="160px" className="object-cover transition-transform duration-700 hover:scale-105" />
-            {added.has(v.src) && <span className="absolute inset-0 flex items-center justify-center bg-[rgba(4,6,12,.6)] text-sm font-medium text-gold">eklendi ✦</span>}
+            {added.has(v.src) && <span className="absolute inset-0 flex items-center justify-center bg-[rgba(2,2,3,.6)] text-sm font-medium text-gold">eklendi ✦</span>}
           </button>
         ))}
       </div>
@@ -264,7 +264,7 @@ function WordPanel({ onClose, onAdd }: { onClose: () => void; onAdd: (text: stri
 
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-[rgba(4,6,12,0.72)] backdrop-blur-sm sm:items-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-[rgba(2,2,3,0.72)] backdrop-blur-sm sm:items-center" onClick={onClose}>
       <div
         className="safe-bottom max-h-[82dvh] w-full max-w-lg overflow-y-auto rounded-t-[28px] border border-champagne/12 bg-[#0d1426] p-6 shadow-[var(--shadow-lift)] sm:rounded-[28px] sm:p-8"
         onClick={(e) => e.stopPropagation()}
@@ -310,7 +310,7 @@ async function renderWallpaper(items: VisionItem[], srcOf: (i: VisionItem) => st
   const g = cv.getContext("2d")!;
   const bg = g.createLinearGradient(0, 0, 0, H);
   bg.addColorStop(0, "#111a36");
-  bg.addColorStop(0.5, "#0a1122");
+  bg.addColorStop(0.5, "#0b0a10");
   bg.addColorStop(1, "#05070d");
   g.fillStyle = bg;
   g.fillRect(0, 0, W, H);
@@ -369,7 +369,7 @@ async function renderWallpaper(items: VisionItem[], srcOf: (i: VisionItem) => st
       }
     } else {
       const t = TONES[it.tone ?? "gece"] ?? TONES.gece;
-      const stops = t.bg.match(/#[0-9a-f]{6}/gi) ?? ["#1d2a52", "#0a1122"];
+      const stops = t.bg.match(/#[0-9a-f]{6}/gi) ?? ["#2a1219", "#0b0a10"];
       const lg = g.createLinearGradient(x, y, x + colW, y + h);
       lg.addColorStop(0, stops[0]);
       lg.addColorStop(1, stops[1]);

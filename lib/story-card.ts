@@ -162,3 +162,35 @@ export async function yearStoryCard(o: { count: number; bestStreak: number; word
   wordmark(ctx, W, H);
   return new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("toBlob"))), "image/png"));
 }
+
+export async function lanternStoryCard(text: string | null) {
+  const { drawLantern } = await import("./lantern-draw");
+  await document.fonts.ready;
+  const c = document.createElement("canvas");
+  c.width = W;
+  c.height = H;
+  const ctx = c.getContext("2d")!;
+  paintNight(ctx, W, H, 1207);
+  const far: [number, number, number][] = [
+    [0.18, 0.2, 70], [0.82, 0.16, 56], [0.66, 0.32, 44], [0.3, 0.42, 38], [0.88, 0.48, 50], [0.12, 0.62, 34], [0.5, 0.12, 30],
+  ];
+  for (const [x, y, s] of far) drawLantern(ctx, x * W, y * H, s, 0.75);
+  drawLantern(ctx, W / 2, H * 0.48, 380, 1);
+  ctx.textAlign = "center";
+  if (text) {
+    ctx.fillStyle = "#f4efe6";
+    ctx.font = `italic 500 64px ${SERIF}`;
+    const lines = wrap(ctx, `“${text}”`, 880).slice(0, 4);
+    const y0 = H - 560 - (lines.length - 1) * 38;
+    lines.forEach((l, i) => ctx.fillText(l, W / 2, y0 + i * 78));
+  } else {
+    ctx.fillStyle = "#f4efe6";
+    ctx.font = `italic 500 64px ${SERIF}`;
+    ctx.fillText("Dileğimi gökyüzüne bıraktım.", W / 2, H - 520);
+  }
+  ctx.fillStyle = "rgba(244,239,230,0.6)";
+  ctx.font = `400 32px ${SANS}`;
+  ctx.fillText("Bir dilek feneri", W / 2, H - 290);
+  wordmark(ctx, W, H);
+  return new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("toBlob"))), "image/png"));
+}

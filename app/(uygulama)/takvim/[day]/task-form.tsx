@@ -75,7 +75,7 @@ export function TaskForm({
     <>
       <form onSubmit={submit} className="mt-10 space-y-5">
         {task.kind === "letter" && (
-          <div className="rounded-[14px] border border-champagne/15 bg-[rgba(18,26,46,0.55)] p-5 text-center">
+          <div className="rounded-[14px] border border-champagne/15 bg-[rgba(14,13,18,0.55)] p-5 text-center">
             <p className="text-ink-soft">Mektubunu kürenin içine kapatıyorsun. 31 Aralık 2027&apos;de açılacak.</p>
             <Link href="/kure" className="btn btn-primary mt-4">
               Küreye git ve yaz
@@ -111,7 +111,7 @@ export function TaskForm({
           ))}
         {task.kind === "do" && (
           <>
-            <div className="rounded-[14px] border border-champagne/15 bg-[rgba(18,26,46,0.55)] p-4 text-sm text-ink-soft">
+            <div className="rounded-[14px] border border-champagne/15 bg-[rgba(14,13,18,0.55)] p-4 text-sm text-ink-soft">
               Yaptığında aşağıdaki düğmeye bas. Kürene yeni bir süs eklenecek: <span className="text-gold">{task.gift}</span>.
             </div>
             {task.ask && (
@@ -203,7 +203,7 @@ function Celebration({ day, title, gift, days, onClose }: { day: number; title: 
   }));
   return (
     <motion.div
-      className="fixed inset-0 z-[90] flex flex-col items-center justify-center overflow-hidden bg-[rgba(4,6,12,0.92)] px-6 backdrop-blur-md"
+      className="fixed inset-0 z-[90] flex flex-col items-center justify-center overflow-hidden bg-[rgba(2,2,3,0.92)] px-6 backdrop-blur-md"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "Yılbaşına kadar her gün kendin için küçük bir şey yap, kar küreni süsle, sevdiğinle Ay'ınızı ve gökyüzünüzü yap, vision board'unu kur, 2027'deki kendine mesaj bırak.",
   openGraph: {
     title: "Aeternum · Bu yıldan sonsuza kalanlar",
-    description: "Her gün küçük bir ritüel, yılın sonunda sonsuza saklayacağın bir kar küresi.",
+    description: "Anların sonsuza kaldığı yer: gökyüzü, Ay, dilek fenerleri, zaman kapsülü mektuplar ve Aralık için 31 günlük bir kar küresi.",
     locale: "tr_TR",
     type: "website",
   },
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#07060c",
+  themeColor: "#020203",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

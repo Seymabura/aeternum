@@ -63,7 +63,7 @@ export function AdventGrid({ today, done, onTime }: { today: number; done: numbe
                   "absolute inset-0 flex flex-col items-center justify-center rounded-[18px]",
                   isDone
                     ? "bg-[linear-gradient(170deg,#f3e6c8_0%,#dcc7a1_55%,#a88a5c_130%)] text-[#1a1408] shadow-[inset_0_1px_0_rgba(255,250,240,.8)]"
-                    : "bg-[radial-gradient(circle_at_50%_40%,rgba(255,220,160,.55),rgba(220,199,161,.12)_45%,#0a1122_75%)]",
+                    : "bg-[radial-gradient(circle_at_50%_40%,rgba(255,220,160,.55),rgba(220,199,161,.12)_45%,#0b0a10_75%)]",
                 )}
               >
                 {isDone ? (

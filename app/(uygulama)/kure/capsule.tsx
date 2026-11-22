@@ -53,7 +53,7 @@ export function Capsule({ status, opened, days, lights, today }: { status: Statu
         <h1 className="display mt-5 text-[2.75rem] sm:text-[4rem]">
           Her gün <em className="gold-shine italic">biraz daha</em> senin.
         </h1>
-        <p className="mt-5 max-w-md text-ink-soft">Tamamladığın her görev kürene bir süs, her küçük ritüel bir peri ışığı ekler. 31 Aralık&apos;ta küren dolmuş olur.</p>
+        <p className="mt-5 max-w-md text-ink-soft">Tamamladığın her görev kürene bir süs, her küçük soru bir peri ışığı ekler. 31 Aralık&apos;ta küren dolmuş olur.</p>
         <div className="mt-10 grid grid-cols-3 gap-3">
           <Stat n={days.length} total="/31" label="süs" />
           <Stat n={lights} total="/17" label="ışık" />
@@ -75,7 +75,7 @@ export function Capsule({ status, opened, days, lights, today }: { status: Statu
           ) : null;
         })()}
         <div className="hairline my-16" />
-        <p className="eyebrow">2027&apos;ye mesaj</p>
+        <p id="mektup" className="eyebrow scroll-mt-28">2027&apos;ye mesaj</p>
         {opened ? (
           <>
             <h2 className="display mt-3 text-4xl sm:text-5xl">
@@ -170,7 +170,7 @@ export function Capsule({ status, opened, days, lights, today }: { status: Statu
       </div>
 
       {confirm && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(4,6,12,0.8)] px-6 backdrop-blur-sm" onClick={() => setConfirm(false)}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(2,2,3,0.8)] px-6 backdrop-blur-sm" onClick={() => setConfirm(false)}>
           <div className="sheet-solid w-full max-w-sm p-7 text-center" onClick={(e) => e.stopPropagation()}>
             <WaxSeal className="mx-auto" />
             <h2 className="display mt-5 text-[2rem]">Mühürlensin mi?</h2>

@@ -36,7 +36,7 @@ export function RecoveryCard({ has }: { has: boolean }) {
       </div>
 
       {code ? (
-        <div className="mt-6 rounded-[18px] border border-champagne/30 bg-[rgba(4,6,12,.5)] p-5 text-center">
+        <div className="mt-6 rounded-[18px] border border-champagne/30 bg-[rgba(2,2,3,.5)] p-5 text-center">
           <p className="text-xs text-ink-soft">Kurtarma kodun</p>
           <p className="num mt-2 select-all text-[1.35rem] tracking-[0.16em] text-gold sm:text-[1.6rem]">{code}</p>
           <button

@@ -27,7 +27,7 @@ export function ConsentDialog({
   const [ok, setOk] = useState(false);
   const [pending, start] = useTransition();
   return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-[rgba(4,6,12,0.75)] backdrop-blur-sm sm:items-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-[rgba(2,2,3,0.75)] backdrop-blur-sm sm:items-center" onClick={onClose}>
       <motion.div
         role="dialog"
         aria-modal="true"

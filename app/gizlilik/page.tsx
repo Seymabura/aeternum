@@ -12,7 +12,7 @@ export default function Privacy() {
       <h2>Neleri saklıyoruz?</h2>
       <ul>
         <li>Hesap bilgileri: e-posta adresin, (Google ile girdiysen) adın, şifren (şifrelenmiş olarak, biz göremeyiz).</li>
-        <li>Görev cevapların, küçük ritüel notların, 2027&apos;ye mektubun.</li>
+        <li>Görev cevapların, küçük ışık cevapların, 2027&apos;ye mektubun.</li>
         <li>Vision board'un, 2027 hedeflerin ve yüklediğin fotoğraflar.</li>
         <li>Tercihlerin (ör. hatırlatma e-postası istiyor musun).</li>
       </ul>
@@ -37,6 +37,12 @@ export default function Privacy() {
           görebileceği bir sayfada saklanır. Bağlantıyı Biz sayfasından istediğin an silebilirsin; fotoğraflar da silinir.
         </li>
         <li>Ortak kürede partnerin yalnızca adını ve hangi günleri tamamladığını görür; görev cevapların ona görünmez.</li>
+      </ul>
+      <h2>Dilek feneri</h2>
+      <ul>
+        <li>Bıraktığın fenerin yazısını ve tarihini saklıyoruz. &ldquo;Sadece ben göreyim&rdquo; demediysen dilek ortak gökyüzünde <b>isimsiz</b> görünür; kimin bıraktığı kimseye gösterilmez.</li>
+        <li>Fenerine dokunup &ldquo;Fenerimi söndür&rdquo; dediğin an silinir. Üç kişi uygunsuz diye bildirirse fener otomatik olarak gizlenir.</li>
+        <li>Fenerlere bağlantı, kullanıcı adı ve telefon numarası yazılamaz; kendi bilgilerini yazmamanı öneririz.</li>
       </ul>
       <h2>Çerezler</h2>
       <p>Yalnızca oturumunu açık tutmak için gerekli çerezleri kullanıyoruz. Takip ya da reklam çerezi yok.</p>

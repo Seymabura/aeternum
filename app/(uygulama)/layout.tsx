@@ -12,7 +12,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-40 px-3 pt-3">
-        <div className="mx-auto flex max-w-[1240px] items-center justify-between gap-3 rounded-full border border-champagne/10 bg-[rgba(10,15,28,0.72)] py-1.5 pl-5 pr-1.5 backdrop-blur-xl backdrop-saturate-150">
+        <div className="mx-auto flex max-w-[1240px] items-center justify-between gap-3 rounded-full border border-champagne/10 bg-[rgba(8,7,11,0.72)] py-1.5 pl-5 pr-1.5 backdrop-blur-xl backdrop-saturate-150">
           <Logo href="/" />
           <TopLinks />
           <div className="flex items-center gap-1.5">

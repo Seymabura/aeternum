@@ -69,7 +69,7 @@ export async function saveBonus(id: number, answer: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("bonus_entries").upsert({ user_id: user.id, bonus_id: id, answer: text });
   if (error) {
-    if (error.message?.includes("açılmadı")) return { ok: false as const, error: "Bu küçük ritüel henüz açılmadı." };
+    if (error.message?.includes("açılmadı")) return { ok: false as const, error: "Bu ışık henüz açılmadı." };
     return { ok: false as const, error: "Kaydedilemedi." };
   }
   revalidatePath("/takvim");

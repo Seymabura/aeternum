@@ -14,7 +14,7 @@ export default function Kvkk() {
       <h2>2. İşlenen kişisel veriler</h2>
       <ul>
         <li>Kimlik ve iletişim: ad (isteğe bağlı), e-posta adresi.</li>
-        <li>Kullanıcı içeriği: görev cevapları, notlar, mektuplar, vision board ve 2027 hedefleri, yüklenen fotoğraflar.</li>
+        <li>Kullanıcı içeriği: görev cevapları, notlar, mektuplar, vision board ve 2027 hedefleri, yüklenen fotoğraflar, dilek feneri yazıları (ortak gökyüzünde isimsiz gösterilir; istenirse sadece kullanıcıya görünür).</li>
         <li>
           Biz bölümü: ortak kürede görünen ad ve tamamlanan gün numaraları; yalnızca kullanıcının açık onayıyla oluşturulan
           paylaşım bağlantılarında isimler, görünen tarih metni, gökyüzü/Ay hesap sonuçları. Doğum tarihi,
@@ -25,7 +25,7 @@ export default function Kvkk() {
       <h2>3. İşleme amaçları</h2>
       <ul>
         <li>Hesabının oluşturulması ve oturumunun yönetilmesi,</li>
-        <li>Günlük görev takvimi, kar küresi, vision board, Biz bölümü ve yıl sonu özeti hizmetlerinin sunulması,</li>
+        <li>Günlük görev takvimi, kar küresi, vision board, Biz bölümü, dilek feneri ve yıl sonu özeti hizmetlerinin sunulması,</li>
         <li>İstemen halinde hatırlatma ve zaman kapsülü e-postalarının gönderilmesi,</li>
         <li>Sitenin güvenliğinin sağlanması ve kötüye kullanımın önlenmesi.</li>
       </ul>

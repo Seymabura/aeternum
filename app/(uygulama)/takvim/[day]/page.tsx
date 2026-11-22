@@ -49,7 +49,7 @@ export default async function TaskPage({ params }: PageProps<"/takvim/[day]">) {
     photoUrl = data?.signedUrl ?? null;
   }
   const late = !entry && day < p.today;
-  // küçük ritüeller: açılmış ama yapılmamış olanlardan en eski ikisi, sadece bugünün sayfasında
+  // küçük ışıklar: açılmış ama yapılmamış olanlardan en eski ikisi, sadece bugünün sayfasında
   const rituals = day === p.today ? BONUSES.filter((b) => b.openDay <= p.today && !p.bonusIds.includes(b.id)).slice(0, 2) : [];
 
   return (
@@ -74,7 +74,7 @@ export default async function TaskPage({ params }: PageProps<"/takvim/[day]">) {
       {rituals.length > 0 && (
         <section className="mt-16 border-t border-champagne/10 pt-10">
           <div className="flex items-end justify-between gap-3">
-            <h2 className="display text-[1.75rem]">Bir de küçük bir ritüel</h2>
+            <h2 className="display text-[1.75rem]">Bir de küçük bir ışık yak</h2>
             <p className="num text-sm text-ink-soft">{p.bonusIds.length}/17 ışık</p>
           </div>
           <p className="mb-5 mt-2 text-sm text-ink-soft">Bir iki kelimelik cevap yeter. Her biri kürenin kenarına bir peri ışığı ekler.</p>

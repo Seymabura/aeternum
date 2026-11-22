@@ -62,13 +62,13 @@ export function Ambience() {
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(120% 70% at 50% -10%, #16224a 0%, #0b1328 38%, #05080f 75%), linear-gradient(180deg, #070b16, #04060c)",
+            "radial-gradient(120% 70% at 50% -10%, #121016 0%, #09080c 38%, #030304 75%), linear-gradient(180deg, #060508, #020203)",
         }}
       />
       {/* ay ışığı haresi */}
       <div
         className="absolute left-1/2 top-[-18vh] h-[70vh] w-[110vw] -translate-x-1/2 opacity-70"
-        style={{ background: "radial-gradient(50% 50% at 50% 50%, rgba(185,205,242,.16), rgba(185,205,242,.04) 45%, transparent 70%)" }}
+        style={{ background: "radial-gradient(50% 50% at 50% 50%, rgba(220,210,190,.07), rgba(220,210,190,.02) 45%, transparent 70%)" }}
       />
       {/* şampanya yansıması (alt) */}
       <div
