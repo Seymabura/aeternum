@@ -28,17 +28,20 @@ export default function Home() {
       <LandingNav />
 
       {/* ------------------------------------------------------------ giriş */}
-      <section className="relative mx-auto flex min-h-[100svh] max-w-[1240px] flex-col items-center justify-center px-5 pb-16 pt-32 text-center sm:px-8">
-        <h1 className="display text-[3.4rem] leading-[0.98] sm:text-[6rem] lg:text-[7.5rem]" aria-label="Anların sonsuza kaldığı yer.">
+      {/* geniş ekranda: araçlar solda, başlık sağda; telefonda başlık üstte */}
+      <section className="relative mx-auto grid min-h-[100svh] max-w-[1240px] items-center gap-12 px-5 pb-16 pt-32 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16 lg:pt-28">
+        <div className="text-center lg:order-2 lg:text-right">
+        <h1 className="display text-[3.4rem] leading-[0.98] sm:text-[6rem] lg:text-[6.6rem] xl:text-[7.2rem]" aria-label="Anların sonsuza kaldığı yer.">
           <span className="mask-line"><span style={{ animationDelay: "150ms" }}>Anların</span></span>
           <span className="mask-line"><span className="infinite-word" style={{ animationDelay: "260ms" }}>sonsuza</span></span>
           <span className="mask-line"><span style={{ animationDelay: "370ms" }}>kaldığı yer.</span></span>
         </h1>
-        <p className="rise mx-auto mt-8 max-w-[34rem] text-[1.05rem] leading-relaxed text-ink-soft" style={{ animationDelay: "600ms" }}>
+        <p className="rise mx-auto mt-8 max-w-[34rem] text-[1.05rem] leading-relaxed text-ink-soft lg:ml-auto lg:mr-0" style={{ animationDelay: "600ms" }}>
           Doğduğun gecenin Ay&apos;ı, tanıştığınız gecenin gökyüzü, bir yıl sonra açılacak bir mektup. Saklamak istediğin anlar için küçük dijital hatıralar. Üyelik yok.
         </p>
+        </div>
 
-        <nav aria-label="Araçlar" className="rise mt-12 grid w-full max-w-[56rem] grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3" style={{ animationDelay: "760ms" }}>
+        <nav aria-label="Araçlar" className="rise mx-auto grid w-full max-w-[56rem] grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3 lg:order-1 lg:mx-0 lg:max-w-none lg:grid-cols-2" style={{ animationDelay: "760ms" }}>
           {TOOLS.map(({ href, name, hint, icon: Icon, ...rest }) => {
             const nar = "nar" in rest;
             return (
