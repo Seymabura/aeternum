@@ -6,6 +6,14 @@ import { toast } from "sonner";
 import {
   ArrowDownToLine,
   BringToFront,
+  Check,
+  ChevronDown,
+  Copy,
+  Pencil,
+  Plus,
+  Save,
+  Share2,
+  Upload,
   Download,
   Frame,
   ImagePlus,
@@ -24,9 +32,9 @@ import {
   Undo2,
   X,
 } from "lucide-react";
-import { addVision, deleteVision, setVisionBg, updateVision, type VisionFont, type VisionItem, type VisionLayout } from "@/app/actions/extras";
-import { isSticker, VISION_CATS, VISION_LIBRARY, VISION_STICKERS, type VisionCat } from "@/lib/vision-library";
-import { applyTemplate, BGS, BH, BW, CLOCK_SAFE, FONT_CSS, FONT_LABEL, fontStyle, TEXT_COLORS, maxZ, photoMeta, renderBoard, TEMPLATES, TONES, VISION_EXPORTS, wordFontSize } from "@/lib/vision/board";
+import { addVision, createBoard, deleteBoard, deleteVision, duplicateBoard, updateBoard, updateVision, type BoardFormat, type VisionBoard, type VisionFont, type VisionItem, type VisionLayout } from "@/app/actions/extras";
+import { isSticker, VISION_CATS, VISION_LIBRARY, type VisionCat } from "@/lib/vision-library";
+import { applyTemplate, BG_GROUPS, BGS, clockSafe, FONT_CSS, FONT_LABEL, FORMATS, fmtOf, fontStyle, TEXT_COLORS, maxZ, photoMeta, renderBoard, TEMPLATES, TONES, unit, wordFontSize, type FormatDef } from "@/lib/vision/board";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/image";
 import { shareOrDownload } from "@/lib/share";
@@ -42,16 +50,32 @@ type Gesture =
 const MIN = 90;
 const SNAP = 14;
 
-export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg }: { initial: VisionItem[]; urls: Record<string, string>; userId: string; bg: string }) {
+type EditorProps = {
+  board: VisionBoard;
+  initial: VisionItem[];
+  urls: Record<string, string>;
+  userId: string;
+  onItems: (items: VisionItem[]) => void;
+  onBg: (bg: string) => void;
+  onUrls: (u: Record<string, string>) => void;
+  header: React.ReactNode;
+};
+
+function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg, onUrls, header }: EditorProps) {
+  const f = fmtOf(board.format);
+  const BW = f.W;
+  const BH = f.H;
+  const CLOCK_SAFE = clockSafe(f);
+  const U = unit(f);
   // düzeni olmayan eski parçalar kolaja yerleşir
   const [items, setItems] = useState<VisionItem[]>(() => {
     const missing = initial.filter((i) => !i.layout);
     if (!missing.length) return initial;
-    const lay = applyTemplate(initial, "kolaj");
+    const lay = applyTemplate(initial, "kolaj", f);
     return initial.map((i) => (i.layout ? i : { ...i, layout: lay[i.id] }));
   });
   const [urls, setUrls] = useState(initialUrls);
-  const [bg, setBg] = useState(BGS[initialBg] ? initialBg : "sampanya");
+  const [bg, setBg] = useState(BGS[board.bg] ? board.bg : "sampanya");
   const [sel, setSel] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("foto");
   const [sheet, setSheet] = useState(false);
@@ -69,6 +93,20 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
   const saveT = useRef<ReturnType<typeof setTimeout> | null>(null);
   const itemsRef = useRef(items);
   itemsRef.current = items;
+  // üst bileşen panolar arasında geçişte son hâli bilsin
+  useEffect(() => onItems(items), [items, onItems]);
+  useEffect(() => onUrls(urls), [urls, onUrls]);
+  // pano değişirken bekleyen kayıtları hemen gönder
+  useEffect(
+    () => () => {
+      if (saveT.current) clearTimeout(saveT.current);
+      for (const id of dirty.current) {
+        const it = itemsRef.current.find((i) => i.id === id);
+        if (it?.layout) void updateVision(id, { layout: it.layout });
+      }
+    },
+    [],
+  );
 
   // ilk açılışta eski parçaların yeni düzenini kaydet
   useEffect(() => {
@@ -83,7 +121,7 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
     const ro = new ResizeObserver(() => setScale(el.clientWidth / BW));
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [BW]);
 
   const srcOf = useCallback((it: VisionItem) => (it.src?.startsWith("/") ? it.src : it.src ? urls[it.src] : undefined), [urls]);
   const selected = items.find((i) => i.id === sel) ?? null;
@@ -132,9 +170,9 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
   }
 
   // ------------------------------------------------------------ ekleme
-  async function add(input: Parameters<typeof addVision>[0], at?: { x: number; y: number }) {
+  async function add(input: Omit<Parameters<typeof addVision>[0], "board">, at?: { x: number; y: number }) {
     if (itemsRef.current.length >= 60) return void toast.error("Pano dolu (60 parça).");
-    const r = await addVision(input);
+    const r = await addVision({ ...input, board: board.id });
     if (!r.ok) return void toast.error(r.error);
     setItems((x) => [...x, r.item]);
     setSel(r.item.id);
@@ -144,12 +182,13 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
       patch(r.item.id, { x: Math.round(at.x - l.w / 2), y: Math.round(at.y - l.h / 2) }, false);
     }
   }
-  function placeFor(aspect: number, w = 540, frame: VisionLayout["frame"] = "beyaz"): VisionLayout {
+  function placeFor(aspect: number, w0 = 540, frame: VisionLayout["frame"] = "beyaz"): VisionLayout {
+    const w = Math.round(w0 * U);
     const h = Math.round(w * aspect);
     const n = itemsRef.current.length;
     return {
-      x: Math.round((BW - w) / 2 + ((n * 47) % 120) - 60),
-      y: Math.round(Math.max(CLOCK_SAFE, BH * 0.46 - h / 2) + ((n * 71) % 160) - 80),
+      x: Math.round((BW - w) / 2 + (((n * 47) % 120) - 60) * U),
+      y: Math.round(Math.max(CLOCK_SAFE, BH * 0.46 - h / 2) + (((n * 71) % 160) - 80) * U),
       w,
       h,
       r: ((n * 29) % 7) - 3,
@@ -158,10 +197,47 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
       font: "serif",
     };
   }
-  function addPhoto(src: string, at?: { x: number; y: number }) {
+  function addPhoto(src: string, at?: { x: number; y: number }, aspect?: number) {
     const m = photoMeta(src);
     const sticker = isSticker(src);
-    void add({ kind: "image", src, size: "s", layout: placeFor(m ? m.h / m.w : 1.3, sticker ? 260 : 540, sticker ? "yok" : "beyaz") }, at);
+    void add({ kind: "image", src, size: "s", layout: placeFor(aspect ?? (m ? m.h / m.w : 1.3), sticker ? 300 : 540, sticker ? "yok" : "beyaz") }, at);
+  }
+  // kendi süsünü yükle: şeffaf PNG ya da WebP, en fazla 5 MB
+  const stickerRef = useRef<HTMLInputElement>(null);
+  const [stickers, setStickers] = useState<{ path: string; url: string; aspect: number }[] | null>(null);
+  const loadStickers = useCallback(async () => {
+    const sb = createClient();
+    const { data } = await sb.storage.from("uploads").list(`${userId}/sus`, { limit: 100, sortBy: { column: "created_at", order: "desc" } });
+    const paths = ((data ?? []) as { name: string }[]).filter((o) => o.name && !o.name.startsWith(".")).map((o) => `${userId}/sus/${o.name}`);
+    if (!paths.length) return setStickers([]);
+    const { data: signed } = await sb.storage.from("uploads").createSignedUrls(paths, 60 * 60 * 6);
+    const list = ((signed ?? []) as { path: string | null; signedUrl: string }[]).filter((x) => x.signedUrl && x.path).map((x) => ({ path: x.path!, url: x.signedUrl, aspect: 1 }));
+    setUrls((u) => ({ ...Object.fromEntries(list.map((x) => [x.path, x.url])), ...u }));
+    setStickers(list);
+  }, [userId]);
+  async function uploadSticker(file?: File) {
+    if (!file) return;
+    if (!["image/png", "image/webp"].includes(file.type)) return void toast.error("Süs için arka planı şeffaf bir PNG ya da WebP seç.");
+    if (file.size > 5 * 1024 * 1024) return void toast.error("Dosya 5 MB'tan küçük olmalı.");
+    setBusy("Süs yükleniyor");
+    try {
+      const bmp = await createImageBitmap(file);
+      const aspect = bmp.height / bmp.width;
+      bmp.close();
+      const path = `${userId}/sus/${crypto.randomUUID()}.${file.type === "image/webp" ? "webp" : "png"}`;
+      const { error } = await createClient().storage.from("uploads").upload(path, file, { contentType: file.type });
+      if (error) throw error;
+      const url = URL.createObjectURL(file);
+      setUrls((u) => ({ ...u, [path]: url }));
+      setStickers((s) => [{ path, url, aspect }, ...(s ?? [])]);
+      addPhoto(path, undefined, aspect);
+      setSheet(false);
+    } catch {
+      toast.error("Süs yüklenemedi. Tekrar dene.");
+    } finally {
+      setBusy(null);
+      if (stickerRef.current) stickerRef.current.value = "";
+    }
   }
   async function upload(f?: File) {
     if (!f) return;
@@ -185,10 +261,23 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
     }
   }
   async function remove(id: string) {
+    const it = itemsRef.current.find((i) => i.id === id);
+    if (!it) return;
     setItems((x) => x.filter((y) => y.id !== id));
     setSel(null);
+    // yüklenen fotoğraf dosyası geri alınabilsin diye hemen silinmez; parça kaydı silinir, geri alınca yeniden eklenir
     const r = await deleteVision(id);
-    if (!r.ok) toast.error("Silinemedi.");
+    if (!r.ok) return void toast.error("Silinemedi.");
+    toast("Parça silindi", {
+      action: {
+        label: "Geri al",
+        onClick: async () => {
+          const back = await addVision({ board: board.id, kind: it.kind, src: it.src ?? undefined, text: it.text ?? undefined, tone: it.tone ?? undefined, size: it.size, layout: it.layout ?? undefined });
+          if (back.ok) setItems((x) => [...x, back.item]);
+          else toast.error("Geri alınamadı.");
+        },
+      },
+    });
   }
   function layer(id: string, dir: 1 | -1) {
     const zs = itemsRef.current.map((i) => i.layout!.z);
@@ -205,6 +294,11 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     const target = e.target as HTMLElement;
     const handle = target.closest<HTMLElement>("[data-handle]")?.dataset.handle;
+    if (handle === "delete" && sel) {
+      pointers.current.delete(e.pointerId);
+      void remove(sel);
+      return;
+    }
     const id = target.closest<HTMLElement>("[data-item]")?.dataset.item ?? (handle ? sel : null);
     stage.current?.setPointerCapture(e.pointerId);
     // iki parmak: seçili parçayı büyüt/döndür
@@ -353,14 +447,55 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
   });
 
   // ------------------------------------------------------------ dışa aktar
-  async function exportAs(id: (typeof VISION_EXPORTS)[number]["id"]) {
-    const spec = VISION_EXPORTS.find((x) => x.id === id)!;
-    setBusy("Duvar kağıdı hazırlanıyor");
+  async function exportAs(spec: { id: string; w: number; h: number }) {
+    setBusy("Görsel hazırlanıyor");
     try {
-      const blob = await renderBoard(itemsRef.current, bg, srcOf, spec.w, spec.h);
-      await shareOrDownload(blob, `aeternum-vision-${spec.id}.png`, "Vision board");
+      const blob = await renderBoard(itemsRef.current, bg, srcOf, spec.w, spec.h, f);
+      await shareOrDownload(blob, `aeternum-vision-${board.format}-${spec.id}.png`, "Vision board");
     } catch {
       toast.error("İndirilemedi. Tekrar dener misin?");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  // panonun ekrandaki en geniş hâli: dikeyler dar, yataylar geniş; yükseklik ekranın %74'ünü geçmesin
+  const stageMax = f.W >= f.H ? `min(100%, 900px, calc(74vh * ${(f.W / f.H).toFixed(3)}))` : `min(${f.id === "telefon" ? 460 : 560}px, 100%, calc(86vh * ${(f.W / f.H).toFixed(3)}))`;
+
+  async function shareAs(kind: "x" | "story") {
+    setBusy("Görsel hazırlanıyor");
+    try {
+      if (kind === "story") {
+        const blob = await renderBoard(itemsRef.current, bg, srcOf, 1080, 1920, f);
+        await shareOrDownload(blob, "aeternum-vision-hikaye.png", "Vision board");
+        return;
+      }
+      const spec = f.exports[0];
+      const blob = await renderBoard(itemsRef.current, bg, srcOf, spec.w, spec.h, f);
+      const text = "2027 vision board'umu hazırladım ✦";
+      const url = "https://aeternum-26.netlify.app";
+      const file = new File([blob], "aeternum-vision.png", { type: "image/png" });
+      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+      const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (mobile && nav.canShare?.({ files: [file] })) {
+        try {
+          await nav.share({ files: [file], text: `${text} ${url}` });
+          return;
+        } catch (e) {
+          if ((e as Error).name === "AbortError") return;
+        }
+      }
+      // bilgisayar: görseli indir, X'in gönderi penceresini aç
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "aeternum-vision.png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.open(`https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank", "noopener");
+      toast("Görsel indirildi", { description: "X'te açılan gönderine indirilen görseli sürükleyip bırak.", duration: 8000 });
+    } catch {
+      toast.error("Paylaşım hazırlanamadı. Tekrar dene.");
     } finally {
       setBusy(null);
     }
@@ -375,6 +510,14 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
       setTab={setTab}
       onPhoto={(src) => {
         addPhoto(src);
+        setSheet(false);
+      }}
+      f={f}
+      stickers={stickers}
+      onLoadStickers={loadStickers}
+      onUploadSticker={() => stickerRef.current?.click()}
+      onSticker={(st) => {
+        addPhoto(st.path, undefined, st.aspect);
         setSheet(false);
       }}
       onUpload={() => fileRef.current?.click()}
@@ -399,12 +542,13 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
       bg={bg}
       onBg={(b) => {
         setBg(b);
-        void setVisionBg(b);
+        onBg(b);
+        void updateBoard(board.id, { bg: b });
       }}
       onTemplate={(t) => {
         if (!items.length) return void toast("Önce panoya birkaç fotoğraf ekle.");
         const before = snapshot();
-        setLayouts(applyTemplate(itemsRef.current, t));
+        setLayouts(applyTemplate(itemsRef.current, t, f));
         commit(before);
         setSheet(false);
       }}
@@ -416,15 +560,19 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
       <section className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <h1 className="display text-[2.75rem] leading-[1] sm:text-[4rem]">Vision board</h1>
-          <p className="mt-4 max-w-lg text-ink-soft">Gelecek yılını fotoğraflarla ve kelimelerle kur. Parçaları sürükle, köşeden büyüt, üstteki noktadan döndür. Bitince telefonuna duvar kağıdı yap.</p>
+          <p className="mt-4 max-w-lg text-ink-soft">Gelecek yılını fotoğraflarla ve kelimelerle kur. Parçaları sürükle, köşeden büyüt, üstteki noktadan döndür.</p>
         </div>
-        <ExportMenu disabled={!!busy || items.length === 0} onPick={exportAs} />
+        <div className="flex flex-wrap gap-2">
+          <ShareMenu disabled={!!busy || items.length === 0} onPick={shareAs} />
+          <ExportMenu f={f} disabled={!!busy || items.length === 0} onPick={exportAs} />
+        </div>
       </section>
+      {header}
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
         <div className="flex flex-col items-center">
           {/* üst araç çubuğu */}
-          <div className="mb-4 flex w-full max-w-[460px] items-center justify-between gap-2">
+          <div className="mb-4 flex w-full items-center justify-between gap-2" style={{ maxWidth: stageMax }}>
             <div className="flex items-center gap-1">
               <IconBtn label="Geri al" onClick={undo} disabled={!hist.past.length}>
                 <Undo2 className="h-4 w-4" />
@@ -439,8 +587,8 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
           {/* pano */}
           <div
             ref={stage}
-            className="vb-stage relative w-full max-w-[460px] touch-none select-none overflow-hidden rounded-[34px] border border-white/10 shadow-[0_60px_120px_-50px_rgba(0,0,0,1),0_0_0_8px_rgba(14,13,18,0.9),0_0_0_9px_rgba(220,199,161,0.14)]"
-            style={{ aspectRatio: `${BW} / ${BH}`, background: BGS[bg]?.css, ["--s" as string]: scale }}
+            className="vb-stage relative isolate w-full touch-none select-none border border-white/10 shadow-[0_60px_120px_-50px_rgba(0,0,0,1),0_0_0_8px_rgba(14,13,18,0.9),0_0_0_9px_rgba(220,199,161,0.14)]"
+            style={{ aspectRatio: `${BW} / ${BH}`, maxWidth: stageMax, borderRadius: f.radius, ["--s" as string]: scale }}
             onPointerDown={onDown}
             onPointerMove={onMove}
             onPointerUp={onUp}
@@ -454,12 +602,13 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
             role="application"
             aria-label="Vision board panosu. Bir parçayı seçip ok tuşlarıyla taşıyabilir, artı ve eksiyle büyütüp küçültebilirsin."
           >
+            <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: f.radius, background: BGS[bg]?.css }}>
             {BGS[bg]?.stars && <div aria-hidden className="night-stars pointer-events-none absolute inset-0 opacity-70" />}
             {/* kilit ekranı saati alanı */}
-            <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 flex flex-col items-center pt-[7%] opacity-[.18]" style={{ height: `${(CLOCK_SAFE / BH) * 100}%`, color: ink }}>
+            {f.clock && <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 flex flex-col items-center pt-[7%] opacity-[.18]" style={{ height: `${(CLOCK_SAFE / BH) * 100}%`, color: ink }}>
               <span className="text-[calc(var(--s)*40px)]">Cuma 1 Ocak</span>
               <span className="font-semibold leading-none tracking-tight text-[calc(var(--s)*230px)]">9:41</span>
-            </div>
+            </div>}
             {items.length === 0 && (
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-10 text-center" style={{ color: ink }}>
                 <p className="display text-[1.8rem] italic">Panon boş</p>
@@ -492,27 +641,43 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
                   }}
                 >
                   <Piece it={it} src={srcOf(it)} bgInk={ink} />
-                  {isSel && (
-                    <>
-                      <span aria-hidden className="pointer-events-none absolute -inset-[3px] rounded-[6px] border-[1.5px] border-champagne shadow-[0_0_0_1px_rgba(0,0,0,.4)]" />
-                      <span aria-hidden className="pointer-events-none absolute -top-7 left-1/2 h-6 w-px -translate-x-1/2 bg-champagne" />
-                      <span
-                        data-handle="rotate"
-                        aria-hidden
-                        className="absolute -top-10 left-1/2 grid h-7 w-7 -translate-x-1/2 cursor-alias place-items-center rounded-full border border-champagne bg-[#0b0a10]"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5 text-champagne" />
-                      </span>
-                      <span data-handle="scale" aria-hidden className="absolute -bottom-3 -right-3 h-6 w-6 cursor-nwse-resize rounded-full border-2 border-[#0b0a10] bg-champagne shadow" />
-                    </>
-                  )}
                 </div>
               );
             })}
+            </div>
+            {/* seçim çerçevesi ve tutamaçlar: kırpılmasın diye panonun dışına taşabilir */}
+            {selected?.layout && (
+              <div
+                aria-hidden
+                className="pointer-events-none absolute"
+                style={{
+                  left: `${(selected.layout.x / BW) * 100}%`,
+                  top: `${(selected.layout.y / BH) * 100}%`,
+                  width: `${(selected.layout.w / BW) * 100}%`,
+                  height: `${(selected.layout.h / BH) * 100}%`,
+                  transform: `rotate(${selected.layout.r}deg)`,
+                  zIndex: 99999,
+                }}
+              >
+                <span className="absolute -inset-[3px] rounded-[6px] border-[1.5px] border-champagne shadow-[0_0_0_1px_rgba(0,0,0,.4)]" />
+                <span className="absolute -top-7 left-1/2 h-6 w-px -translate-x-1/2 bg-champagne" />
+                <span data-handle="rotate" className="pointer-events-auto absolute -top-10 left-1/2 grid h-7 w-7 -translate-x-1/2 cursor-alias place-items-center rounded-full border border-champagne bg-[#0b0a10]">
+                  <RotateCcw className="h-3.5 w-3.5 text-champagne" />
+                </span>
+                <span data-handle="scale" className="pointer-events-auto absolute -bottom-3 -right-3 h-6 w-6 cursor-nwse-resize rounded-full border-2 border-[#0b0a10] bg-champagne shadow" />
+                <span
+                  data-handle="delete"
+                  title="Sil"
+                  className="pointer-events-auto absolute -right-3 -top-10 grid h-7 w-7 cursor-pointer place-items-center rounded-full border border-nar-soft bg-[#2a0610] shadow-[0_0_0_3px_rgba(2,2,3,.6)] transition-transform hover:scale-110"
+                >
+                  <Trash2 className="h-3.5 w-3.5 text-[#ffd9df]" />
+                </span>
+              </div>
+            )}
           </div>
 
           {/* seçili parça araçları */}
-          <div className="mt-5 flex min-h-12 w-full max-w-[460px] flex-wrap items-center justify-center gap-1 rounded-full border border-white/[.08] bg-[rgba(14,13,18,0.6)] p-1 backdrop-blur-xl">
+          <div style={{ maxWidth: stageMax }} className="mt-5 flex min-h-12 w-full flex-wrap items-center justify-center gap-1 rounded-full border border-white/[.08] bg-[rgba(14,13,18,0.6)] p-1 backdrop-blur-xl">
             {selected ? (
               <>
                 <IconBtn label="Öne getir" onClick={() => layer(selected.id, 1)}>
@@ -563,7 +728,7 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
           </div>
 
           {/* telefon: panel düğmeleri */}
-          <div className="mt-4 grid w-full max-w-[460px] grid-cols-5 gap-1.5 lg:hidden">
+          <div style={{ maxWidth: stageMax }} className="mt-4 grid w-full grid-cols-5 gap-1.5 lg:hidden">
             {(
               [
                 { t: "foto", label: "Fotoğraf", icon: Library },
@@ -593,6 +758,7 @@ export function VisionStudio({ initial, urls: initialUrls, userId, bg: initialBg
       </div>
 
       <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => upload(e.target.files?.[0])} />
+      <input ref={stickerRef} type="file" accept="image/png,image/webp" hidden onChange={(e) => uploadSticker(e.target.files?.[0])} />
 
       {sheet && (
         <div className="fixed inset-0 z-[70] flex items-end bg-[rgba(2,2,3,0.6)] backdrop-blur-sm lg:hidden" onClick={() => setSheet(false)}>
@@ -678,7 +844,17 @@ function StudioPanel({
   bg,
   onBg,
   onTemplate,
+  f,
+  stickers,
+  onLoadStickers,
+  onUploadSticker,
+  onSticker,
 }: {
+  f: FormatDef;
+  stickers: { path: string; url: string; aspect: number }[] | null;
+  onLoadStickers: () => void;
+  onUploadSticker: () => void;
+  onSticker: (s: { path: string; url: string; aspect: number }) => void;
   tab: Tab;
   setTab: (t: Tab) => void;
   onPhoto: (src: string) => void;
@@ -707,7 +883,7 @@ function StudioPanel({
             role="tab"
             aria-selected={tab === t}
             onClick={() => setTab(t)}
-            className={cn("min-h-9 rounded-full text-[0.8rem] transition-colors", tab === t ? "bg-champagne text-[#1a1408]" : "text-ink-soft hover:text-ink")}
+            className={cn("min-h-9 rounded-full text-[0.8rem] transition-colors", tab === t ? "bg-gradient-to-b from-[#c52c48] to-[#7a1226] text-[#fbefd8] shadow-[0_0_0_1px_rgba(233,205,150,.6),0_6px_18px_-8px_rgba(158,27,50,.9)]" : "text-ink-soft hover:text-ink")}
           >
             {label}
           </button>
@@ -715,35 +891,27 @@ function StudioPanel({
       </div>
       <div className="-mx-1 min-h-0 flex-1 overflow-y-auto overscroll-contain px-1 pb-2">
       {tab === "foto" && <PhotoTab onPhoto={onPhoto} onUpload={onUpload} />}
-      {tab === "sus" && (
-        <div>
-          <p className="mb-4 text-sm text-ink-soft">Dokun ya da panoya sürükle. Süsleri de büyütüp döndürebilirsin.</p>
-          <div className="grid grid-cols-4 gap-2">
-            {VISION_STICKERS.map((v) => (
-              <button
-                key={v.src}
-                draggable
-                onDragStart={(e) => e.dataTransfer.setData("text/vision", v.src)}
-                onClick={() => onPhoto(v.src)}
-                title={v.alt}
-                aria-label={`${v.alt} süsünü ekle`}
-                className="grid aspect-square place-items-center rounded-[14px] border border-white/[.06] bg-white/[.03] p-2.5 transition-colors hover:border-champagne/40"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={v.src} alt="" className="h-full w-full object-contain" draggable={false} />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {tab === "sus" && <StickerTab stickers={stickers} onLoad={onLoadStickers} onUpload={onUploadSticker} onPick={onSticker} />}
       {tab === "yazi" && <WordTab key={editing?.id ?? "yeni"} onWord={onWord} editing={editing} onNew={onNewWord} bg={bg} />}
       {tab === "arka" && (
-        <div className="grid grid-cols-3 gap-3">
-          {Object.entries(BGS).map(([k, b]) => (
-            <button key={k} onClick={() => onBg(k)} aria-pressed={bg === k} className="text-center text-xs text-ink-soft">
-              <span className={cn("block aspect-[9/16] rounded-[14px] border-2", bg === k ? "border-champagne" : "border-white/10")} style={{ background: b.css }} />
-              <span className="mt-1.5 block">{b.label}</span>
-            </button>
+        <div className="space-y-6">
+          {BG_GROUPS.map((g) => (
+            <div key={g}>
+              <p className="mb-2.5 text-xs text-ink-mute">{g}</p>
+              <div className="grid grid-cols-4 gap-2.5">
+                {Object.entries(BGS)
+                  .filter(([, b]) => b.group === g)
+                  .map(([k, b]) => (
+                    <button key={k} onClick={() => onBg(k)} aria-pressed={bg === k} className="text-center text-[0.7rem] text-ink-soft">
+                      <span
+                        className={cn("block rounded-[12px] border-2 transition-transform", bg === k ? "scale-[1.03] border-champagne shadow-[0_0_0_3px_rgba(158,27,50,.45)]" : "border-white/10 hover:border-white/30")}
+                        style={{ background: b.css, aspectRatio: `${Math.min(f.W / f.H, 1.4)}` }}
+                      />
+                      <span className="mt-1.5 block leading-tight">{b.label}</span>
+                    </button>
+                  ))}
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -753,7 +921,7 @@ function StudioPanel({
           <div className="grid grid-cols-3 gap-2.5">
             {TEMPLATES.map((t) => (
               <button key={t.id} onClick={() => onTemplate(t.id)} className="rounded-[16px] border border-white/10 bg-white/[.02] p-3 text-left text-sm transition-colors hover:border-champagne/40">
-                <TemplateGlyph id={t.id} />
+                <TemplateGlyph id={t.id} f={f} />
                 <span className="mt-2 block text-ink">{t.label}</span>
               </button>
             ))}
@@ -775,11 +943,13 @@ const GLYPH_ITEMS: VisionItem[] = Array.from({ length: 7 }, (_, i) => ({
   layout: null,
 }));
 
-function TemplateGlyph({ id }: { id: (typeof TEMPLATES)[number]["id"] }) {
-  const lay = useMemo(() => applyTemplate(GLYPH_ITEMS, id), [id]);
+function TemplateGlyph({ id, f }: { id: (typeof TEMPLATES)[number]["id"]; f: FormatDef }) {
+  const lay = useMemo(() => applyTemplate(GLYPH_ITEMS, id, f), [id, f]);
+  const BW = f.W;
+  const BH = f.H;
   return (
-    <svg viewBox={`0 0 ${BW} ${BH}`} className="h-28 w-full" aria-hidden>
-      <rect x="8" y="8" width={BW - 16} height={BH - 16} rx="110" className="fill-black/30 stroke-white/15" strokeWidth="10" />
+    <svg viewBox={`0 0 ${BW} ${BH}`} className="h-24 w-full" aria-hidden>
+      <rect x="8" y="8" width={BW - 16} height={BH - 16} rx={f.radius * 3} className="fill-black/30 stroke-white/15" strokeWidth="10" />
       {Object.entries(lay).map(([k, l]) => (
         <rect
           key={k}
@@ -989,22 +1159,70 @@ function WordTab({ onWord, editing, onNew, bg }: { onWord: (w: WordSpec) => Prom
   );
 }
 
-function ExportMenu({ disabled, onPick }: { disabled: boolean; onPick: (id: (typeof VISION_EXPORTS)[number]["id"]) => void }) {
+function StickerTab({
+  stickers,
+  onLoad,
+  onUpload,
+  onPick,
+}: {
+  stickers: { path: string; url: string; aspect: number }[] | null;
+  onLoad: () => void;
+  onUpload: () => void;
+  onPick: (s: { path: string; url: string; aspect: number }) => void;
+}) {
+  useEffect(() => {
+    if (stickers === null) onLoad();
+  }, [stickers, onLoad]);
+  return (
+    <div>
+      <button onClick={onUpload} className="btn btn-ghost btn-sm w-full">
+        <Upload className="h-4 w-4" /> Kendi süsünü ekle
+      </button>
+      <p className="mt-2 text-xs text-ink-mute">Arka planı şeffaf bir PNG ya da WebP seç (en fazla 5 MB). Süsler çerçevesiz eklenir; büyütüp döndürebilirsin.</p>
+      <p className="mb-2.5 mt-6 text-xs text-ink-mute">Süslerim</p>
+      {stickers === null ? (
+        <div className="grid grid-cols-4 gap-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <span key={i} className="shimmer aspect-square rounded-[14px]" />
+          ))}
+        </div>
+      ) : stickers.length === 0 ? (
+        <p className="rounded-[14px] border border-dashed border-white/10 px-4 py-6 text-center text-sm text-ink-soft">Henüz süs yüklemedin. Yüklediğin süsler burada durur, istediğin panoda tekrar kullanırsın.</p>
+      ) : (
+        <div className="grid grid-cols-4 gap-2">
+          {stickers.map((st) => (
+            <button
+              key={st.path}
+              onClick={() => onPick(st)}
+              aria-label="Bu süsü panoya ekle"
+              className="grid aspect-square place-items-center rounded-[14px] border border-white/[.06] bg-[repeating-conic-gradient(#ffffff0d_0_25%,transparent_0_50%)] bg-[length:14px_14px] p-2 transition-colors hover:border-champagne/40"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={st.url} alt="" className="h-full w-full object-contain" draggable={false} />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ExportMenu({ f, disabled, onPick }: { f: FormatDef; disabled: boolean; onPick: (spec: { id: string; w: number; h: number }) => void }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="relative">
       <button className="btn btn-primary" disabled={disabled} onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        <Download className="h-4 w-4" /> Duvar kağıdı olarak indir
+        <Download className="h-4 w-4" /> İndir
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-30 mt-2 w-60 rounded-[18px] border border-white/10 bg-[#0c0b0f] p-1.5 shadow-[var(--shadow-lift)]" role="menu">
-          {VISION_EXPORTS.map((x) => (
+        <div className="absolute right-0 top-full z-30 mt-2 w-64 rounded-[18px] border border-white/10 bg-[#0c0b0f] p-1.5 shadow-[var(--shadow-lift)]" role="menu">
+          {f.exports.map((x) => (
             <button
               key={x.id}
               role="menuitem"
               onClick={() => {
                 setOpen(false);
-                onPick(x.id);
+                onPick(x);
               }}
               className="flex w-full items-center justify-between rounded-[12px] px-3 py-2.5 text-left text-sm text-ink hover:bg-white/5"
             >
@@ -1014,6 +1232,30 @@ function ExportMenu({ disabled, onPick }: { disabled: boolean; onPick: (id: (typ
               </span>
             </button>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ShareMenu({ disabled, onPick }: { disabled: boolean; onPick: (k: "x" | "story") => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button className="btn btn-ghost" disabled={disabled} onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        <Share2 className="h-4 w-4" /> Paylaş
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-30 mt-2 w-64 rounded-[18px] border border-white/10 bg-[#0c0b0f] p-1.5 shadow-[var(--shadow-lift)]" role="menu">
+          <button role="menuitem" onClick={() => (setOpen(false), onPick("x"))} className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-left text-sm text-ink hover:bg-white/5">
+            <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden>
+              <path d="M17.75 3h3.07l-6.7 7.66L22 21h-6.17l-4.83-6.32L5.47 21H2.4l7.17-8.2L2 3h6.33l4.37 5.77L17.75 3Zm-1.08 16.17h1.7L7.4 4.74H5.58l11.09 14.43Z" />
+            </svg>
+            X&apos;te paylaş
+          </button>
+          <button role="menuitem" onClick={() => (setOpen(false), onPick("story"))} className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-left text-sm text-ink hover:bg-white/5">
+            <ArrowDownToLine className="h-4 w-4" /> Hikâye boyutunda indir
+          </button>
         </div>
       )}
     </div>
@@ -1033,5 +1275,356 @@ function TextBtn({ label, icon: Icon, onClick }: { label: string; icon: React.Co
     <button onClick={onClick} className="flex min-h-10 items-center gap-1.5 rounded-full px-3 text-[0.8rem] text-ink-soft transition-colors hover:bg-white/10 hover:text-ink">
       <Icon className="h-4 w-4" /> {label}
     </button>
+  );
+}
+
+
+// ---------------------------------------------------------------- panolar
+
+const FORMAT_ICON: Record<BoardFormat, string> = {
+  telefon: "M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z",
+  "tablet-dikey": "M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z",
+  "tablet-yatay": "M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6Z",
+  masaustu: "M3 4h18a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Zm6 16h6",
+  "ig-kare": "M4 4h16v16H4z",
+  "ig-hikaye": "M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z",
+  x: "M2 6h20v12H2z",
+};
+
+function FormatGlyph({ id, className }: { id: BoardFormat; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" className={className} aria-hidden>
+      <path d={FORMAT_ICON[id]} />
+    </svg>
+  );
+}
+
+/** Panonun küçük önizlemesi (parçaların gerçek yerleşimiyle) */
+function BoardThumb({ board, items, srcOf }: { board: VisionBoard; items: VisionItem[]; srcOf: (i: VisionItem) => string | undefined }) {
+  const f = fmtOf(board.format);
+  return (
+    <div className="relative overflow-hidden rounded-[8px] border border-white/10" style={{ aspectRatio: `${f.W} / ${f.H}`, background: BGS[board.bg]?.css ?? BGS.sampanya.css }}>
+      {items
+        .filter((i) => i.layout)
+        .sort((a, b) => a.layout!.z - b.layout!.z)
+        .slice(-24)
+        .map((it) => {
+          const l = it.layout!;
+          const s = srcOf(it);
+          return (
+            <span
+              key={it.id}
+              className="absolute overflow-hidden"
+              style={{ left: `${(l.x / f.W) * 100}%`, top: `${(l.y / f.H) * 100}%`, width: `${(l.w / f.W) * 100}%`, height: `${(l.h / f.H) * 100}%`, transform: `rotate(${l.r}deg)` }}
+            >
+              {it.kind === "image" && s ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={s} alt="" className={cn("h-full w-full", isSticker(it.src) ? "object-contain" : "object-cover")} loading="lazy" />
+              ) : (
+                <span className="block h-full w-full rounded-[2px] bg-white/30" />
+              )}
+            </span>
+          );
+        })}
+    </div>
+  );
+}
+
+function NewBoardDialog({ title, defaultName, onClose, onCreate }: { title: string; defaultName: string; onClose: () => void; onCreate: (name: string, format: BoardFormat) => Promise<void> }) {
+  const [name, setName] = useState(defaultName);
+  const [format, setFormat] = useState<BoardFormat>("telefon");
+  const [pending, start] = useTransition();
+  const groups = [...new Set(FORMATS.map((x) => x.group))];
+  return (
+    <div className="fixed inset-0 z-[85] flex items-end justify-center bg-[rgba(2,2,3,0.7)] backdrop-blur-sm sm:items-center" onClick={onClose}>
+      <div className="safe-bottom w-full max-w-lg rounded-t-[28px] border border-white/10 bg-[#0c0b0f] p-6 shadow-[var(--shadow-lift)] sm:rounded-[28px] sm:p-8" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={title}>
+        <div className="flex items-center justify-between">
+          <h2 className="display text-[2rem]">{title}</h2>
+          <button onClick={onClose} aria-label="Kapat" className="grid h-10 w-10 place-items-center rounded-full text-ink-soft hover:text-ink">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <label className="mt-5 block text-sm text-ink-soft" htmlFor="pano-ad">
+          Panonun adı
+        </label>
+        <input id="pano-ad" className="field mt-2" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} />
+        <p className="mb-3 mt-6 text-sm text-ink-soft">Boyut</p>
+        <div className="space-y-4">
+          {groups.map((g) => (
+            <div key={g}>
+              <p className="mb-2 text-xs text-ink-mute">{g}</p>
+              <div className="grid grid-cols-3 gap-2">
+                {FORMATS.filter((x) => x.group === g).map((x) => (
+                  <button
+                    key={x.id}
+                    onClick={() => setFormat(x.id)}
+                    aria-pressed={format === x.id}
+                    className={cn(
+                      "flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-[14px] border px-2 text-center text-[0.78rem] transition-colors",
+                      format === x.id ? "border-nar-soft/70 bg-nar/15 text-ink" : "border-white/10 text-ink-soft hover:text-ink",
+                    )}
+                  >
+                    <FormatGlyph id={x.id} className={cn("h-6 w-6", format === x.id ? "text-nar-soft" : "text-champagne")} />
+                    {x.label}
+                    <span className="num text-[0.65rem] text-ink-mute">
+                      {x.W}×{x.H}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <button className="btn btn-primary mt-7 w-full" disabled={pending} onClick={() => start(() => onCreate(name.trim() || "Panom", format))}>
+          {pending && <Loader2 className="h-4 w-4 animate-spin" />} Panoyu oluştur
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function VisionStudio({
+  boards: initialBoards,
+  items: initialItems,
+  urls: initialUrls,
+  userId,
+}: {
+  boards: VisionBoard[];
+  items: VisionItem[];
+  urls: Record<string, string>;
+  userId: string;
+}) {
+  const [boards, setBoards] = useState(initialBoards);
+  const [byBoard, setByBoard] = useState<Record<string, VisionItem[]>>(() => {
+    const m: Record<string, VisionItem[]> = {};
+    for (const b of initialBoards) m[b.id] = [];
+    for (const it of initialItems) if (it.board_id && m[it.board_id]) m[it.board_id].push(it);
+    return m;
+  });
+  const [current, setCurrent] = useState<string | null>(initialBoards[0]?.id ?? null);
+  const [urls, setUrls] = useState(initialUrls);
+  const [dialog, setDialog] = useState<null | "new" | "saveNew">(null);
+  const [listOpen, setListOpen] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const board = boards.find((b) => b.id === current) ?? null;
+  const srcOf = useCallback((it: VisionItem) => (it.src?.startsWith("/") ? it.src : it.src ? urls[it.src] : undefined), [urls]);
+
+  const onItems = useCallback((xs: VisionItem[]) => {
+    if (!current) return;
+    setByBoard((m) => (m[current] === xs ? m : { ...m, [current]: xs }));
+  }, [current]);
+  const onUrls = useCallback((u: Record<string, string>) => setUrls((p) => (p === u ? p : { ...p, ...u })), []);
+
+  async function create(name: string, format: BoardFormat) {
+    const r = await createBoard({ name, format, bg: board?.bg ?? "sampanya" });
+    if (!r.ok) return void toast.error(r.error);
+    setBoards((b) => [r.board, ...b]);
+    setByBoard((m) => ({ ...m, [r.board.id]: [] }));
+    setCurrent(r.board.id);
+    setDialog(null);
+    setListOpen(false);
+    toast.success(`"${r.board.name}" hazır`);
+  }
+
+  // ilk kez gelen kullanıcı için otomatik pano
+  const creating = useRef(false);
+  useEffect(() => {
+    if (boards.length || creating.current) return;
+    creating.current = true;
+    void createBoard({ name: "İlk panom", format: "telefon" }).then((r) => {
+      if (!r.ok) return void toast.error(r.error);
+      setBoards([r.board]);
+      setByBoard({ [r.board.id]: [] });
+      setCurrent(r.board.id);
+    });
+  }, [boards.length]);
+
+  if (!board) {
+    return (
+      <div className="grid min-h-[50vh] place-items-center">
+        <Loader2 className="h-6 w-6 animate-spin text-champagne" />
+      </div>
+    );
+  }
+
+  const header = (
+    <div className="mt-8 flex flex-wrap items-center gap-2">
+      <div className="relative">
+        <button
+          onClick={() => setListOpen((o) => !o)}
+          aria-expanded={listOpen}
+          className="flex min-h-11 items-center gap-2.5 rounded-full border border-white/10 bg-[rgba(14,13,18,0.6)] py-1.5 pl-3 pr-4 text-sm text-ink backdrop-blur-xl hover:border-champagne/30"
+        >
+          <FormatGlyph id={board.format} className="h-4 w-4 text-champagne" />
+          <span className="max-w-[12rem] truncate">{board.name}</span>
+          <span className="text-ink-mute">{fmtOf(board.format).label}</span>
+          <ChevronDown className="h-4 w-4 text-ink-mute" />
+        </button>
+        {listOpen && (
+          <div className="absolute left-0 top-full z-40 mt-2 w-[min(92vw,26rem)] rounded-[22px] border border-white/10 bg-[#0c0b0f] p-3 shadow-[var(--shadow-lift)]">
+            <p className="px-2 pb-2 text-xs text-ink-mute">Panolarım ({boards.length}/20)</p>
+            <ul className="max-h-[60vh] space-y-1 overflow-y-auto overscroll-contain">
+              {boards.map((b) => (
+                <li key={b.id}>
+                  <button
+                    onClick={() => {
+                      setCurrent(b.id);
+                      setListOpen(false);
+                    }}
+                    className={cn("flex w-full items-center gap-3 rounded-[14px] p-2 text-left hover:bg-white/5", b.id === board.id && "bg-nar/10 ring-1 ring-nar-soft/40")}
+                  >
+                    <div className="w-14 shrink-0">
+                      <BoardThumb board={b} items={byBoard[b.id] ?? []} srcOf={srcOf} />
+                    </div>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm text-ink">{b.name}</span>
+                      <span className="block text-xs text-ink-mute">
+                        {fmtOf(b.format).label} · {(byBoard[b.id] ?? []).length} parça · {new Date(b.updated_at).toLocaleDateString("tr-TR", { day: "numeric", month: "short" })}
+                      </span>
+                    </span>
+                    {b.id === board.id && <Check className="h-4 w-4 text-nar-soft" />}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-2 grid grid-cols-3 gap-1.5 border-t border-white/[.06] pt-3">
+              <button
+                className="flex min-h-10 items-center justify-center gap-1.5 rounded-full text-xs text-ink-soft hover:bg-white/5 hover:text-ink"
+                onClick={() => {
+                  setRenaming(true);
+                  setListOpen(false);
+                }}
+              >
+                <Pencil className="h-3.5 w-3.5" /> Adını değiştir
+              </button>
+              <button
+                className="flex min-h-10 items-center justify-center gap-1.5 rounded-full text-xs text-ink-soft hover:bg-white/5 hover:text-ink"
+                onClick={async () => {
+                  const r = await duplicateBoard(board.id);
+                  if (!r.ok) return void toast.error(r.error);
+                  setBoards((x) => [r.board, ...x]);
+                  setByBoard((m) => ({ ...m, [r.board.id]: r.items }));
+                  setCurrent(r.board.id);
+                  setListOpen(false);
+                  toast.success("Pano kopyalandı");
+                }}
+              >
+                <Copy className="h-3.5 w-3.5" /> Kopyala
+              </button>
+              <button
+                className="flex min-h-10 items-center justify-center gap-1.5 rounded-full text-xs text-nar-soft hover:bg-nar/10"
+                onClick={async () => {
+                  if (!window.confirm(`"${board.name}" panosu ve içindeki her şey silinsin mi? Bu geri alınamaz.`)) return;
+                  const r = await deleteBoard(board.id);
+                  if (!r.ok) return void toast.error("Silinemedi.");
+                  const rest = boards.filter((b) => b.id !== board.id);
+                  setBoards(rest);
+                  setCurrent(rest[0]?.id ?? null);
+                  setListOpen(false);
+                  toast("Pano silindi");
+                }}
+              >
+                <Trash2 className="h-3.5 w-3.5" /> Sil
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      <button onClick={() => setDialog("new")} className="btn btn-ghost btn-sm">
+        <Plus className="h-4 w-4" /> Yeni pano
+      </button>
+      <button onClick={() => setDialog("saveNew")} className="btn btn-ghost btn-sm">
+        <Save className="h-4 w-4" /> Kaydet ve yeni pano
+      </button>
+      <span className="text-xs text-ink-mute">Her değişiklik otomatik kaydedilir.</span>
+      {renaming && (
+        <RenameDialog
+          name={board.name}
+          onClose={() => setRenaming(false)}
+          onSave={async (name) => {
+            await updateBoard(board.id, { name });
+            setBoards((x) => x.map((b) => (b.id === board.id ? { ...b, name } : b)));
+            setRenaming(false);
+          }}
+        />
+      )}
+    </div>
+  );
+
+  return (
+    <>
+      <BoardEditor
+        key={board.id}
+        board={board}
+        initial={byBoard[board.id] ?? []}
+        urls={urls}
+        userId={userId}
+        onItems={onItems}
+        onUrls={onUrls}
+        onBg={(bg) => setBoards((x) => x.map((b) => (b.id === board.id ? { ...b, bg } : b)))}
+        header={header}
+      />
+      {dialog === "new" && <NewBoardDialog title="Yeni pano" defaultName={`Pano ${boards.length + 1}`} onClose={() => setDialog(null)} onCreate={create} />}
+      {dialog === "saveNew" && (
+        <SaveThenNew
+          current={board.name}
+          count={boards.length}
+          onClose={() => setDialog(null)}
+          onDone={async (savedName, name, format) => {
+            if (savedName !== board.name) {
+              await updateBoard(board.id, { name: savedName });
+              setBoards((x) => x.map((b) => (b.id === board.id ? { ...b, name: savedName } : b)));
+            }
+            await create(name, format);
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+function RenameDialog({ name, onClose, onSave }: { name: string; onClose: () => void; onSave: (n: string) => Promise<void> }) {
+  const [v, setV] = useState(name);
+  const [pending, start] = useTransition();
+  return (
+    <div className="fixed inset-0 z-[85] flex items-center justify-center bg-[rgba(2,2,3,0.7)] px-5 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-sm rounded-[24px] border border-white/10 bg-[#0c0b0f] p-6" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Panonun adını değiştir">
+        <label htmlFor="ad" className="text-sm text-ink-soft">
+          Panonun adı
+        </label>
+        <input id="ad" className="field mt-2" value={v} maxLength={40} onChange={(e) => setV(e.target.value)} autoFocus />
+        <div className="mt-5 flex justify-end gap-2">
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>
+            Vazgeç
+          </button>
+          <button className="btn btn-primary btn-sm" disabled={pending || !v.trim()} onClick={() => start(() => onSave(v.trim()))}>
+            Kaydet
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SaveThenNew({ current, count, onClose, onDone }: { current: string; count: number; onClose: () => void; onDone: (saved: string, name: string, format: BoardFormat) => Promise<void> }) {
+  const [step, setStep] = useState<1 | 2>(1);
+  const [saved, setSaved] = useState(current);
+  if (step === 2) return <NewBoardDialog title="Yeni pano" defaultName={`Pano ${count + 1}`} onClose={onClose} onCreate={(n, f) => onDone(saved.trim() || current, n, f)} />;
+  return (
+    <div className="fixed inset-0 z-[85] flex items-center justify-center bg-[rgba(2,2,3,0.7)] px-5 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-sm rounded-[24px] border border-white/10 bg-[#0c0b0f] p-6" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Panoyu kaydet">
+        <h2 className="display text-[1.7rem]">Panoyu kaydet</h2>
+        <p className="mt-1 text-sm text-ink-soft">Bu panoya bir ad ver; sonra yeni panonun boyutunu seçeceksin.</p>
+        <input className="field mt-4" value={saved} maxLength={40} onChange={(e) => setSaved(e.target.value)} autoFocus aria-label="Panonun adı" />
+        <div className="mt-5 flex justify-end gap-2">
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>
+            Vazgeç
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={() => setStep(2)}>
+            Kaydet ve devam et
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

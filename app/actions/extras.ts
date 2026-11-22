@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient, getUser } from "@/lib/supabase/server";
-import { VISION_LIBRARY, VISION_STICKERS } from "@/lib/vision-library";
+import { VISION_LIBRARY } from "@/lib/vision-library";
 
 const clip = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(0, n) : "");
 
@@ -87,7 +87,12 @@ export type VisionItem = {
   tone: string | null;
   size: "s" | "m" | "l";
   layout: VisionLayout | null;
+  board_id?: string | null;
 };
+
+export type VisionBoard = { id: string; name: string; format: BoardFormat; bg: string; created_at: string; updated_at: string };
+export type BoardFormat = "telefon" | "tablet-dikey" | "tablet-yatay" | "masaustu" | "ig-kare" | "ig-hikaye" | "x";
+const FORMATS: BoardFormat[] = ["telefon", "tablet-dikey", "tablet-yatay", "masaustu", "ig-kare", "ig-hikaye", "x"];
 
 export type VisionLayout = { x: number; y: number; w: number; h: number; r: number; z: number; frame?: "yok" | "beyaz" | "polaroid" | "keskin"; font?: VisionFont; c?: string; caps?: boolean };
 export type VisionFont = "serif" | "sans" | "el" | "kaligrafi" | "klasik" | "defter";
@@ -110,9 +115,9 @@ function cleanLayout(l: unknown): VisionLayout | null {
 }
 
 const TONES = ["gece", "sampanya", "buz", "gul", "zumrut", "nar", "yazi"];
-const LIB = new Set([...VISION_LIBRARY.map((v) => v.src), ...VISION_STICKERS.map((v) => v.src)]);
+const LIB = new Set(VISION_LIBRARY.map((v) => v.src));
 
-export async function addVision(input: { kind: "image" | "word"; src?: string; text?: string; tone?: string; size?: string; layout?: VisionLayout }) {
+export async function addVision(input: { board: string; kind: "image" | "word"; src?: string; text?: string; tone?: string; size?: string; layout?: VisionLayout }) {
   const user = await getUser();
   if (!user) return { ok: false as const, error: "Oturum yok" };
   const supabase = await createClient();
@@ -120,7 +125,7 @@ export async function addVision(input: { kind: "image" | "word"; src?: string; t
   let text: string | null = null;
   if (input.kind === "image") {
     const s = clip(input.src, 300);
-    if (!(LIB.has(s) || s.startsWith(`${user.id}/vision/`))) return { ok: false as const, error: "Geçersiz görsel" };
+    if (!(LIB.has(s) || s.startsWith(`${user.id}/vision/`) || s.startsWith(`${user.id}/sus/`)) || s.includes("..")) return { ok: false as const, error: "Geçersiz görsel" };
     src = s;
   } else {
     text = clip(input.text, 80);
@@ -130,6 +135,7 @@ export async function addVision(input: { kind: "image" | "word"; src?: string; t
     .from("vision_items")
     .insert({
       user_id: user.id,
+      board_id: input.board,
       kind: input.kind,
       src,
       text,
@@ -137,10 +143,9 @@ export async function addVision(input: { kind: "image" | "word"; src?: string; t
       size: ["s", "m", "l"].includes(String(input.size)) ? input.size : "m",
       layout: cleanLayout(input.layout),
     })
-    .select("id,kind,src,text,tone,size,layout")
+    .select("id,kind,src,text,tone,size,layout,board_id")
     .single();
   if (error) return { ok: false as const, error: error.message.includes("dolu") ? "Pano dolu (60 parça)." : "Eklenemedi." };
-  revalidatePath("/vision");
   return { ok: true as const, item: data as VisionItem };
 }
 
@@ -158,13 +163,23 @@ export async function updateVision(id: string, patch: { size?: string; tone?: st
   return { ok: !error };
 }
 
+/** Yüklenen dosyayı, başka bir parça kullanmıyorsa depodan siler */
+async function removeUnused(supabase: Awaited<ReturnType<typeof createClient>>, userId: string, srcs: string[]) {
+  const own = [...new Set(srcs.filter((s) => s.startsWith(`${userId}/vision/`)))];
+  if (!own.length) return;
+  const { data } = await supabase.from("vision_items").select("src").in("src", own);
+  const still = new Set((data ?? []).map((r: { src: string }) => r.src));
+  const gone = own.filter((s) => !still.has(s));
+  if (gone.length) await supabase.storage.from("uploads").remove(gone);
+}
+
 export async function deleteVision(id: string) {
   const user = await getUser();
+  if (!user) return { ok: false as const };
   const supabase = await createClient();
   const { data } = await supabase.from("vision_items").select("src").eq("id", id).maybeSingle();
-  if (user && data?.src?.startsWith(`${user.id}/`)) await supabase.storage.from("uploads").remove([data.src]);
   const { error } = await supabase.from("vision_items").delete().eq("id", id);
-  revalidatePath("/vision");
+  if (!error && data?.src) await removeUnused(supabase, user.id, [data.src]);
   return { ok: !error };
 }
 
@@ -184,11 +199,59 @@ export async function sealCapsule(message: string, email: string) {
   return { ok: true as const };
 }
 
-export async function setVisionBg(bg: string) {
+// ---------------------------------------------------------------- panolar
+
+const cleanName = (v: unknown) => clip(v, 40) || "Panom";
+
+export async function createBoard(input: { name?: string; format: string; bg?: string }) {
+  const user = await getUser();
+  if (!user) return { ok: false as const, error: "Oturum bulunamadı. Sayfayı yenile." };
+  if (!FORMATS.includes(input.format as BoardFormat)) return { ok: false as const, error: "Geçersiz boyut." };
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("vision_boards")
+    .insert({ user_id: user.id, name: cleanName(input.name), format: input.format, bg: /^[a-z0-9-]{2,24}$/.test(String(input.bg)) ? input.bg : "sampanya" })
+    .select("id,name,format,bg,created_at,updated_at")
+    .single();
+  if (error) return { ok: false as const, error: error.message.includes("sınır") ? "En fazla 20 pano oluşturabilirsin." : "Pano oluşturulamadı." };
+  return { ok: true as const, board: data as VisionBoard };
+}
+
+export async function updateBoard(id: string, patch: { name?: string; bg?: string }) {
+  const supabase = await createClient();
+  const p: Record<string, string> = {};
+  if (patch.name !== undefined) p.name = cleanName(patch.name);
+  if (patch.bg && /^[a-z0-9-]{2,24}$/.test(patch.bg)) p.bg = patch.bg;
+  const { error } = await supabase.from("vision_boards").update(p).eq("id", id);
+  return { ok: !error };
+}
+
+export async function deleteBoard(id: string) {
   const user = await getUser();
   if (!user) return { ok: false as const };
-  if (!/^[a-z]{2,20}$/.test(bg)) return { ok: false as const };
   const supabase = await createClient();
-  const { error } = await supabase.from("profiles").update({ vision_bg: bg }).eq("id", user.id);
+  const { data: own } = await supabase.from("vision_items").select("src").eq("board_id", id);
+  const files = (own ?? []).map((r: { src: string | null }) => r.src).filter((s): s is string => !!s);
+  const { error } = await supabase.from("vision_boards").delete().eq("id", id);
+  if (!error) await removeUnused(supabase, user.id, files);
   return { ok: !error };
+}
+
+export async function duplicateBoard(id: string) {
+  const user = await getUser();
+  if (!user) return { ok: false as const, error: "Oturum yok" };
+  const supabase = await createClient();
+  const { data: b } = await supabase.from("vision_boards").select("name,format,bg").eq("id", id).maybeSingle();
+  if (!b) return { ok: false as const, error: "Pano bulunamadı." };
+  const r = await createBoard({ name: `${b.name} (kopya)`.slice(0, 40), format: b.format, bg: b.bg });
+  if (!r.ok) return r;
+  const { data: items } = await supabase.from("vision_items").select("kind,src,text,tone,size,layout,position").eq("board_id", id);
+  if (items?.length) {
+    // yüklenen fotoğraflar aynı dosyayı paylaşır; dosya ancak hiçbir parça kullanmıyorsa silinir
+    const rows = items.map((i) => ({ ...i, user_id: user.id, board_id: r.board.id }));
+    const { error } = await supabase.from("vision_items").insert(rows);
+    if (error) return { ok: false as const, error: "Kopyalanamadı." };
+  }
+  const { data: copied } = await supabase.from("vision_items").select("id,kind,src,text,tone,size,layout,board_id").eq("board_id", r.board.id);
+  return { ok: true as const, board: r.board, items: (copied ?? []) as VisionItem[] };
 }

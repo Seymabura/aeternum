@@ -1,6 +1,6 @@
 import { requireUser } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
-import type { VisionItem } from "@/app/actions/extras";
+import type { VisionBoard, VisionItem } from "@/app/actions/extras";
 import { VisionStudio } from "./studio";
 import { Goals } from "./goals";
 import type { WishItem } from "@/app/actions/extras";
@@ -10,7 +10,8 @@ export const metadata = { title: "Vision board" };
 export default async function VisionPage() {
   const user = await requireUser();
   const supabase = await createClient();
-  const { data } = await supabase.from("vision_items").select("id,kind,src,text,tone,size,layout").order("position", { ascending: true });
+  const { data: boardRows } = await supabase.from("vision_boards").select("id,name,format,bg,created_at,updated_at").order("updated_at", { ascending: false });
+  const { data } = await supabase.from("vision_items").select("id,kind,src,text,tone,size,layout,board_id").order("position", { ascending: true });
   const items = (data ?? []) as VisionItem[];
   const own = items.filter((i) => i.src && !i.src.startsWith("/")).map((i) => i.src!) as string[];
   const urls: Record<string, string> = {};
@@ -23,10 +24,9 @@ export default async function VisionPage() {
     .select("id,kind,title,note,url,price,category,done,image_url,store,fav")
     .eq("kind", "hedef")
     .order("position", { ascending: true });
-  const { data: prof } = await supabase.from("profiles").select("vision_bg").eq("id", user.id).maybeSingle();
   return (
     <>
-      <VisionStudio initial={items} urls={urls} userId={user.id} bg={prof?.vision_bg ?? "sampanya"} />
+      <VisionStudio boards={(boardRows ?? []) as VisionBoard[]} items={items} urls={urls} userId={user.id} />
       <Goals initial={(goals ?? []) as WishItem[]} />
     </>
   );

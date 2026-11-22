@@ -31,7 +31,7 @@ export function BottomNav() {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-full text-[0.625rem] font-medium transition-colors duration-300",
-                  active ? "text-champagne" : "text-ink-soft",
+                  active ? "text-[#ffd6dc]" : "text-ink-soft",
                 )}
               >
                 <Icon className="h-5 w-5" strokeWidth={1.5} />
@@ -40,7 +40,7 @@ export function BottomNav() {
                   <motion.span
                     layoutId="nav-dot"
                     transition={{ type: "spring", stiffness: 380, damping: 34 }}
-                    className="absolute bottom-0.5 h-1 w-1 rounded-full bg-champagne"
+                    className="absolute bottom-0.5 h-1 w-4 rounded-full bg-nar-soft shadow-[0_0_10px_rgba(210,70,92,.9)]"
                   />
                 )}
               </Link>
@@ -64,12 +64,12 @@ export function TopLinks() {
               href={href}
               className={cn(
                 "relative rounded-full px-3.5 py-2 text-sm transition-colors",
-                active ? "text-champagne" : "text-ink-soft hover:text-ink",
+                active ? "text-[#ffd6dc]" : "text-ink-soft hover:text-ink",
               )}
             >
               {label}
               {active && (
-                <motion.span layoutId="top-dot" className="absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-champagne" />
+                <motion.span layoutId="top-dot" className="absolute -bottom-0.5 left-1/2 h-[3px] w-5 -translate-x-1/2 rounded-full bg-nar-soft shadow-[0_0_10px_rgba(210,70,92,.9)]" />
               )}
             </Link>
           </li>

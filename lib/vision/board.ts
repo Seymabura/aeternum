@@ -1,11 +1,22 @@
-import type { VisionItem, VisionLayout } from "@/app/actions/extras";
-import { isSticker, VISION_LIBRARY, VISION_STICKERS } from "@/lib/vision-library";
+import type { BoardFormat, VisionItem, VisionLayout } from "@/app/actions/extras";
+import { isSticker, VISION_LIBRARY } from "@/lib/vision-library";
 
-/** Pano mantıksal boyutu: modern telefon ekranı oranı (9:19.5). Tüm konumlar bu birimde. */
-export const BW = 1179;
-export const BH = 2556;
-/** Kilit ekranında saatin kapladığı üst bölge: otomatik düzenler buraya yerleştirmez. */
-export const CLOCK_SAFE = 620;
+/** Pano boyutları: konumlar her formatın kendi mantıksal biriminde tutulur */
+export type FormatDef = { id: BoardFormat; label: string; group: string; W: number; H: number; clock?: boolean; radius: number; exports: { id: string; label: string; w: number; h: number }[] };
+export const FORMATS: FormatDef[] = [
+  { id: "telefon", label: "Telefon", group: "Telefon", W: 1179, H: 2556, clock: true, radius: 34, exports: [{ id: "iphone", label: "iPhone", w: 1290, h: 2796 }, { id: "android", label: "Android", w: 1440, h: 3120 }, { id: "4k", label: "4K telefon", w: 2160, h: 4680 }] },
+  { id: "tablet-dikey", label: "Tablet dikey", group: "Tablet", W: 1536, H: 2048, radius: 24, exports: [{ id: "ipad", label: "iPad", w: 1640, h: 2186 }, { id: "ipadpro", label: "iPad Pro", w: 2048, h: 2732 }] },
+  { id: "tablet-yatay", label: "Tablet yatay", group: "Tablet", W: 2048, H: 1536, radius: 24, exports: [{ id: "ipad", label: "iPad", w: 2186, h: 1640 }, { id: "ipadpro", label: "iPad Pro", w: 2732, h: 2048 }] },
+  { id: "masaustu", label: "Bilgisayar", group: "Bilgisayar", W: 1920, H: 1080, radius: 12, exports: [{ id: "fhd", label: "Full HD", w: 1920, h: 1080 }, { id: "qhd", label: "2K", w: 2560, h: 1440 }, { id: "4k", label: "4K", w: 3840, h: 2160 }] },
+  { id: "ig-kare", label: "Instagram kare", group: "Sosyal medya", W: 1080, H: 1080, radius: 8, exports: [{ id: "kare", label: "Instagram kare", w: 1080, h: 1080 }, { id: "kare2x", label: "Yüksek çözünürlük", w: 2160, h: 2160 }] },
+  { id: "ig-hikaye", label: "Instagram hikâyesi", group: "Sosyal medya", W: 1080, H: 1920, radius: 18, exports: [{ id: "hikaye", label: "Hikâye", w: 1080, h: 1920 }, { id: "hikaye2x", label: "Yüksek çözünürlük", w: 2160, h: 3840 }] },
+  { id: "x", label: "X gönderisi", group: "Sosyal medya", W: 1600, H: 900, radius: 12, exports: [{ id: "x", label: "X gönderisi", w: 1600, h: 900 }, { id: "x2", label: "Yüksek çözünürlük", w: 3200, h: 1800 }] },
+];
+export const fmtOf = (id: string | null | undefined) => FORMATS.find((f) => f.id === id) ?? FORMATS[0];
+/** Telefon kilit ekranında saatin kapladığı üst bölge */
+export const clockSafe = (f: FormatDef) => (f.clock ? Math.round(f.H * 0.243) : 0);
+/** Formatın kısa kenarına göre ölçek (telefon = 1) */
+export const unit = (f: FormatDef) => Math.min(f.W, f.H) / 1179;
 
 export const TONES: Record<string, { bg: string | null; fg: string; label: string }> = {
   gece: { bg: "linear-gradient(160deg,#1a1016,#050407)", fg: "#ecdfc4", label: "Gece" },
@@ -17,26 +28,37 @@ export const TONES: Record<string, { bg: string | null; fg: string; label: strin
   yazi: { bg: null, fg: "#f3eee6", label: "Sadece yazı" },
 };
 
-export type BgDef = { css: string; label: string; ink: string; img?: string; stars?: boolean };
+export type BgDef = { css: string; label: string; ink: string; group: string; img?: string; stars?: boolean };
 const tema = (k: string) => `/vision/tema/${k}.svg`;
 export const BGS: Record<string, BgDef> = {
-  sampanya: { css: "linear-gradient(170deg, #f7efdf, #e6d6b6 60%, #d4bf97)", label: "Şampanya", ink: "#1a1408" },
-  nar: { css: "radial-gradient(120% 70% at 50% 0%, #6b1424, #2a0610 55%, #120306)", label: "Nar", ink: "#fbefe6", stars: true },
-  gece: { css: "radial-gradient(120% 60% at 50% 0%, #17121a, #050406 60%, #020203)", label: "Gece", ink: "#f3eee6", stars: true },
-  altin: { css: "linear-gradient(165deg, #fbf1d6, #e2c48a 45%, #b48a45 100%)", label: "Altın", ink: "#2a1d08" },
-  inci: { css: "radial-gradient(120% 80% at 30% 10%, #ffffff, #f3eee8 45%, #ddd4cb)", label: "İnci", ink: "#2a2420" },
-  pudra: { css: "linear-gradient(170deg, #fbefec, #f1d4d0 55%, #e2b7b4)", label: "Pudra", ink: "#3a1a1e" },
-  gul: { css: "linear-gradient(170deg, #f8e3df, #e8bdb8)", label: "Gül", ink: "#2a1220" },
-  bordo: { css: "radial-gradient(120% 70% at 50% 0%, #4a0f1c, #23060d 60%, #0e0205)", label: "Bordo", ink: "#f6e6dc" },
-  murdum: { css: "radial-gradient(120% 70% at 50% 0%, #3e1838, #1b0a19 60%, #0a0309)", label: "Mürdüm", ink: "#f4e6ee", stars: true },
-  lavanta: { css: "linear-gradient(170deg, #efe8f7, #d7c8ea 55%, #b9a3d6)", label: "Lavanta", ink: "#241638" },
-  zeytin: { css: "radial-gradient(120% 70% at 50% 0%, #4a4a2c, #23231a 60%, #0f0f0a)", label: "Zeytin", ink: "#f1ead6" },
-  zumrut: { css: "radial-gradient(120% 70% at 50% 0%, #1f5446, #0e2b23 60%, #061510)", label: "Zümrüt", ink: "#f0e6cf" },
-  mermer: { css: "linear-gradient(160deg, #f6f4f0 0%, #ece8e2 40%, #f8f6f2 55%, #e4dfd7 100%)", label: "Mermer", ink: "#22201c" },
-  kagit: { css: "linear-gradient(170deg, #f3ece0, #e9dfcd)", label: "Kâğıt", ink: "#1a1408" },
-  kahve: { css: "radial-gradient(120% 70% at 50% 0%, #5a3f2c, #2c1e15 60%, #120c08)", label: "Kahve", ink: "#f3e7d8" },
-  buz: { css: "linear-gradient(170deg, #f1f4f8, #d9e0ea 55%, #bcc7d6)", label: "Buz", ink: "#16202c" },
+  sampanya: { css: "linear-gradient(170deg, #f7efdf, #e6d6b6 60%, #d4bf97)", label: "Şampanya", ink: "#1a1408", group: "Şampanya ve altın" },
+  altin: { css: "linear-gradient(165deg, #fbf1d6, #e2c48a 45%, #b48a45)", label: "Altın", ink: "#2a1d08", group: "Şampanya ve altın" },
+  inci: { css: "radial-gradient(120% 80% at 30% 10%, #ffffff, #f3eee8 45%, #ddd4cb)", label: "İnci", ink: "#2a2420", group: "Şampanya ve altın" },
+  mermer: { css: "linear-gradient(160deg, #f6f4f0, #ece8e2 40%, #f8f6f2 55%, #e4dfd7)", label: "Mermer", ink: "#22201c", group: "Şampanya ve altın" },
+  kagit: { css: "linear-gradient(170deg, #f3ece0, #e9dfcd)", label: "Kâğıt", ink: "#1a1408", group: "Şampanya ve altın" },
+  nar: { css: "radial-gradient(120% 70% at 50% 0%, #6b1424, #2a0610 58%, #120306)", label: "Nar", ink: "#fbefe6", group: "Kırmızılar", stars: true },
+  bordo: { css: "radial-gradient(120% 70% at 50% 0%, #4a0f1c, #23060d 58%, #0e0205)", label: "Bordo", ink: "#f6e6dc", group: "Kırmızılar" },
+  yakut: { css: "linear-gradient(170deg, #b3203a, #7a0f24 55%, #3d0712)", label: "Yakut", ink: "#fff1ea", group: "Kırmızılar" },
+  gulkurusu: { css: "linear-gradient(170deg, #e7c4c0, #c99592 55%, #a86f6e)", label: "Gül kurusu", ink: "#2c1214", group: "Kırmızılar" },
+  pudra: { css: "linear-gradient(170deg, #fbefec, #f1d4d0 55%, #e2b7b4)", label: "Pudra", ink: "#3a1a1e", group: "Pembeler" },
+  gul: { css: "linear-gradient(170deg, #f8e3df, #e8bdb8)", label: "Gül", ink: "#2a1220", group: "Pembeler" },
+  seftali: { css: "linear-gradient(170deg, #fdeee3, #f7cdb3 55%, #eda88a)", label: "Şeftali", ink: "#3a1d10", group: "Pembeler" },
+  fusya: { css: "linear-gradient(170deg, #f05a9c, #c0246e 55%, #6e0b3c)", label: "Fuşya", ink: "#fff0f6", group: "Pembeler" },
+  lavanta: { css: "linear-gradient(170deg, #efe8f7, #d7c8ea 55%, #b9a3d6)", label: "Lavanta", ink: "#241638", group: "Pembeler" },
+  gecemavisi: { css: "radial-gradient(120% 70% at 50% 0%, #1d2b52, #0b1328 58%, #04070f)", label: "Gece mavisi", ink: "#eef1fa", group: "Maviler", stars: true },
+  safir: { css: "linear-gradient(170deg, #2b56b8, #173581 55%, #0a1a45)", label: "Safir", ink: "#f2f5ff", group: "Maviler" },
+  gokmavisi: { css: "linear-gradient(170deg, #eaf4fd, #bcdcf5 55%, #8fc1ea)", label: "Gök mavisi", ink: "#0f2236", group: "Maviler" },
+  buz: { css: "linear-gradient(170deg, #f1f4f8, #d9e0ea 55%, #bcc7d6)", label: "Buz mavisi", ink: "#16202c", group: "Maviler" },
+  zumrut: { css: "radial-gradient(120% 70% at 50% 0%, #1f5446, #0e2b23 58%, #061510)", label: "Zümrüt", ink: "#f0e6cf", group: "Yeşiller" },
+  adacayi: { css: "linear-gradient(170deg, #eef1e8, #cfd8c3 55%, #a9b89a)", label: "Adaçayı", ink: "#1d2618", group: "Yeşiller" },
+  nane: { css: "linear-gradient(170deg, #eefaf4, #c7ecdb 55%, #9cd8bf)", label: "Nane", ink: "#0f2a1f", group: "Yeşiller" },
+  zeytin: { css: "radial-gradient(120% 70% at 50% 0%, #4a4a2c, #23231a 58%, #0f0f0a)", label: "Zeytin", ink: "#f1ead6", group: "Yeşiller" },
+  gece: { css: "radial-gradient(120% 70% at 50% 0%, #17121a, #050406 58%, #020203)", label: "Gece", ink: "#f3eee6", group: "Koyular", stars: true },
+  murdum: { css: "radial-gradient(120% 70% at 50% 0%, #3e1838, #1b0a19 58%, #0a0309)", label: "Mürdüm", ink: "#f4e6ee", group: "Koyular", stars: true },
+  kahve: { css: "radial-gradient(120% 70% at 50% 0%, #5a3f2c, #2c1e15 58%, #120c08)", label: "Kahve", ink: "#f3e7d8", group: "Koyular" },
+  antrasit: { css: "radial-gradient(120% 70% at 50% 0%, #3a3b40, #1b1c1f 58%, #0b0b0d)", label: "Antrasit", ink: "#f0eee9", group: "Koyular" },
 };
+export const BG_GROUPS = ["Şampanya ve altın", "Kırmızılar", "Pembeler", "Maviler", "Yeşiller", "Koyular"];
 
 export const FONT_CSS = {
   serif: '"Bodoni Moda Variable", "Bodoni Moda", Georgia, serif',
@@ -62,7 +84,7 @@ export const TEXT_COLORS = [
 ];
 
 export function photoMeta(src: string | null) {
-  return VISION_LIBRARY.find((v) => v.src === src) ?? VISION_STICKERS.find((v) => v.src === src);
+  return VISION_LIBRARY.find((v) => v.src === src);
 }
 export { isSticker };
 
@@ -102,14 +124,18 @@ export const TEMPLATES: { id: TemplateId; label: string }[] = [
   { id: "odak", label: "Tek büyük" },
 ];
 
-export function applyTemplate(items: VisionItem[], t: TemplateId, natural?: Record<string, number>): Record<string, VisionLayout> {
+export function applyTemplate(items: VisionItem[], t: TemplateId, f: FormatDef, natural?: Record<string, number>): Record<string, VisionLayout> {
+  // hesap, genişliği 1179 olan sanal bir tuvalde yapılır, sonra formata ölçeklenir
+  const BW = 1179;
+  const BH = Math.round((1179 * f.H) / f.W);
+  const wide = BW > BH;
   const out: Record<string, VisionLayout> = {};
-  const pad = 54;
-  const top = CLOCK_SAFE;
-  const bottom = BH - 150;
+  const pad = wide ? 40 : 54;
+  const top = f.clock ? 620 : pad;
+  const bottom = f.clock ? BH - 150 : BH - pad;
   const list = items.filter((i) => !isSticker(i.src));
   if (t === "kolaj") {
-    const cols = list.length > 6 ? 3 : 2;
+    const cols = wide ? (list.length > 8 ? 5 : 4) : list.length > 6 ? 3 : 2;
     const gap = 18;
     const cw = (BW - pad * 2 - gap * (cols - 1)) / cols;
     const hs = new Array(cols).fill(top);
@@ -132,7 +158,7 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, natural?: Reco
       }
     }
   } else if (t === "polaroid") {
-    const cols = list.length > 4 ? 2 : 1;
+    const cols = wide ? Math.min(list.length, list.length > 6 ? 4 : 3) : list.length > 4 ? 2 : 1;
     const rows = Math.ceil(list.length / cols);
     const cellW = (BW - pad * 2) / cols;
     const cellH = (bottom - top) / Math.max(rows, 1);
@@ -142,6 +168,7 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, natural?: Reco
       const a = Math.min(1.3, Math.max(0.42, aspectOf(it, natural)));
       let w = Math.min(cellW * 1.08, (cellH * 1.15) / a);
       if (cols === 1) w = Math.min(w, BW * 0.72);
+      w = Math.min(w, (cellH * 1.05) / a);
       const h = w * a;
       const jitter = ((i * 37) % 7) - 3;
       out[it.id] = {
@@ -156,7 +183,7 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, natural?: Reco
       };
     });
   } else if (t === "izgara") {
-    const cols = 3;
+    const cols = wide ? Math.min(6, Math.max(3, Math.ceil(Math.sqrt(list.length * 1.8)))) : 3;
     const gap = 12;
     const cw = (BW - pad * 2 - gap * (cols - 1)) / cols;
     const rows = Math.ceil(list.length / cols);
@@ -198,7 +225,7 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, natural?: Reco
     const R = BW * 0.78;
     const maxHalf = (Math.asin(Math.min(1, (BW / 2 - pad - w * 0.55) / R)) * 180) / Math.PI;
     const spread = Math.min(maxHalf * 2, 14 * (n - 1));
-    const pivot = { x: BW / 2, y: BH * 0.62 + R };
+    const pivot = { x: BW / 2, y: (wide ? (top + bottom) / 2 : BH * 0.62) + R };
     list.forEach((it, i) => {
       const a = n === 1 ? 0 : -spread / 2 + (spread * i) / (n - 1);
       const rad = (a * Math.PI) / 180;
@@ -222,11 +249,11 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, natural?: Reco
     let size = 260;
     let S = 26;
     for (let k = 0; k < 6; k++) {
-      S = (BW - pad * 2 - size) / 32;
+      S = Math.min((BW - pad * 2 - size) / 32, (bottom - top - size) / 30);
       size = Math.max(150, Math.min(340, ((per * S) / n) * 1.15));
     }
     const cx = BW / 2;
-    const cy = BH * 0.5;
+    const cy = (top + bottom) / 2 - 2 * S;
     photos.forEach((it, i) => {
       const target = (per * i) / n;
       let j = 0;
@@ -243,9 +270,9 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, natural?: Reco
     const photos = list.filter((i) => i.kind === "image");
     const n = Math.max(photos.length, 1);
     const cx = BW / 2;
-    const cy = BH * 0.56;
-    const R = BW * 0.36;
-    const size = Math.max(180, Math.min(320, (2 * Math.PI * R) / n * 0.92));
+    const cy = (top + bottom) / 2;
+    const R = Math.min(BW * 0.36, (bottom - top) / 2 - 120);
+    const size = Math.max(120, Math.min(320, (2 * Math.PI * R) / n * 0.92, R * 0.9));
     photos.forEach((it, i) => {
       const a = (i / n) * Math.PI * 2 - Math.PI / 2;
       out[it.id] = { x: cx + Math.cos(a) * R - size / 2, y: cy + Math.sin(a) * R - size / 2, w: size, h: size, r: 0, z: i + 1, frame: "beyaz", font: "serif" };
@@ -254,29 +281,39 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, natural?: Reco
       out[it.id] = { x: cx - 230, y: cy - 75 + (i - (words.length - 1) / 2) * 150, w: 460, h: 140, r: 0, z: 100 + i, frame: "yok", font: it.layout?.font ?? "serif" };
     });
   } else if (t === "film") {
-    // film şeridi: ortada tek sütun, eşit kareler, hafif eğik
+    // film şeridi: dikey formatta tek sütun, yatayda tek sıra
     const n = Math.max(list.length, 1);
+    if (wide) {
+      const gap = 14;
+      const w = Math.min(420, (BW - pad * 2 - gap * (n - 1)) / n);
+      const h = Math.min(bottom - top, w * 1.3);
+      const x0 = (BW - (w * n + gap * (n - 1))) / 2;
+      list.forEach((it, i) => {
+        out[it.id] = { x: x0 + i * (w + gap), y: (BH - h) / 2, w, h, r: 0, z: i + 1, frame: it.kind === "image" ? "keskin" : "yok", font: it.layout?.font ?? "serif" };
+      });
+    } else {
     const gap = 16;
     const h = Math.min(520, (bottom - top - gap * (n - 1)) / n);
     const w = Math.min(BW * 0.72, h * 1.25);
     list.forEach((it, i) => {
       out[it.id] = { x: (BW - w) / 2, y: top + i * (h + gap), w, h, r: 0, z: i + 1, frame: it.kind === "image" ? "keskin" : "yok", font: it.layout?.font ?? "serif" };
     });
+    }
   } else if (t === "defter") {
     // anı defteri: farklı boylarda, üst üste binen, eğik fotoğraflar
     const n = Math.max(list.length, 1);
-    const cols = n > 5 ? 2 : 1;
+    const cols = wide ? Math.min(n, 4) : n > 5 ? 2 : 1;
     const rows = Math.ceil(n / cols);
     const cellH = (bottom - top) / rows;
     list.forEach((it, i) => {
       const big = i % 3 === 0;
       const a = Math.min(1.35, Math.max(0.42, aspectOf(it, natural)));
-      const w = (cols === 1 ? BW * 0.66 : BW * 0.5) * (big ? 1.1 : 0.88);
+      const w = (cols === 1 ? BW * 0.66 : (BW / cols) * 1.0) * (big ? 1.1 : 0.88);
       const h = Math.min(w * a, cellH * 1.25);
       const ww = h / a;
       const c = i % cols;
       const r = Math.floor(i / cols);
-      const cx = cols === 1 ? BW / 2 + (i % 2 ? 90 : -90) : BW * (c === 0 ? 0.3 : 0.7);
+      const cx = cols === 1 ? BW / 2 + (i % 2 ? 90 : -90) : pad + ((BW - pad * 2) / cols) * (c + 0.5);
       const cy = top + r * cellH + cellH / 2 + ((i * 41) % 60) - 30;
       out[it.id] = {
         x: cx - ww / 2,
@@ -308,24 +345,18 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, natural?: Reco
       });
     }
   }
+  const k = f.W / BW;
   for (const id in out) {
     const l = out[id];
-    l.x = Math.round(l.x);
-    l.y = Math.round(l.y);
-    l.w = Math.round(l.w);
-    l.h = Math.round(l.h);
+    l.x = Math.round(l.x * k);
+    l.y = Math.round(l.y * k);
+    l.w = Math.round(l.w * k);
+    l.h = Math.round(l.h * k);
   }
   return out;
 }
 
 // ---------------------------------------------------------------- dışa aktarma
-
-export const VISION_EXPORTS = [
-  { id: "iphone", label: "iPhone", w: 1290, h: 2796 },
-  { id: "android", label: "Android", w: 1440, h: 3200 },
-  { id: "4k", label: "4K telefon", w: 2160, h: 4680 },
-  { id: "story", label: "Instagram hikâyesi", w: 1080, h: 1920 },
-] as const;
 
 function loadImg(src: string) {
   return new Promise<HTMLImageElement>((res, rej) => {
@@ -347,7 +378,7 @@ function rr(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: num
   g.closePath();
 }
 
-async function paintBg(g: CanvasRenderingContext2D, W: number, H: number, bg: string) {
+async function paintBg(g: CanvasRenderingContext2D, W: number, H: number, bg: string, BW: number, BH: number) {
   const def = BGS[bg] ?? BGS.gece;
   if (def.img) {
     const im = await loadImg(def.img).catch(() => null);
@@ -366,9 +397,10 @@ async function paintBg(g: CanvasRenderingContext2D, W: number, H: number, bg: st
     g.fillRect(0, 0, W, H);
   };
   // css degradesindeki renkleri sırayla kullan
-  const cols = (def.css.match(/#[0-9a-f]{6}/gi) ?? ["#17121a", "#050406", "#020203"]).slice(0, 4);
-  const radial = def.css.startsWith("radial");
-  grad(cols.map((c, i) => [i / Math.max(1, cols.length - 1), c] as [number, string]), radial);
+  // css degradesindeki renkleri ve yüzdeleri aynen kullan (ekrandakiyle aynı görünüm)
+  const stops = [...def.css.matchAll(/(#[0-9a-f]{6})(?:\s+(\d+)%)?/gi)].slice(0, 5);
+  const list = stops.map((m, i) => [m[2] ? Number(m[2]) / 100 : i / Math.max(1, stops.length - 1), m[1]] as [number, string]);
+  grad(list.length ? list : [[0, "#17121a"], [1, "#020203"]], def.css.startsWith("radial"));
   if (def.stars) {
     let s = 9;
     const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
@@ -381,7 +413,9 @@ async function paintBg(g: CanvasRenderingContext2D, W: number, H: number, bg: st
   }
 }
 
-export async function renderBoard(items: VisionItem[], bg: string, srcOf: (i: VisionItem) => string | undefined, W: number, H: number) {
+export async function renderBoard(items: VisionItem[], bg: string, srcOf: (i: VisionItem) => string | undefined, W: number, H: number, f: FormatDef) {
+  const BW = f.W;
+  const BH = f.H;
   await Promise.all([
     document.fonts.load(`italic 400 80px ${FONT_CSS.serif}`),
     document.fonts.load(`500 60px ${FONT_CSS.sans}`),
@@ -394,7 +428,7 @@ export async function renderBoard(items: VisionItem[], bg: string, srcOf: (i: Vi
   cv.width = W;
   cv.height = H;
   const g = cv.getContext("2d")!;
-  await paintBg(g, W, H, bg);
+  await paintBg(g, W, H, bg, BW, BH);
   const s = Math.min(W / BW, H / BH);
   const ox = (W - BW * s) / 2;
   const oy = (H - BH * s) / 2;
