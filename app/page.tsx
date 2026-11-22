@@ -5,8 +5,7 @@ import { Globe, Lantern, Moons } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { LandingNav } from "@/components/landing-nav";
 import { BigCountdown } from "@/components/countdown";
-import { TunnelHost } from "@/components/tunnel-host";
-import { GateReveal } from "@/components/gate-reveal";
+import { StarRoadHost } from "@/components/star-road-host";
 import { LanternArt } from "@/components/lantern-art";
 import { todayIndexLocal } from "@/lib/day";
 
@@ -25,20 +24,21 @@ export default function Home() {
   const today = todayIndexLocal();
   return (
     <div className="relative overflow-x-clip">
-      <TunnelHost />
+      <StarRoadHost />
       <LandingNav />
 
-      {/* ------------------------------------------------------------ giriş: tünelin ağzı */}
+      {/* ------------------------------------------------------------ giriş */}
       <section className="relative mx-auto flex min-h-[100svh] max-w-[1240px] flex-col items-center justify-center px-5 pb-16 pt-32 text-center sm:px-8">
-        <h1 className="display text-[2.9rem] leading-[1] [text-shadow:0_2px_26px_rgba(0,0,0,.8)] sm:text-[4.6rem] lg:text-[5.4rem]">
-          <span className="mask-line"><span style={{ animationDelay: "150ms" }}>2026&apos;dan</span></span>
-          <span className="mask-line"><span className="infinite-word" style={{ animationDelay: "260ms" }}>2027&apos;ye</span></span>
+        <h1 className="display text-[3.4rem] leading-[0.98] sm:text-[6rem] lg:text-[7.5rem]" aria-label="Anların sonsuza kaldığı yer.">
+          <span className="mask-line"><span style={{ animationDelay: "150ms" }}>Anların</span></span>
+          <span className="mask-line"><span className="infinite-word" style={{ animationDelay: "260ms" }}>sonsuza</span></span>
+          <span className="mask-line"><span style={{ animationDelay: "370ms" }}>kaldığı yer.</span></span>
         </h1>
-        <p className="rise mx-auto mt-7 max-w-[32rem] text-[1.05rem] leading-relaxed text-ink-soft [text-shadow:0_1px_12px_rgba(0,0,0,.9)]" style={{ animationDelay: "560ms" }}>
-          Bir yılın anlarını sakla: doğduğun gecenin Ay&apos;ı, tanıştığınız gecenin gökyüzü, bir yıl sonra açılacak bir mektup. Üyelik yok.
+        <p className="rise mx-auto mt-8 max-w-[34rem] text-[1.05rem] leading-relaxed text-ink-soft" style={{ animationDelay: "600ms" }}>
+          Doğduğun gecenin Ay&apos;ı, tanıştığınız gecenin gökyüzü, bir yıl sonra açılacak bir mektup. Saklamak istediğin anlar için küçük dijital hatıralar. Üyelik yok.
         </p>
 
-        <nav aria-label="Araçlar" className="rise mt-11 grid w-full max-w-[56rem] grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3" style={{ animationDelay: "720ms" }}>
+        <nav aria-label="Araçlar" className="rise mt-12 grid w-full max-w-[56rem] grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3" style={{ animationDelay: "760ms" }}>
           {TOOLS.map(({ href, name, hint, icon: Icon, ...rest }) => {
             const nar = "nar" in rest;
             return (
@@ -47,7 +47,7 @@ export default function Home() {
                 href={href}
                 prefetch={false}
                 className={
-                  "tool-card group relative flex items-center gap-3 overflow-hidden rounded-[18px] border px-4 py-3.5 text-left backdrop-blur-md transition-[border-color,background-color,box-shadow] duration-500 sm:flex-col sm:items-start sm:gap-2 sm:px-5 sm:py-5 " +
+                  "tool-card group relative flex items-center gap-3 overflow-hidden rounded-[18px] border px-4 py-3.5 text-left backdrop-blur-md transition-[border-color,background-color,transform] duration-500 sm:flex-col sm:items-start sm:gap-2 sm:px-5 sm:py-5 " +
                   (nar
                     ? "border-nar-soft/45 bg-[rgba(74,11,22,0.42)] shadow-[0_0_40px_-18px_rgba(210,70,92,.8)] hover:border-nar-soft/80"
                     : "border-white/[.08] bg-[rgba(8,7,11,0.5)] hover:border-nar-soft/40 hover:shadow-[0_0_36px_-20px_rgba(210,70,92,.9)]")
@@ -62,28 +62,6 @@ export default function Home() {
             );
           })}
         </nav>
-
-        <a href="#kapi" className="rise group mt-14 flex flex-col items-center gap-2 text-sm text-ink-soft hover:text-ink" style={{ animationDelay: "1000ms" }}>
-          Kaydır, tünelde ilerle
-          <span aria-hidden className="relative block h-10 w-px overflow-hidden bg-white/10">
-            <span className="scroll-cue absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-transparent to-nar-soft" />
-          </span>
-        </a>
-      </section>
-
-      {/* tünel boyunca: aylar 3D sahnede akar */}
-      <div aria-hidden className="h-[210vh] sm:h-[260vh]" />
-
-      {/* ------------------------------------------------------------ 2027 kapısı */}
-      <section id="kapi" className="relative mx-auto flex min-h-[100svh] max-w-[1240px] scroll-mt-0 flex-col items-center justify-center px-5 text-center sm:px-8">
-        <GateReveal>
-          <h2 className="display text-[3.2rem] leading-[0.98] [text-shadow:0_2px_30px_rgba(0,0,0,.85)] sm:text-[6rem] lg:text-[7.2rem]">
-            Anların <span className="gold-shine italic">sonsuza</span>
-            <br />
-            kaldığı yer.
-          </h2>
-          <p className="mx-auto mt-8 max-w-md text-ink [text-shadow:0_1px_14px_rgba(0,0,0,.9)]">Geçen yıldan kalanlar burada saklı. Yenisi kapının hemen ardında.</p>
-        </GateReveal>
       </section>
 
       {/* ------------------------------------------------------------ anlar */}

@@ -4,21 +4,19 @@ import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import Lenis from "lenis";
 
-const YearTunnel = dynamic(() => import("./year-tunnel"), {
+const StarRoad = dynamic(() => import("./star-road"), {
   ssr: false,
   loading: () => <div aria-hidden className="night-stars fixed inset-0 -z-[5] bg-night" />,
 });
 
-/** Ana sayfa: 3D tünel + yumuşak kaydırma (hareket azaltma açıksa kapalı) */
-export function TunnelHost() {
+/** Ana sayfa: sonsuz yıldız yolu + yumuşak kaydırma (hareket azaltma açıksa kapalı) */
+export function StarRoadHost() {
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const lenis = new Lenis({ autoRaf: true, lerp: 0.085, smoothWheel: true });
-    // menüdeki #bağlantılar da yumuşak gitsin
+    const lenis = new Lenis({ autoRaf: true, lerp: 0.08, smoothWheel: true });
     const onClick = (e: MouseEvent) => {
       const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#"]');
-      if (!a) return;
-      const el = document.querySelector(a.getAttribute("href")!);
+      const el = a && document.querySelector(a.getAttribute("href")!);
       if (!el) return;
       e.preventDefault();
       lenis.scrollTo(el as HTMLElement, { offset: -80 });
@@ -29,5 +27,5 @@ export function TunnelHost() {
       lenis.destroy();
     };
   }, []);
-  return <YearTunnel />;
+  return <StarRoad />;
 }

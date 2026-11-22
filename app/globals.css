@@ -470,12 +470,3 @@ body {
   text-shadow: 0 0 18px rgba(210, 70, 92, 0.65);
 }
 
-/* kapı başlığı: ışığın içinden belirir */
-.gate-wait { opacity: 0; transform: scale(0.94); filter: blur(14px); }
-.gate-in { opacity: 1; transform: none; filter: none; transition: opacity 1.4s var(--ease-lux), transform 1.6s var(--ease-lux), filter 1.4s var(--ease-lux); }
-.scroll-cue { animation: cue 2.2s var(--ease-lux) infinite; }
-@keyframes cue { from { transform: translateY(-100%); } to { transform: translateY(200%); } }
-@media (prefers-reduced-motion: reduce) {
-  .gate-wait { opacity: 1; transform: none; filter: none; }
-  .scroll-cue { animation: none; }
-}
