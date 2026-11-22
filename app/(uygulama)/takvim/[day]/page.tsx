@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Lock } from "lucide-react";
 import { getProgress } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
-import { TASKS } from "@/lib/tasks";
+import { BONUSES, TASKS } from "@/lib/tasks";
+import { BonusList } from "../bonus-list";
 import { Countdown } from "@/components/countdown";
 import { TaskForm } from "./task-form";
 
@@ -48,6 +49,8 @@ export default async function TaskPage({ params }: PageProps<"/takvim/[day]">) {
     photoUrl = data?.signedUrl ?? null;
   }
   const late = !entry && day < p.today;
+  // küçük ritüeller: açılmış ama yapılmamış olanlardan en eski ikisi, sadece bugünün sayfasında
+  const rituals = day === p.today ? BONUSES.filter((b) => b.openDay <= p.today && !p.bonusIds.includes(b.id)).slice(0, 2) : [];
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -68,6 +71,16 @@ export default async function TaskPage({ params }: PageProps<"/takvim/[day]">) {
         )}
         <TaskForm days={p.entries.map((e) => e.day)} task={task} userId={p.userId} initial={entry?.answer ?? null} initialPhoto={photoUrl} initialPath={entry?.photo_path ?? null} />
       </article>
+      {rituals.length > 0 && (
+        <section className="mt-16 border-t border-champagne/10 pt-10">
+          <div className="flex items-end justify-between gap-3">
+            <h2 className="display text-[1.75rem]">Bir de küçük bir ritüel</h2>
+            <p className="num text-sm text-ink-soft">{p.bonusIds.length}/17 ışık</p>
+          </div>
+          <p className="mb-5 mt-2 text-sm text-ink-soft">Bir iki kelimelik cevap yeter. Her biri kürenin kenarına bir peri ışığı ekler.</p>
+          <BonusList items={rituals} done={[]} />
+        </section>
+      )}
     </div>
   );
 }

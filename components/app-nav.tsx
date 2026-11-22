@@ -4,7 +4,7 @@ import { Globe, Moons } from "@/components/icons";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, Images, Smartphone } from "lucide-react";
+import { CalendarDays, Images, UserRound } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -12,8 +12,8 @@ export const NAV = [
   { href: "/takvim", label: "Takvim", icon: CalendarDays, mobile: true },
   { href: "/kure", label: "Küre", icon: Globe, mobile: true },
   { href: "/biz", label: "Biz", icon: Moons, mobile: true },
-  { href: "/pano", label: "Stüdyo", icon: Smartphone, mobile: true },
   { href: "/vision", label: "Vision", icon: Images, mobile: true },
+  { href: "/profil", label: "Ben", icon: UserRound, mobile: true, desktop: false },
 ] as const;
 
 export function BottomNav() {
@@ -55,7 +55,7 @@ export function TopLinks() {
   const path = usePathname();
   return (
     <ul className="hidden items-center gap-0.5 md:flex">
-      {NAV.map(({ href, label }) => {
+      {NAV.filter((n) => !("desktop" in n) || n.desktop !== false).map(({ href, label }) => {
         const active = path === href || path.startsWith(href + "/");
         return (
           <li key={href}>

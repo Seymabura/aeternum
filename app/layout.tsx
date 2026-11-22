@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Toaster } from "sonner";
+import { NewYearNight } from "@/components/new-year-night";
+import { PwaRegister } from "@/components/install-app";
 import { Ambience } from "@/components/ambience";
 import "./globals.css";
 
@@ -19,7 +21,8 @@ export const metadata: Metadata = {
     locale: "tr_TR",
     type: "website",
   },
-  icons: { icon: "/icon.svg" },
+  icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Aeternum", statusBarStyle: "black-translucent" },
 };
 
 export const viewport: Viewport = {
@@ -35,6 +38,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="relative min-h-full flex flex-col">
         <Ambience />
         {children}
+        <NewYearNight />
+        <PwaRegister />
         <Toaster
           position="bottom-center"
           offset={96}

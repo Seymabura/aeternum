@@ -42,7 +42,7 @@ export default function SnowGlobe({ className, days = [], lights = 0, full = fal
         frameloop={visible ? "always" : "never"}
         dpr={[1, 1.75]}
         camera={{ position: [0, 0.4, 5.6], fov: 33 }}
-        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+        gl={{ antialias: true, alpha: true, powerPreference: "high-performance", preserveDrawingBuffer: true }}
         onPointerDown={() => setShake((s) => s + 1)}
       >
         <ambientLight intensity={0.3} />

@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
-import { Camera, Loader2 } from "lucide-react";
+import { Camera, Loader2, Share2 } from "lucide-react";
+import { taskStoryCard } from "@/lib/story-card";
+import { shareOrDownload } from "@/lib/share";
 import { saveTask } from "@/app/actions/tasks";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/image";
@@ -172,13 +174,26 @@ export function TaskForm({
         </button>
       </form>
 
-      <AnimatePresence>{celebrate && <Celebration day={task.day} gift={task.gift} days={days} onClose={() => setCelebrate(false)} />}</AnimatePresence>
+      <AnimatePresence>{celebrate && <Celebration day={task.day} title={task.title} gift={task.gift} days={days} onClose={() => setCelebrate(false)} />}</AnimatePresence>
     </>
   );
 }
 
-function Celebration({ day, gift, days, onClose }: { day: number; gift: string; days: number[]; onClose: () => void }) {
+function Celebration({ day, title, gift, days, onClose }: { day: number; title: string; gift: string; days: number[]; onClose: () => void }) {
   const all = Array.from(new Set([...days, day]));
+  const globeRef = useRef<HTMLDivElement>(null);
+  const [sharing, setSharing] = useState(false);
+  async function share() {
+    setSharing(true);
+    try {
+      const blob = await taskStoryCard({ day, title, gift, count: all.length, globe: globeRef.current?.querySelector("canvas") ?? null });
+      await shareOrDownload(blob, `aeternum-gun-${String(day).padStart(2, "0")}.png`, "Aeternum");
+    } catch {
+      toast.error("Kart hazırlanamadı. Tekrar dene.");
+    } finally {
+      setSharing(false);
+    }
+  }
   // hafif altın parçacıklar (sabit tohumlu, render saf kalsın)
   const sparks = Array.from({ length: 22 }, (_, i) => ({
     x: (i * 37) % 100,
@@ -217,17 +232,19 @@ function Celebration({ day, gift, days, onClose }: { day: number; gift: string; 
         transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <GlobeHero days={all} fresh={day} autoRotate className="max-w-[340px]" />
+        <div ref={globeRef}>
+          <GlobeHero days={all} fresh={day} autoRotate className="max-w-[340px]" />
+        </div>
         <h2 className="display mt-2 text-[2.5rem] sm:text-[3rem]">
           Kürene <em className="gold-shine italic">{gift}</em> eklendi.
         </h2>
         <p className="num mt-4 text-ink-soft">{all.length}/31 süs. Her gün biraz daha dolu.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href="/takvim" className="btn btn-primary">
+          <button type="button" className="btn btn-primary" onClick={share} disabled={sharing}>
+            {sharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" strokeWidth={1.5} />} Hikâye olarak paylaş
+          </button>
+          <Link href="/takvim" className="btn btn-ghost">
             Takvime dön
-          </Link>
-          <Link href="/kure" className="btn btn-ghost">
-            Küremi gör
           </Link>
         </div>
       </motion.div>

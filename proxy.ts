@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const PROTECTED = ["/takvim", "/pano", "/profil", "/vision", "/kure", "/biz"];
+const PROTECTED = ["/takvim", "/profil", "/vision", "/kure", "/biz", "/ozet"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -44,5 +44,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|art/|stickers/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|woff2?)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|art/|stickers/|sw.js|offline.html|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|woff2?)$).*)"],
 };

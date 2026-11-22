@@ -13,7 +13,7 @@ export default function Privacy() {
       <ul>
         <li>Hesap bilgileri: e-posta adresin, (Google ile girdiysen) adın, şifren (şifrelenmiş olarak, biz göremeyiz).</li>
         <li>Görev cevapların, küçük ritüel notların, 2027&apos;ye mektubun.</li>
-        <li>Vision board'un, 2027 hedeflerin, duvar kağıdı tasarımların ve yüklediğin fotoğraflar.</li>
+        <li>Vision board'un, 2027 hedeflerin ve yüklediğin fotoğraflar.</li>
         <li>Tercihlerin (ör. hatırlatma e-postası istiyor musun).</li>
       </ul>
       <h2>Nasıl koruyoruz?</h2>

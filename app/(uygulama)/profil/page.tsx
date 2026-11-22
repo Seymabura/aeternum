@@ -2,6 +2,9 @@ import Link from "next/link";
 import { getProgress, requireUser } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileForm } from "./profile-form";
+import { RecoveryCard } from "./recovery-card";
+import { InstallApp } from "@/components/install-app";
+import { hasRecoveryEmail } from "@/lib/recovery";
 
 export const metadata = { title: "Ben" };
 
@@ -16,20 +19,15 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profil">
       <div>
         <p className="eyebrow">Profil</p>
         <h1 className="display mt-5 text-[2.75rem] sm:text-[3.5rem]">Defterin</h1>
-        <p className="mt-4 text-ink-soft">Defterin bu cihazda saklanıyor. Tarayıcı verilerini silersen defterin de silinir.</p>
+        <p className="mt-4 text-ink-soft">Görevlerin, küren ve mektubun bu defterde.</p>
       </div>
       <dl className="sheet grid grid-cols-3 py-6">
         <Stat n={p.entries.length} total="/31" label="süs" first />
         <Stat n={p.streak} label="gün seri" />
         <Stat n={p.bonusIds.length} total="/17" label="ışık" />
       </dl>
-      <Link href="/pano" className="sheet spot lift flex items-center justify-between px-6 py-5">
-        <span>
-          <span className="display block text-[1.4rem]">Duvar kağıdı stüdyosu</span>
-          <span className="text-sm text-ink-soft">Fotoğraflar, çizimler ve yazıyla kilit ekranını tasarla.</span>
-        </span>
-        <span className="text-champagne">↗</span>
-      </Link>
+      {(!user.email || hasRecoveryEmail(user.email)) && <RecoveryCard has={hasRecoveryEmail(user.email)} />}
+      <InstallApp />
       <ProfileForm
         name={prof?.display_name ?? ""}
         reminders={prof?.email_reminders ?? false}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, ArrowUpRight, CalendarDays, Images, Lock, Moon, Smartphone, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarDays, Images, Lock, Mail, Moon, Sparkles } from "lucide-react";
 import { Globe, Moons } from "@/components/icons";
 import { Logo, Sparkle } from "@/components/logo";
 import { LandingNav } from "@/components/landing-nav";
@@ -16,7 +16,7 @@ const TOOLS = [
   { href: "/biz/iki-ay", name: "İki Ay", hint: "Doğduğunuz gecelerin Ay'ı", icon: Moon },
   { href: "/biz/gokyuzu", name: "Gökyüzümüz", hint: "Tanıştığınız gecenin yıldızları", icon: Sparkles },
   { href: "/biz/kure", name: "Ortak küre", hint: "Partnerinle birlikte süsle", icon: Moons },
-  { href: "/pano", name: "Duvar kağıdı", hint: "Kilit ekranını tasarla", icon: Smartphone },
+  { href: "/kure", name: "2027'ye mektup", hint: "Mühürle, bir yıl sonra aç", icon: Mail },
   { href: "/vision", name: "Vision board", hint: "2027'yi görsellerle kur", icon: Images },
 ] as const;
 
@@ -134,32 +134,31 @@ export default function Home() {
             </div>
           </Tile>
 
-          {/* duvar kağıdı */}
-          <Tile href="/pano" n="03" title="Duvar kağıdı stüdyosu" text="Fotoğrafların, hazır çizimler, çıkartmalar ve el yazısıyla kendi kilit ekranını tasarla. 4K indir." className="md:col-span-7">
-            <div className="relative mt-8 flex h-52 items-end justify-center gap-2 sm:h-72 sm:gap-3">
-              {[
-                { src: "/showcase/kedi.webp", r: "-rotate-[8deg] translate-y-3", t: "22:47" },
-                { src: "/showcase/duvar.webp", r: "z-10 -translate-y-1", t: "23:59" },
-                { src: "/showcase/boyama.webp", r: "rotate-[8deg] translate-y-3", t: "00:00" },
-              ].map((p) => (
-                <div key={p.src} className={"relative aspect-[9/19.5] h-full shrink-0 overflow-hidden rounded-[26px] border-[3px] border-[#1d2540] shadow-[0_30px_50px_-20px_rgba(0,0,0,.9)] transition-transform duration-500 group-hover:-translate-y-2 " + p.r}>
-                  <Image src={p.src} alt="" fill sizes="140px" className="object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-transparent" />
-                  <div className="absolute inset-x-0 top-4 text-center text-ink">
-                    <p className="text-[0.45rem] font-medium tracking-wide opacity-90">Çarşamba 31 Aralık</p>
-                    <p className="display text-[1.9rem] leading-none">{p.t}</p>
-                  </div>
-                  <div className="absolute bottom-1.5 left-1/2 h-1 w-10 -translate-x-1/2 rounded-full bg-ink/70" />
+          {/* 2027'ye mektup */}
+          <Tile href="/kure" n="03" title="2027'ye mektup" text="Kendine bir mektup yaz, mühürle ve kürene bırak. 31 Aralık 2027 gece yarısına kadar kimse okuyamaz, sen bile." className="md:col-span-7">
+            <div className="relative mt-8 flex h-52 items-center justify-center sm:h-72">
+              <div className="paper-tex relative w-[78%] max-w-[22rem] -rotate-2 rounded-[6px] px-7 py-6 text-[#1a1408] shadow-[0_40px_70px_-30px_rgba(0,0,0,.95)] transition-transform duration-700 group-hover:-rotate-1">
+                <p className="hand text-[1.6rem] leading-tight">Sevgili 2027&apos;deki ben,</p>
+                <div className="mt-3 space-y-3">
+                  {[92, 80, 86, 54].map((w, i) => (
+                    <div key={i} className="h-px bg-[#1a1408]/15" style={{ width: `${w}%` }} />
+                  ))}
                 </div>
-              ))}
+                <p className="hand mt-4 text-right text-xl text-[#1a1408]/60">Aralık 2026</p>
+                <svg viewBox="0 0 64 64" className="absolute -right-5 -top-5 h-16 w-16 drop-shadow-[0_8px_12px_rgba(0,0,0,.45)]" aria-hidden>
+                  <defs>
+                    <radialGradient id="waxl" cx="38%" cy="32%" r="70%">
+                      <stop offset="0" stopColor="#c45a62" />
+                      <stop offset=".55" stopColor="#8f2f39" />
+                      <stop offset="1" stopColor="#5e1a24" />
+                    </radialGradient>
+                  </defs>
+                  <path d="M32 3c4 0 6 3 9 4s7 0 9 3 1 6 3 9 5 5 5 9-3 6-4 9 0 7-3 9-6 1-9 3-5 5-9 5-6-3-9-4-7 0-9-3-1-6-3-9-5-5-5-9 3-6 4-9 0-7 3-9 6-1 9-3 5-4 9-4Z" fill="url(#waxl)" />
+                  <path d="M32 21c.5 5.3 4.7 9.5 10 10-5.3.5-9.5 4.7-10 10-.5-5.3-4.7-9.5-10-10 5.3-.5 9.5-4.7 10-10Z" fill="rgba(40,8,14,.55)" />
+                </svg>
+              </div>
             </div>
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {["iPhone 1179×2556", "Android 1080×2400", "Story 9:16", "Gönderi 4:5"].map((f) => (
-                <span key={f} className="rounded-full border border-white/10 bg-white/[.03] px-3 py-1.5 text-xs text-ink-soft">
-                  {f}
-                </span>
-              ))}
-            </div>
+            <p className="mt-6 text-center text-sm text-ink-soft">Mühürlenir, 31 Aralık 2027&apos;de açılır.</p>
           </Tile>
 
           {/* biz: iki ay + gökyüzü */}
@@ -239,7 +238,8 @@ export default function Home() {
       <footer className="border-t border-champagne/10">
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-6 px-5 py-10 text-sm text-ink-soft sm:px-8">
           <Logo />
-          <nav className="flex gap-6">
+          <nav className="flex flex-wrap gap-x-6 gap-y-2">
+            <Link href="/kurtar" className="link-line !text-ink-soft hover:!text-ink">Defterini geri getir</Link>
             <Link href="/kvkk" className="link-line !text-ink-soft hover:!text-ink">KVKK</Link>
             <Link href="/gizlilik" className="link-line !text-ink-soft hover:!text-ink">Gizlilik</Link>
           </nav>

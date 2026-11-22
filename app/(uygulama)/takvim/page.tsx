@@ -1,25 +1,51 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { getProgress } from "@/lib/data";
-import { BONUSES, TASKS } from "@/lib/tasks";
+import { ArrowRight, ShieldCheck } from "lucide-react";
+import { getProgress, requireUser } from "@/lib/data";
+import { hasRecoveryEmail } from "@/lib/recovery";
+import { RestoredToast } from "./restored-toast";
+import { InstallApp } from "@/components/install-app";
+import { TASKS } from "@/lib/tasks";
 import { Countdown } from "@/components/countdown";
 import { GlobeHero } from "@/components/globe-hero";
 import { AdventGrid } from "./advent-grid";
-import { BonusList } from "./bonus-list";
 
 export const metadata = { title: "Takvim" };
 
-export default async function CalendarPage() {
+export default async function CalendarPage({ searchParams }: PageProps<"/takvim">) {
+  const sp = await searchParams;
   const p = await getProgress();
+  const user = await requireUser();
+  const needsCode = !user.email && p.entries.length >= 2;
+  const yearDone = p.today >= 31;
   const done = p.entries.map((e) => e.day);
   const onTime = p.entries.filter((e) => e.on_time).map((e) => e.day);
-  const bonuses = BONUSES.filter((b) => b.openDay <= p.today);
-  const todayTask = TASKS.find((t) => t.day === p.today);
+    const todayTask = TASKS.find((t) => t.day === p.today);
   const todayDone = done.includes(p.today);
   const firstTask = TASKS[0];
 
   return (
     <div className="space-y-16 md:space-y-24">
+      {sp.kurtarildi === "1" && <RestoredToast />}
+      {(needsCode || yearDone) && (
+        <div className="-mb-8 space-y-3 md:-mb-14">
+          {yearDone && (
+            <Link href="/ozet" className="sheet flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:border-champagne/40" style={{ borderColor: "rgba(220,199,161,.28)" }}>
+              <span>
+                <span className="display block text-[1.35rem]">2026&apos;n hazır</span>
+                <span className="text-sm text-ink-soft">Aralık boyunca biriktirdiklerin tek bir hikâyede.</span>
+              </span>
+              <ArrowRight className="h-5 w-5 shrink-0 text-champagne" strokeWidth={1.5} />
+            </Link>
+          )}
+          {needsCode && (
+            <Link href="/profil#kurtarma" className="flex items-center gap-3 rounded-[18px] border border-white/[.08] bg-white/[.025] px-5 py-3.5 text-sm text-ink-soft transition-colors hover:text-ink">
+              <ShieldCheck className="h-4 w-4 shrink-0 text-champagne" strokeWidth={1.5} />
+              <span className="flex-1">Defterin sadece bu tarayıcıda. Kaybolmasın diye kurtarma kodu al.</span>
+              <ArrowRight className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+            </Link>
+          )}
+        </div>
+      )}
       {/* ------------------------------------------------------------ üst: bugün + küre */}
       <section className="grid items-stretch gap-5 lg:grid-cols-[1.35fr_1fr]">
         <div className="sheet spot rise relative flex flex-col justify-between overflow-hidden p-7 sm:p-10" style={{ borderColor: "rgba(220,199,161,.22)" }}>
@@ -104,20 +130,8 @@ export default async function CalendarPage() {
         <AdventGrid today={p.today} done={done} onTime={onTime} />
         <p className="mt-4 text-[0.8125rem] text-ink-soft">Kaçırdığın günleri sonradan da yapabilirsin. Süsün eklenir ama seriye sayılmaz.</p>
       </section>
+      {p.today < 31 && <InstallApp compact />}
 
-      {/* ------------------------------------------------------------ küçük ritüeller */}
-      <section className="sheet p-6 sm:p-8">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <p className="eyebrow">Küçük ritüeller</p>
-            <h2 className="display mt-3 text-[2rem]">Kürende bir ışık yak</h2>
-          </div>
-          <p className="num text-sm text-ink-soft">{p.bonusIds.length}/17 ışık</p>
-        </div>
-        <p className="mb-5 mt-2 text-sm text-ink-soft">Bir iki kelimelik cevaplar. Her biri kürenin kenarına bir peri ışığı ekler.</p>
-        <BonusList items={bonuses} done={p.bonusIds} />
-        {p.today < 28 && <p className="mt-3 text-xs text-ink-soft">Yeni ritüeller Aralık boyunca iki günde bir açılır.</p>}
-      </section>
     </div>
   );
 }
