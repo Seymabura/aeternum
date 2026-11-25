@@ -331,6 +331,8 @@ export type RenderOpts = {
   cyFrac?: number;
   /** Samanyolu bulutunu çizme (İki Ay: sade siyah gökyüzü) */
   noMilkyWay?: boolean;
+  /** Ufuk ve zemin çizilmez, gökyüzü ekranın tamamını kaplar (Ay ve gezegenler yine ufkun altındaysa gizli) */
+  fill?: boolean;
 };
 
 export type SkyLayers = {
@@ -375,6 +377,8 @@ export async function renderSky(scene: SkyScene, cat: Catalog, W: number, H: num
   const kL = k * lk;
   const moonV = scene.moon?.v;
   const moonUp = scene.moon && (scene.moon.alt > -2 || !scene.ground) ? 1 : 0;
+  // zemin ve ufuk sönümü: dolu kadrajda kapalı
+  const ground = scene.ground && !opts.fill;
   for (let py = 0; py < LH; py++) {
     for (let px = 0; px < LW; px++) {
       const X = (px + 0.5 - LW / 2) / kL;
@@ -383,7 +387,7 @@ export async function renderSky(scene: SkyScene, cat: Catalog, W: number, H: num
       const den = 4 + p2;
       const a = (4 * X) / den, b = (4 * Y) / den, c = (4 - p2) / den;
       const d: V3 = [a * r[0] + b * u[0] + c * f[0], a * r[1] + b * u[1] + c * f[1], a * r[2] + b * u[2] + c * f[2]];
-      const sAlt = scene.ground ? dot(d, zenith) : 0.6;
+      const sAlt = ground ? dot(d, zenith) : 0.6;
       let R = 2, G = 2, B = 5;
       const i = (py * LW + px) * 4;
       {
@@ -393,7 +397,7 @@ export async function renderSky(scene: SkyScene, cat: Catalog, W: number, H: num
         G += 5 * hz;
         B += 6 * hz;
         // hava ışıması (airglow): ufka yakın çok soluk yeşilimsi gri
-        const ag = Math.exp(-sa / 0.14) * (scene.ground ? 1 : 0);
+        const ag = Math.exp(-sa / 0.14) * (ground ? 1 : 0);
         R += 5 * ag;
         G += 8 * ag;
         B += 6 * ag;
@@ -405,7 +409,7 @@ export async function renderSky(scene: SkyScene, cat: Catalog, W: number, H: num
           const lane = smooth(0.55, 0.8, n2) * 0.32; // ince, koyu toz damarları
           const core = md * md; // iç katmanlar daha parlak
           const glow = (0.55 * md + 0.75 * core) * (0.7 + 0.6 * n1) * (1 - lane * smooth(0.3, 0.9, md));
-          const ext = scene.ground ? smooth(0, 0.35, sAlt) : 1;
+          const ext = ground ? smooth(0, 0.35, sAlt) : 1;
           const warm = smooth(0.4, 0.9, md);
           const L = 22 * glow * ext;
           R += L * (0.86 + 0.14 * warm);
@@ -425,7 +429,7 @@ export async function renderSky(scene: SkyScene, cat: Catalog, W: number, H: num
           B += m * 0.98;
         }
       }
-      if (scene.ground && sAlt < 0.004) {
+      if (ground && sAlt < 0.004) {
         // zemin: kömür siyahı; ufuk çizgisi yumuşak geçişli
         const g = smooth(-0.2, 0, sAlt);
         const gr = 2 + 4 * g, gg = 2 + 4 * g, gb = 3 + 5 * g;
@@ -481,7 +485,7 @@ export async function renderSky(scene: SkyScene, cat: Catalog, W: number, H: num
     if (x < -20 || y < -20 || x > W + 20 || y > H + 20) continue;
     let alt = 60;
     let bin = cat.bin[i];
-    if (scene.ground) {
+    if (ground) {
       const sa = dot(v, zenith);
       if (sa < 0.002) continue;
       alt = Math.asin(sa) / D2R;
@@ -549,7 +553,7 @@ export async function renderSky(scene: SkyScene, cat: Catalog, W: number, H: num
         for (let j = 1; j < pl.length; j++) {
           const va = eq(pl[j - 1][0], pl[j - 1][1]);
           const vb = eq(pl[j][0], pl[j][1]);
-          if (scene.ground && (dot(va, zenith) < 0 || dot(vb, zenith) < 0)) continue;
+          if (ground && (dot(va, zenith) < 0 || dot(vb, zenith) < 0)) continue;
           const a = project(va);
           const b = project(vb);
           if (!a || !b) continue;

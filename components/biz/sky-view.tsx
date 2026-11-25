@@ -42,7 +42,7 @@ export async function paintSky(input: SkyInput, cat: Catalog, W: number, H: numb
   const when = new Date(new Date(input.when).getTime() + (opts.offsetMin ?? 0) * 60000);
   const scene = makeScene(when, input.lat, input.lon, cat, input.dir ?? "oto", landscape ? 120 : 95);
   // Samanyolu bulutu çizilmez: gri, farklı renkte bir leke gibi duruyor; sade siyah gece daha şık
-  const layers = await renderSky(scene, cat, W, H, { lines: input.lines, limitMag: opts.limitMag, onProgress: opts.onProgress, fast: opts.fast, scale: Math.min(W, H) / 1080, noMilkyWay: true });
+  const layers = await renderSky(scene, cat, W, H, { lines: input.lines, limitMag: opts.limitMag, onProgress: opts.onProgress, fast: opts.fast, scale: Math.min(W, H) / 1080, noMilkyWay: true, fill: true });
   let moonImg: HTMLCanvasElement | null = null;
   if (layers.moonPx) {
     const tex = await loadMoonTexture();

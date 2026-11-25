@@ -199,12 +199,17 @@ function Result({ payload, onEdit, onAddPartner }: { payload: MoonPayload; onEdi
   const [link, setLink] = useState<string | null>(null);
   const pair = payload.b ?? null;
   const people = pair ? [payload.a, pair] : [payload.a];
+  // "Sadece …" seçilince önizlemede de sadece o kişinin Ay'ı görünür
+  const shown: MoonPayload = useMemo(() => (pair && which !== "ikisi" ? { a: which === "a" ? payload.a : pair, b: null } : payload), [payload, pair, which]);
 
   return (
     <div className="mt-8 grid items-start gap-10 lg:grid-cols-[minmax(0,26rem)_1fr] lg:gap-16">
-      <MoonPosterView ref={view} payload={payload} onMerged={setMerged} className="mx-auto max-w-[26rem] shadow-[0_40px_90px_-30px_rgba(0,0,0,.95)]" />
-
       <div className="lg:sticky lg:top-28">
+        <MoonPosterView key={which} ref={view} payload={shown} onMerged={setMerged} className="mx-auto max-w-[26rem] shadow-[0_40px_90px_-30px_rgba(0,0,0,.95)]" />
+        {pair && which !== "ikisi" && <p className="mt-3 text-center text-sm text-ink-soft">{shown.a.name} doğduğu gecenin Ay&apos;ı</p>}
+      </div>
+
+      <div>
         <p className="text-sm text-[#ff9aab]">Doğduğun gecenin Ay&apos;ı</p>
         <h1 className="display mt-4 text-[2.5rem] leading-[1.05] sm:text-[3.25rem]">
           {pair ? (
@@ -237,7 +242,7 @@ function Result({ payload, onEdit, onAddPartner }: { payload: MoonPayload; onEdi
         )}
 
         <div className="mt-8 flex flex-wrap gap-3">
-          {pair && (
+          {pair && which === "ikisi" && (
             <button className="btn btn-primary" onClick={() => view.current?.merge(!merged)}>
               {merged ? "Ayır" : "Birleştir"}
             </button>
@@ -266,7 +271,10 @@ function Result({ payload, onEdit, onAddPartner }: { payload: MoonPayload; onEdi
                 key={k}
                 role="radio"
                 aria-checked={which === k}
-                onClick={() => setWhich(k)}
+                onClick={() => {
+                  setWhich(k);
+                  setMerged(false);
+                }}
                 className={cn("min-h-10 truncate rounded-[10px] px-2 text-[0.8rem] transition-colors", which === k ? "bg-nar/25 text-[#ffe3e7]" : "text-ink-soft hover:text-ink")}
               >
                 {l}

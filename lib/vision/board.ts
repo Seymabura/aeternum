@@ -155,7 +155,7 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, f: FormatDef, 
       const c = hs.indexOf(Math.min(...hs));
       const a = Math.min(1.6, Math.max(0.42, aspectOf(it, natural)));
       const h = cw * a;
-      out[it.id] = { x: pad + c * (cw + gap), y: hs[c], w: cw, h, r: 0, z: i + 1, frame: "beyaz", font: it.layout?.font ?? "serif" };
+      out[it.id] = { x: pad + c * (cw + gap), y: hs[c], w: cw, h, r: 0, z: i + 1, frame: it.layout?.frame ?? "yok", font: it.layout?.font ?? "serif" };
       hs[c] += h + gap;
     });
     // taşarsa hepsini üst-ortaya göre küçült

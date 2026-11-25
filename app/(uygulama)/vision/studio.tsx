@@ -89,6 +89,10 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
   const [scale, setScale] = useState(0.3);
   const [hist, setHist] = useState<{ past: Record<string, VisionLayout>[]; future: Record<string, VisionLayout>[] }>({ past: [], future: [] });
   const stage = useRef<HTMLDivElement>(null);
+  const editorTop = useRef<HTMLDivElement>(null);
+  // telefon araç çubuğunda çerçeve seçenekleri açık mı (başka parça seçilince kapanır)
+  const [framesFor, setFramesFor] = useState<string | null>(null);
+  const framesOpen = !!sel && framesFor === sel;
   const fileRef = useRef<HTMLInputElement>(null);
   const gesture = useRef<Gesture | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
@@ -190,7 +194,8 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
       patch(r.item.id, { x: Math.round(at.x - l.w / 2), y: Math.round(at.y - l.h / 2) }, false);
     }
   }
-  function placeFor(aspect: number, w0 = 540, frame: VisionLayout["frame"] = "beyaz"): VisionLayout {
+  // fotoğraflar çerçevesiz ve düz eklenir; çerçeve sonradan "Çerçeve" düğmesiyle seçilir
+  function placeFor(aspect: number, w0 = 540, frame: VisionLayout["frame"] = "yok"): VisionLayout {
     const w = Math.round(w0 * U);
     const h = Math.round(w * aspect);
     const n = itemsRef.current.length;
@@ -199,7 +204,7 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
       y: Math.round(Math.max(CLOCK_SAFE, BH * 0.46 - h / 2) + (((n * 71) % 160) - 80) * U),
       w,
       h,
-      r: ((n * 29) % 7) - 3,
+      r: frame === "yok" ? 0 : ((n * 29) % 7) - 3,
       z: maxZ(itemsRef.current) + 1,
       frame,
       font: "serif",
@@ -208,7 +213,14 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
   function addPhoto(src: string, at?: { x: number; y: number }, aspect?: number) {
     const m = photoMeta(src);
     const sticker = isSticker(src);
-    void add({ kind: "image", src, size: "s", layout: placeFor(aspect ?? (m ? m.h / m.w : 1.3), sticker ? 300 : 540, sticker ? "yok" : "beyaz") }, at);
+    void add({ kind: "image", src, size: "s", layout: placeFor(aspect ?? (m ? m.h / m.w : 1.3), sticker ? 300 : 540, "yok") }, at);
+    // ilk fotoğrafta bir kez: çerçevenin nereden seçileceğini göster
+    try {
+      if (!localStorage.getItem("ae-vb-cerceve-ipucu")) {
+        localStorage.setItem("ae-vb-cerceve-ipucu", "1");
+        setTimeout(() => toast("İpucu: Fotoğrafa dokun, alttaki “Çerçeve” ile beyaz, polaroid ya da keskin çerçeve seç.", { duration: 6000 }), 700);
+      }
+    } catch {}
   }
   async function upload(f?: File) {
     if (!f) return;
@@ -432,7 +444,27 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
 
   // panonun ekrandaki en geniş hâli: dikeyler dar, yataylar geniş; yükseklik ekranın %74'ünü geçmesin
   // pano ekrana sığsın: telefonda üstteki ve alttaki araç çubukları için yer bırakılır, kaydırmadan tamamı görünür
-  const stageMax = f.W >= f.H ? `min(100%, 900px, calc(74dvh * ${(f.W / f.H).toFixed(3)}))` : `min(${f.id === "telefon" ? 420 : 560}px, 100%, calc((100dvh - 15.5rem) * ${(f.W / f.H).toFixed(3)}))`;
+  // telefonda: üstte sabit başlık, altta sabit araç çubuğu ve menü var; pano ikisinin arasına kaydırmadan sığar
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const on = () => setNarrow(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  // telefonda sayfa açılınca pano ve araç çubuğu tek ekranda görünsün diye panoya kaydır
+  useEffect(() => {
+    if (!window.matchMedia("(max-width: 1023px)").matches || window.scrollY > 40) return;
+    const t = setTimeout(() => editorTop.current?.scrollIntoView({ block: "start" }), 60);
+    return () => clearTimeout(t);
+  }, []);
+  const ratio = (f.W / f.H).toFixed(3);
+  const stageMax = narrow
+    ? `min(100%, calc((100dvh - ${f.clock ? "20.75rem" : "19rem"}) * ${ratio}))`
+    : f.W >= f.H
+      ? `min(100%, 900px, calc(74dvh * ${ratio}))`
+      : `min(${f.id === "telefon" ? 420 : 560}px, 100%, calc((100dvh - 15.5rem) * ${ratio}))`;
   // bir parça saat/widget bölgesine ya da alttaki düğmelere taşıyor mu
   const underClock = f.clock ? items.some((i) => i.layout && i.layout.y < CLOCK_SAFE - 8) : false;
   const underButtons = f.clock ? items.some((i) => i.layout && i.layout.y + i.layout.h > BH - BOTTOM_SAFE + 8) : false;
@@ -525,10 +557,10 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
 
   return (
     <div>
-      <section className="flex flex-wrap items-end justify-between gap-6">
+      <section className="flex items-center justify-between gap-3 lg:items-end lg:gap-6">
         <div>
-          <h1 className="display text-[2.75rem] leading-[1] sm:text-[4rem]">Vision board</h1>
-          <p className="mt-4 max-w-lg text-ink-soft">Gelecek yılını fotoğraflarla ve kelimelerle kur. Parçaları sürükle, köşeden büyüt. Döndürmek için alttaki döndür düğmelerine dokun ya da basılı tut.</p>
+          <h1 className="display text-[2rem] leading-[1] sm:text-[2.75rem] lg:text-[4rem]">Vision board</h1>
+          <p className="mt-4 hidden max-w-lg text-ink-soft lg:block">Gelecek yılını fotoğraflarla ve kelimelerle kur. Parçaları sürükle, köşeden büyüt. Döndürmek için alttaki döndür düğmelerine dokun ya da basılı tut.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <ShareMenu disabled={!!busy || items.length === 0} onPick={shareAs} />
@@ -537,10 +569,10 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
       </section>
       {header}
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
+      <div ref={editorTop} className="mt-4 grid scroll-mt-20 gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
         <div className="flex flex-col items-center">
           {/* üst araç çubuğu */}
-          <div className="mb-4 flex w-full items-center justify-between gap-2" style={{ maxWidth: stageMax }}>
+          <div className="mb-2 flex w-full items-center justify-between gap-2 lg:mb-4" style={{ maxWidth: stageMax }}>
             <div className="flex items-center gap-1">
               <IconBtn label="Geri al" onClick={undo} disabled={!hist.past.length}>
                 <Undo2 className="h-4 w-4" />
@@ -680,8 +712,8 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
             </div>
           )}
 
-          {/* seçili parça araçları */}
-          <div style={{ maxWidth: stageMax }} className="mt-5 flex min-h-12 w-full flex-wrap items-center justify-center gap-1 rounded-full border border-white/[.08] bg-[rgba(14,13,18,0.6)] p-1 backdrop-blur-xl">
+          {/* seçili parça araçları (geniş ekran) */}
+          <div style={{ maxWidth: stageMax }} className="mt-5 hidden min-h-12 w-full flex-wrap items-center justify-center gap-1 rounded-full border border-white/[.08] bg-[rgba(14,13,18,0.6)] p-1 backdrop-blur-xl lg:flex">
             {selected ? (
               <>
                 <IconBtn label="Öne getir" onClick={() => layer(selected.id, 1)}>
@@ -700,17 +732,7 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
                   <RotateCw className="h-4 w-4" />
                 </HoldBtn>
                 {selected.kind === "image" ? (
-                  isSticker(selected.src) ? null : (
-                    <TextBtn
-                      label={{ beyaz: "Çerçeveli", polaroid: "Polaroid", keskin: "Keskin", yok: "Çerçevesiz" }[selected.layout?.frame ?? "yok"]}
-                      icon={Frame}
-                      onClick={() => {
-                        const order = ["beyaz", "polaroid", "keskin", "yok"] as const;
-                        const cur = order.indexOf(selected.layout?.frame ?? "yok");
-                        patch(selected.id, { frame: order[(cur + 1) % order.length] });
-                      }}
-                    />
-                  )
+                  isSticker(selected.src) ? null : <FramePicker value={selected.layout?.frame ?? "yok"} onPick={(fr) => patch(selected.id, { frame: fr })} />
                 ) : (
                   <TextBtn
                     label="Yazıyı düzenle"
@@ -733,34 +755,106 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
               <p className="px-4 text-sm text-ink-mute">Düzenlemek için bir parçaya dokun.</p>
             )}
           </div>
-
-          {/* telefon: panel düğmeleri */}
-          <div style={{ maxWidth: stageMax }} className="mt-4 grid w-full grid-cols-4 gap-1.5 lg:hidden">
-            {(
-              [
-                { t: "foto", label: "Fotoğraf", icon: Library },
-                { t: "yazi", label: "Yazı", icon: Type },
-                { t: "arka", label: "Tema", icon: Palette },
-                { t: "duzen", label: "Düzen", icon: LayoutGrid },
-              ] as const
-            ).map(({ t, label, icon: Icon }) => (
-              <button
-                key={t}
-                onClick={() => {
-                  setTab(t);
-                  setSheet(true);
-                }}
-                className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-[16px] border border-white/[.08] bg-[rgba(14,13,18,0.6)] text-xs text-ink-soft"
-              >
-                <Icon className="h-5 w-5 text-champagne" /> {label}
-              </button>
-            ))}
-          </div>
         </div>
 
         <aside className="hidden lg:block">
           <div className="sticky top-24 flex max-h-[calc(100dvh-7.5rem)] flex-col rounded-[26px] border border-white/[.08] bg-[rgba(10,9,13,0.72)] p-5 backdrop-blur-xl">{panel}</div>
         </aside>
+      </div>
+
+      {/* telefon: her zaman ekranda duran araç çubuğu, alt menünün hemen üstünde */}
+      <div className="safe-bottom fixed inset-x-3 bottom-[4.9rem] z-40 lg:hidden md:bottom-4">
+        <div className="mx-auto max-w-md rounded-[22px] border border-white/10 bg-[rgba(10,9,13,0.92)] p-1 shadow-[0_20px_50px_-20px_rgba(0,0,0,.9)] backdrop-blur-xl">
+          {selected?.kind === "image" && framesOpen && (
+            <div role="radiogroup" aria-label="Çerçeve" className="grid grid-cols-4 gap-1 border-b border-white/[.06] p-1 pb-2">
+              {FRAMES.map((fr) => {
+                const on = (selected.layout?.frame ?? "yok") === fr.id;
+                return (
+                  <button
+                    key={fr.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => patch(selected.id, { frame: fr.id })}
+                    className={cn("flex flex-col items-center gap-1 rounded-[12px] p-1.5 text-[0.7rem] transition-colors", on ? "bg-nar/25 text-ink ring-1 ring-nar-soft/60" : "text-ink-soft")}
+                  >
+                    <FrameSwatch id={fr.id} />
+                    {fr.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {selected ? (
+            <div className="no-scrollbar flex items-center gap-0.5 overflow-x-auto">
+              <IconBtn label="Bitti" onClick={() => setSel(null)}>
+                <Check className="h-4 w-4 text-nar-soft" />
+              </IconBtn>
+              <span aria-hidden className="mx-0.5 h-6 w-px shrink-0 bg-white/10" />
+              <HoldBtn label="Sola döndür" onStep={(first) => rotateBy(selected.id, -3, first)}>
+                <RotateCcw className="h-4 w-4" />
+              </HoldBtn>
+              <span className="num min-w-[2.4rem] shrink-0 text-center text-xs text-ink-soft" aria-live="polite">
+                {Math.round(((((selected.layout?.r ?? 0) + 180) % 360) + 360) % 360 - 180)}°
+              </span>
+              <HoldBtn label="Sağa döndür" onStep={(first) => rotateBy(selected.id, 3, first)}>
+                <RotateCw className="h-4 w-4" />
+              </HoldBtn>
+              {selected.kind === "image" ? (
+                <button
+                  type="button"
+                  onClick={() => setFramesFor((x) => (x === sel ? null : sel))}
+                  aria-expanded={framesOpen}
+                  className={cn("flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm transition-colors", framesOpen ? "bg-nar/25 text-ink" : "text-ink-soft")}
+                >
+                  <Frame className="h-4 w-4" /> Çerçeve
+                </button>
+              ) : (
+                <IconBtn
+                  label="Yazıyı düzenle"
+                  onClick={() => {
+                    setEditId(selected.id);
+                    setTab("yazi");
+                    setSheet(true);
+                  }}
+                >
+                  <Type className="h-4 w-4" />
+                </IconBtn>
+              )}
+              <IconBtn label="Öne getir" onClick={() => layer(selected.id, 1)}>
+                <BringToFront className="h-4 w-4" />
+              </IconBtn>
+              <IconBtn label="Arkaya gönder" onClick={() => layer(selected.id, -1)}>
+                <SendToBack className="h-4 w-4" />
+              </IconBtn>
+              <IconBtn label="Sil" onClick={() => remove(selected.id)}>
+                <Trash2 className="h-4 w-4 text-nar-soft" />
+              </IconBtn>
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-1">
+              {(
+                [
+                  { t: "foto", label: "Fotoğraf", icon: Library },
+                  { t: "yazi", label: "Yazı", icon: Type },
+                  { t: "arka", label: "Tema", icon: Palette },
+                  { t: "duzen", label: "Düzen", icon: LayoutGrid },
+                ] as const
+              ).map(({ t, label, icon: Icon }) => (
+                <button
+                  key={t}
+                  onClick={() => {
+                    setTab(t);
+                    setSheet(true);
+                  }}
+                  className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[16px] text-[0.7rem] text-ink-soft active:bg-white/[.06]"
+                >
+                  <Icon className="h-5 w-5 text-champagne" /> {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => upload(e.target.files?.[0])} />
@@ -1275,8 +1369,8 @@ function ShareMenu({ disabled, onPick }: { disabled: boolean; onPick: (k: "x" | 
   const [open, setOpen] = useState(false);
   return (
     <div className="relative">
-      <button className="btn btn-ghost" disabled={disabled} onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        <Share2 className="h-4 w-4" /> Paylaş
+      <button className="btn btn-ghost" disabled={disabled} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label="Paylaş">
+        <Share2 className="h-4 w-4" /> <span className="hidden sm:inline">Paylaş</span>
       </button>
       {open && (
         <div className="absolute right-0 top-full z-30 mt-2 w-64 rounded-[18px] border border-white/10 bg-[#0c0b0f] p-1.5 shadow-[var(--shadow-lift)]" role="menu">
@@ -1293,6 +1387,73 @@ function ShareMenu({ disabled, onPick }: { disabled: boolean; onPick: (k: "x" | 
       )}
     </div>
   );
+}
+
+const FRAMES: { id: NonNullable<VisionLayout["frame"]>; label: string }[] = [
+  { id: "yok", label: "Yok" },
+  { id: "beyaz", label: "Beyaz" },
+  { id: "polaroid", label: "Polaroid" },
+  { id: "keskin", label: "Keskin" },
+];
+
+/** Çerçeve seçici: yazılı düğme, açılınca dört seçenek küçük önizlemeleriyle yan yana */
+function FramePicker({ value, onPick, up }: { value: NonNullable<VisionLayout["frame"]>; onPick: (f: NonNullable<VisionLayout["frame"]>) => void; up?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [open]);
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className={cn("flex h-10 items-center gap-1.5 rounded-full px-3 text-sm transition-colors", open ? "bg-nar/25 text-ink" : "text-ink-soft hover:bg-white/[.06] hover:text-ink")}
+      >
+        <Frame className="h-4 w-4" /> Çerçeve
+      </button>
+      {open && (
+        <div
+          role="radiogroup"
+          aria-label="Çerçeve"
+          className={cn(
+            "absolute left-1/2 z-50 flex -translate-x-1/2 gap-1.5 rounded-[18px] border border-white/10 bg-[#0c0b0f] p-2 shadow-[0_20px_50px_-15px_rgba(0,0,0,.95)]",
+            up ? "bottom-full mb-3" : "top-full mt-3",
+          )}
+        >
+          {FRAMES.map((fr) => (
+            <button
+              key={fr.id}
+              type="button"
+              role="radio"
+              aria-checked={value === fr.id}
+              onClick={() => {
+                onPick(fr.id);
+                setOpen(false);
+              }}
+              className={cn("flex w-[4.2rem] flex-col items-center gap-1.5 rounded-[12px] p-1.5 text-[0.7rem] transition-colors", value === fr.id ? "bg-nar/25 text-ink ring-1 ring-nar-soft/60" : "text-ink-soft hover:bg-white/5")}
+            >
+              <FrameSwatch id={fr.id} />
+              {fr.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FrameSwatch({ id }: { id: NonNullable<VisionLayout["frame"]> }) {
+  const photo = <span className="block h-full w-full rounded-[2px] bg-gradient-to-br from-[#d98a9a] via-[#b4728a] to-[#5d4a6e]" />;
+  if (id === "yok") return <span className="block h-11 w-9 overflow-hidden rounded-[7px]">{photo}</span>;
+  if (id === "beyaz") return <span className="block h-11 w-9 rounded-[3px] bg-[#fbf9f4] p-[3px]">{photo}</span>;
+  if (id === "polaroid") return <span className="block h-11 w-9 rounded-[2px] bg-[#fbf9f4] p-[3px] pb-[9px]">{photo}</span>;
+  // keskin: çerçevesiz, köşeleri düz kesilmiş
+  return <span className="block h-11 w-9 overflow-hidden [&>span]:rounded-none">{photo}</span>;
 }
 
 /** Dokununca bir adım, basılı tutunca hızlanarak tekrarlayan düğme (telefonda döndürme için) */
@@ -1523,7 +1684,7 @@ export function VisionStudio({
   }
 
   const header = (
-    <div className="mt-8 flex flex-wrap items-center gap-2">
+    <div className="mt-3 flex flex-wrap items-center gap-2 lg:mt-8">
       <div className="relative">
         <button
           onClick={() => setListOpen((o) => !o)}
@@ -1531,8 +1692,8 @@ export function VisionStudio({
           className="flex min-h-11 items-center gap-2.5 rounded-full border border-white/10 bg-[rgba(14,13,18,0.6)] py-1.5 pl-3 pr-4 text-sm text-ink backdrop-blur-xl hover:border-champagne/30"
         >
           <FormatGlyph id={board.format} className="h-4 w-4 text-champagne" />
-          <span className="max-w-[12rem] truncate">{board.name}</span>
-          <span className="text-ink-mute">{fmtOf(board.format).label}</span>
+          <span className="max-w-[9rem] truncate sm:max-w-[12rem]">{board.name}</span>
+          <span className="hidden text-ink-mute sm:inline">{fmtOf(board.format).label}</span>
           <ChevronDown className="h-4 w-4 text-ink-mute" />
         </button>
         {listOpen && (
@@ -1605,13 +1766,13 @@ export function VisionStudio({
           </div>
         )}
       </div>
-      <button onClick={() => setDialog("new")} className="btn btn-ghost btn-sm">
-        <Plus className="h-4 w-4" /> Yeni pano
+      <button onClick={() => setDialog("new")} className="btn btn-ghost btn-sm" aria-label="Yeni pano">
+        <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Yeni pano</span>
       </button>
-      <button onClick={() => setDialog("saveNew")} className="btn btn-ghost btn-sm">
-        <Save className="h-4 w-4" /> Kaydet ve yeni pano
+      <button onClick={() => setDialog("saveNew")} className="btn btn-ghost btn-sm" aria-label="Kaydet ve yeni pano">
+        <Save className="h-4 w-4" /> <span className="hidden sm:inline">Kaydet ve yeni pano</span>
       </button>
-      <span className="text-xs text-ink-mute">Her değişiklik otomatik kaydedilir.</span>
+      <span className="hidden text-xs text-ink-mute lg:inline">Her değişiklik otomatik kaydedilir.</span>
       {renaming && (
         <RenameDialog
           name={board.name}
