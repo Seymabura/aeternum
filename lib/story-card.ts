@@ -1,4 +1,4 @@
-/** 1080×1920 hikâye kartları: gece siyahı gökyüzü, Aralık takımyıldızı, gün bilgisi. */
+/** 1080×1920 hikâye kartları: gece siyahı gökyüzü, 31 adım halkası, gün bilgisi. */
 const W = 1080;
 const H = 1920;
 const SERIF = '"Bodoni Moda Variable", "Bodoni Moda", Didot, Georgia, serif';
@@ -133,7 +133,7 @@ export async function taskStoryCard(o: { day: number; title: string; done: numbe
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "rgba(244,239,230,0.72)";
   ctx.font = `400 36px ${SANS}`;
-  ctx.fillText(`${o.done.length}/31 gün  ·  Aralık takımyıldızım`, W / 2, H - 330);
+  ctx.fillText(`${o.done.length}/31  ·  yeni yıla 31 adım`, W / 2, H - 330);
   wordmark(ctx, W, H);
   return new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("toBlob"))), "image/png"));
 }

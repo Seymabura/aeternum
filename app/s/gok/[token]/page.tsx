@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: PageProps<"/s/gok/[token]">):
   const s = await getShare(token);
   if (!s || s.kind !== "gok") return { title: "Bulunamadı" };
   const p = s.payload as SkyInput;
-  return { title: `${p.meta.names[0]} & ${p.meta.names[1]} · Gökyüzümüz`, description: `${p.meta.dateText}, ${p.meta.place} gökyüzü.`, robots: { index: false, follow: false } };
+  return { title: `${p.meta.names.filter(Boolean).join(" & ") || p.meta.dateText} · Gökyüzü`, description: `${p.meta.dateText}, ${p.meta.place} gökyüzü.`, robots: { index: false, follow: false } };
 }
 
 export default async function Page({ params }: PageProps<"/s/gok/[token]">) {

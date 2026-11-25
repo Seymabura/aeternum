@@ -16,9 +16,12 @@ export type MoonPerson = {
 
 export type MoonPayload = {
   a: MoonPerson;
-  b: MoonPerson;
+  /** yoksa tek kişilik poster: sadece a'nın Ay'ı */
+  b?: MoonPerson | null;
   met?: MoonPerson | null;
 };
+
+export const isSingle = (p: MoonPayload) => !p.b;
 
 export type MoonImages = {
   a: HTMLCanvasElement;
@@ -29,7 +32,7 @@ export type MoonImages = {
 
 /** İki Ay'ın birleşimi: aydınlık oranları toplanır (en fazla dolunay). */
 export function unionFractionOf(p: MoonPayload) {
-  return Math.min(1, p.a.fraction + p.b.fraction);
+  return p.b ? Math.min(1, p.a.fraction + p.b.fraction) : p.a.fraction;
 }
 
 /**
@@ -38,6 +41,7 @@ export function unionFractionOf(p: MoonPayload) {
  * tek ve gerçek görünümlü bir Ay olur.
  */
 export function unionLight(p: MoonPayload): [number, number, number] {
+  if (!p.b) return p.a.light;
   const f = unionFractionOf(p);
   const ang = Math.acos(Math.max(-1, Math.min(1, 1 - 2 * f))); // 0 yeni ay … π dolunay
   let dx = p.a.light[0];
@@ -53,6 +57,11 @@ export function unionLight(p: MoonPayload): [number, number, number] {
 
 /** Yerleşim ölçüleri (9:16 referansına göre) */
 export function moonLayout(w: number, h: number) {
+  // yatay (X gönderisi, masaüstü): Ay'lar yüksekliğe göre büyür, biraz yukarıda durur
+  if (w > h) {
+    const u = h * 0.72;
+    return { u, single: u * 0.4, merged: u * 0.86, cy: h * 0.47 };
+  }
   const u = Math.min(w, h * 0.5625);
   return { u, single: u * 0.4, merged: u * 0.86, cy: h * 0.56 };
 }
@@ -60,6 +69,10 @@ export function moonLayout(w: number, h: number) {
 /** Ay görsellerini bir kez çiz (animasyon sırasında yeniden çizilmez) */
 export function buildMoons(tex: ImageData, p: MoonPayload, w: number, h: number): MoonImages {
   const L = moonLayout(w, h);
+  if (!p.b) {
+    const one = renderMoon(tex, L.merged, [{ L: p.a.light }], p.a.northAngle, { sharpen: 0.35 }).canvas;
+    return { a: one, b: one, u: one, unionFraction: p.a.fraction };
+  }
   const a = renderMoon(tex, L.single, [{ L: p.a.light }], p.a.northAngle, { sharpen: 0.35 }).canvas;
   const b = renderMoon(tex, L.single, [{ L: p.b.light }], p.b.northAngle, { sharpen: 0.35 }).canvas;
   const u = renderMoon(tex, L.merged, [{ L: unionLight(p) }], p.a.northAngle, { sharpen: 0.35 }).canvas;
@@ -83,6 +96,7 @@ export function pct(f: number) {
 
 /** Birleşmiş hâlin kısa cümlesi (yan panelde gösterilir) */
 export function unionLine(p: MoonPayload) {
+  if (!p.b) return "";
   const la = phaseLabel(p.a.phaseAngle).replace(/ \(.*\)/, "").toLocaleLowerCase("tr");
   const lb = phaseLabel(p.b.phaseAngle).replace(/ \(.*\)/, "").toLocaleLowerCase("tr");
   const full = unionFractionOf(p) >= 0.985;
@@ -97,12 +111,14 @@ export function drawPoster(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  _p: MoonPayload,
+  p: MoonPayload,
   img: MoonImages,
   progress: number,
   sky?: { layers: SkyLayers; t?: number; reveal?: number } | null,
+  caption?: { title: string; lines: string[] } | null,
 ) {
   const { single, merged, cy } = moonLayout(w, h);
+  if (!p.b) progress = 1;
   ctx.save();
   // ---------------------------------------------------------------- gece: o gece Ay'ın etrafındaki gerçek yıldızlar
   if (sky) {
@@ -149,6 +165,20 @@ export function drawPoster(
     ctx.drawImage(img.u, cx - du / 2, cy - du / 2, du, du);
   }
   ctx.globalAlpha = 1;
+
+  // ---------------------------------------------------------------- isteğe bağlı yazı (isim, tarih, evre)
+  if (caption) {
+    const { u } = moonLayout(w, h);
+    const top = Math.min(cy + merged * 0.58, h - u * 0.2);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = "rgba(246,239,226,.94)";
+    ctx.font = `400 ${Math.round(u * 0.072)}px ${SERIF}`;
+    ctx.fillText(caption.title, cx, top + u * 0.07);
+    ctx.font = `400 ${Math.round(u * 0.03)}px ${SANS}`;
+    ctx.fillStyle = "rgba(220,199,161,.82)";
+    caption.lines.forEach((l, i) => ctx.fillText(l, cx, top + u * (0.125 + i * 0.045)));
+  }
   ctx.restore();
 }
 
@@ -157,5 +187,6 @@ export const EXPORTS = [
   { id: "android", label: "Android duvar kağıdı", w: 1440, h: 3200 },
   { id: "4k", label: "4K dikey", w: 2160, h: 3840 },
   { id: "story", label: "Hikâye (9:16)", w: 1080, h: 1920 },
+  { id: "x", label: "X (Twitter) gönderisi", w: 1600, h: 900 },
   { id: "masaustu", label: "Masaüstü 4K", w: 3840, h: 2160 },
 ] as const;

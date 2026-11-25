@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Copy, Trash2 } from "lucide-react";
 import { deleteShare, type ShareRow } from "@/app/actions/biz";
 
-const KIND = { ay: "İki Ay", gok: "Gökyüzü", film: "Film" } as const;
+const KIND = { ay: "Ay", gok: "Gökyüzü", film: "Film" } as const;
 
 export function ShareList({ initial }: { initial: ShareRow[] }) {
   const [rows, setRows] = useState(initial);

@@ -20,7 +20,8 @@ export function loadCatalog() {
   return catPromise;
 }
 
-export type SkyMeta = { names: [string, string]; dateText: string; place: string; coords: string; line?: string };
+/** names: 0, 1 ya da 2 isim (boş olanlar gösterilmez) */
+export type SkyMeta = { names: string[]; dateText: string; place: string; coords: string; line?: string };
 export type SkyInput = { when: string; lat: number; lon: number; meta: SkyMeta; dir?: ViewDir; lines?: boolean };
 
 export const SKY_EXPORTS = [
@@ -28,6 +29,7 @@ export const SKY_EXPORTS = [
   { id: "android", label: "Android duvar kağıdı", w: 1440, h: 3200 },
   { id: "4k", label: "4K dikey", w: 2160, h: 3840 },
   { id: "story", label: "Hikâye (9:16)", w: 1080, h: 1920 },
+  { id: "x", label: "X (Twitter) gönderisi", w: 1600, h: 900 },
   { id: "masaustu", label: "Masaüstü 4K", w: 3840, h: 2160 },
 ] as const;
 export type SkyExportId = (typeof SKY_EXPORTS)[number]["id"];
@@ -39,7 +41,8 @@ export async function paintSky(input: SkyInput, cat: Catalog, W: number, H: numb
   const landscape = W > H;
   const when = new Date(new Date(input.when).getTime() + (opts.offsetMin ?? 0) * 60000);
   const scene = makeScene(when, input.lat, input.lon, cat, input.dir ?? "oto", landscape ? 120 : 95);
-  const layers = await renderSky(scene, cat, W, H, { lines: input.lines, limitMag: opts.limitMag, onProgress: opts.onProgress, fast: opts.fast, scale: Math.min(W, H) / 1080 });
+  // Samanyolu bulutu çizilmez: gri, farklı renkte bir leke gibi duruyor; sade siyah gece daha şık
+  const layers = await renderSky(scene, cat, W, H, { lines: input.lines, limitMag: opts.limitMag, onProgress: opts.onProgress, fast: opts.fast, scale: Math.min(W, H) / 1080, noMilkyWay: true });
   let moonImg: HTMLCanvasElement | null = null;
   if (layers.moonPx) {
     const tex = await loadMoonTexture();
@@ -172,7 +175,7 @@ export const SkyView = forwardRef<SkyHandle, { input: SkyInput; className?: stri
       <canvas
         ref={canvasRef}
         role="img"
-        aria-label={`${input.meta.dateText}, ${input.meta.place} gökyüzü: o an görünen gerçek yıldızlar ve Samanyolu.`}
+        aria-label={`${input.meta.dateText}, ${input.meta.place} gökyüzü: o an görünen gerçek yıldızlar.`}
         className="absolute inset-0"
         style={{ width: size.w, height: size.h }}
       />

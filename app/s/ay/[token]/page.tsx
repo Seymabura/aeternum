@@ -10,8 +10,8 @@ export async function generateMetadata({ params }: PageProps<"/s/ay/[token]">): 
   if (!s || s.kind !== "ay") return { title: "Bulunamadı" };
   const p = s.payload as MoonPayload;
   return {
-    title: `${p.a.name} & ${p.b.name} · İki Ay`,
-    description: "Doğdukları gecelerin Ay'ı, yan yana. Aeternum ile yapıldı.",
+    title: p.b ? `${p.a.name} & ${p.b.name} · Doğdukları gecenin Ay'ı` : `${p.a.name} · Doğduğu gecenin Ay'ı`,
+    description: p.b ? "Doğdukları gecelerin Ay'ı, yan yana. Aeternum ile yapıldı." : "Doğduğu gecenin Ay'ı. Aeternum ile yapıldı.",
     robots: { index: false, follow: false },
   };
 }

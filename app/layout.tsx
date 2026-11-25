@@ -14,12 +14,18 @@ export const metadata: Metadata = {
     template: "%s · Aeternum",
   },
   description:
-    "Doğduğunuz gecelerin Ay'ı, tanıştığınız gecenin gökyüzü, vision board ve 2027'ye mektup. Aralık'a özel 31 günlük küçük görevler.",
+    "Doğduğun gecenin Ay'ı, bir gecenin gökyüzü, vision board, ortak defter ve 2027'ye mektup. Aralık'a özel: yeni yıla 31 adım.",
   openGraph: {
     title: "Aeternum · Anların sonsuza kaldığı yer",
-    description: "Anların sonsuza kaldığı yer: gökyüzü, Ay, vision board, zaman kapsülü mektuplar ve Aralık'a özel 31 günlük görevler.",
+    description: "Doğduğun gecenin Ay'ı, bir gecenin gökyüzü, vision board, ortak defter ve 2027'ye mektup.",
     locale: "tr_TR",
     type: "website",
+    siteName: "Aeternum",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Aeternum · Anların sonsuza kaldığı yer",
+    description: "Doğduğun gecenin Ay'ı, bir gecenin gökyüzü, vision board, ortak defter ve 2027'ye mektup.",
   },
   icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
   appleWebApp: { capable: true, title: "Aeternum", statusBarStyle: "black-translucent" },

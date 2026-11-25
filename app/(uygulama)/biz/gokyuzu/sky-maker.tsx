@@ -24,7 +24,6 @@ export function SkyMaker() {
   const [err, setErr] = useState<string | null>(null);
 
   function show() {
-    if (!a.trim() || !b.trim()) return setErr("İki ismi de yaz.");
     if (!date) return setErr("Bir tarih seç.");
     if (date < "1900-01-01") return setErr("1900'den önceki tarihler desteklenmiyor.");
     if (date > "2100-12-31") return setErr("Bu kadar ileri bir tarih desteklenmiyor.");
@@ -35,7 +34,7 @@ export function SkyMaker() {
       lat: city.lat,
       lon: city.lon,
       meta: {
-        names: [a.trim(), b.trim()],
+        names: [a.trim(), b.trim()].filter(Boolean),
         dateText: `${trDate(date)}, ${time || "21:00"}`,
         place: city.country && city.country !== "Türkiye" ? `${city.name}, ${city.country}` : city.name,
         coords: formatCoords(city.lat, city.lon),
@@ -51,18 +50,18 @@ export function SkyMaker() {
       </Link>
       {!input ? (
         <div className="mx-auto mt-10 max-w-lg">
-          <p className="eyebrow">Gökyüzümüz</p>
-          <h1 className="display mt-5 text-[2.5rem] sm:text-[3.5rem]">O gece gökyüzünde ne vardı?</h1>
-          <p className="mt-4 text-ink-soft">Tarih, saat ve şehri seç; o an o şehirden görünen gerçek yıldızları, Samanyolu'nu, takımyıldızları, Ay'ı ve gezegenleri çizelim.</p>
+          <p className="text-sm text-[#ff9aab]">Bir gecenin gökyüzü</p>
+          <h1 className="display mt-4 text-[2.5rem] leading-[1.05] sm:text-[3.5rem]">O gece gökyüzünde ne vardı?</h1>
+          <p className="mt-4 text-ink-soft">Doğduğun gece, tanıştığınız gece ya da unutmak istemediğin bir gece. Tarih, saat ve şehri seç; o an o şehirden görünen gerçek yıldızları, Ay&apos;ı ve gezegenleri çizelim.</p>
           <div className="mt-10 space-y-5">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="label" htmlFor="a">Senin adın</label>
-                <input id="a" className="field" maxLength={24} value={a} onChange={(e) => setA(e.target.value)} />
+                <input id="a" className="field" placeholder="İsteğe bağlı" maxLength={24} value={a} onChange={(e) => setA(e.target.value)} />
               </div>
               <div>
                 <label className="label" htmlFor="b">Onun adı</label>
-                <input id="b" className="field" maxLength={24} value={b} onChange={(e) => setB(e.target.value)} />
+                <input id="b" className="field" placeholder="İsteğe bağlı" maxLength={24} value={b} onChange={(e) => setB(e.target.value)} />
               </div>
             </div>
             <div className="grid grid-cols-[1fr_8.5rem] gap-3">
@@ -112,9 +111,9 @@ function SkyResult({ input: initial, onEdit }: { input: SkyInput; onEdit: () => 
     <div className="mt-8 grid items-start gap-10 lg:grid-cols-[minmax(0,26rem)_1fr] lg:gap-16">
       <SkyView ref={view} input={input} onSpin={setSpin} className="mx-auto max-w-[26rem] shadow-[0_40px_90px_-30px_rgba(0,0,0,.95)]" />
       <div className="lg:sticky lg:top-28">
-        <p className="eyebrow">Gökyüzümüz</p>
+        <p className="text-sm text-[#ff9aab]">Bir gecenin gökyüzü</p>
         <h1 className="display mt-5 text-[2.5rem] sm:text-[3.25rem]">
-          {input.meta.names[0]} <span className="gold-shine italic">&</span> {input.meta.names[1]}
+          <Names names={input.meta.names} fallback={input.meta.dateText} />
         </h1>
         <p className="mt-4 text-ink-soft">
           {input.meta.dateText} · {input.meta.place}
@@ -209,5 +208,16 @@ function SkyResult({ input: initial, onEdit }: { input: SkyInput; onEdit: () => 
         />
       )}
     </div>
+  );
+}
+
+function Names({ names, fallback }: { names: string[]; fallback: string }) {
+  const n = names.filter(Boolean);
+  if (!n.length) return <>{fallback.split(",")[0]}</>;
+  if (n.length === 1) return <>{n[0]}</>;
+  return (
+    <>
+      {n[0]} <span className="italic text-nar-soft">&</span> {n[1]}
+    </>
   );
 }

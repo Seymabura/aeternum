@@ -13,8 +13,13 @@ export const FORMATS: FormatDef[] = [
   { id: "x", label: "X gönderisi", group: "Sosyal medya", W: 1600, H: 900, radius: 12, exports: [{ id: "x", label: "X gönderisi", w: 1600, h: 900 }, { id: "x2", label: "Yüksek çözünürlük", w: 3200, h: 1800 }] },
 ];
 export const fmtOf = (id: string | null | undefined) => FORMATS.find((f) => f.id === id) ?? FORMATS[0];
-/** Telefon kilit ekranında saatin kapladığı üst bölge */
-export const clockSafe = (f: FormatDef) => (f.clock ? Math.round(f.H * 0.243) : 0);
+/**
+ * Telefon kilit ekranında saat, tarih ve widget'ların kapladığı üst bölge.
+ * iPhone'da (iOS 16+) büyük saat ve altındaki widget sırası ekranın üst ~%30'unu kaplar.
+ */
+export const clockSafe = (f: FormatDef) => (f.clock ? Math.round(f.H * 0.305) : 0);
+/** Alttaki fener ve kamera düğmeleri ile kaydırma çubuğu */
+export const bottomSafe = (f: FormatDef) => (f.clock ? Math.round(f.H * 0.085) : 0);
 /** Formatın kısa kenarına göre ölçek (telefon = 1) */
 export const unit = (f: FormatDef) => Math.min(f.W, f.H) / 1179;
 
@@ -110,7 +115,7 @@ function aspectOf(it: VisionItem, natural?: Record<string, number>) {
 }
 
 /** Hazır düzenler: mevcut parçaları panoya yerleştirir */
-export type TemplateId = "kolaj" | "polaroid" | "izgara" | "odak" | "dergi" | "yelpaze" | "kalp" | "daire" | "film" | "defter";
+export type TemplateId = "kolaj" | "polaroid" | "izgara" | "odak" | "dergi" | "yelpaze" | "kalp" | "daire" | "film" | "defter" | "mozaik" | "spiral" | "merdiven" | "cerceve" | "masa" | "zigzag";
 export const TEMPLATES: { id: TemplateId; label: string }[] = [
   { id: "kolaj", label: "Kolaj" },
   { id: "dergi", label: "Dergi kapağı" },
@@ -122,6 +127,12 @@ export const TEMPLATES: { id: TemplateId; label: string }[] = [
   { id: "film", label: "Film şeridi" },
   { id: "izgara", label: "Izgara" },
   { id: "odak", label: "Tek büyük" },
+  { id: "mozaik", label: "Mozaik" },
+  { id: "spiral", label: "Spiral" },
+  { id: "merdiven", label: "Merdiven" },
+  { id: "cerceve", label: "Çerçeve" },
+  { id: "masa", label: "Dağınık masa" },
+  { id: "zigzag", label: "Zikzak" },
 ];
 
 export function applyTemplate(items: VisionItem[], t: TemplateId, f: FormatDef, natural?: Record<string, number>): Record<string, VisionLayout> {
@@ -131,8 +142,9 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, f: FormatDef, 
   const wide = BW > BH;
   const out: Record<string, VisionLayout> = {};
   const pad = wide ? 40 : 54;
-  const top = f.clock ? 620 : pad;
-  const bottom = f.clock ? BH - 150 : BH - pad;
+  // telefon: saat/widget bölgesinin ve alttaki düğmelerin altında parça kalmasın
+  const top = f.clock ? Math.round(BH * 0.305) + 24 : pad;
+  const bottom = f.clock ? BH - Math.round(BH * 0.085) - 16 : BH - pad;
   const list = items.filter((i) => !isSticker(i.src));
   if (t === "kolaj") {
     const cols = wide ? (list.length > 8 ? 5 : 4) : list.length > 6 ? 3 : 2;
@@ -326,6 +338,127 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, f: FormatDef, 
         font: it.layout?.font ?? (it.kind === "word" ? "el" : "serif"),
       };
     });
+  } else if (t === "mozaik") {
+    // mozaik: ilk fotoğraf 2×2 büyük hücre, diğerleri etrafında eşit kareler (bento)
+    const cols = wide ? 4 : 3;
+    const gap = 14;
+    const cw = (BW - pad * 2 - gap * (cols - 1)) / cols;
+    const cells = list.length + 3; // büyük hücre 4 kare kaplar
+    const rows = Math.max(2, Math.ceil(cells / cols));
+    const ch = Math.min(cw * 1.15, (bottom - top - gap * (rows - 1)) / rows);
+    const y0 = top + Math.max(0, (bottom - top - (rows * ch + gap * (rows - 1))) / 2);
+    const taken = new Set<string>(["0,0", "1,0", "0,1", "1,1"]);
+    list.forEach((it, i) => {
+      if (i === 0) {
+        out[it.id] = { x: pad, y: y0, w: cw * 2 + gap, h: ch * 2 + gap, r: 0, z: 1, frame: "keskin", font: it.layout?.font ?? "serif" };
+        return;
+      }
+      let c = 0;
+      let r = 0;
+      for (let k = 0; ; k++) {
+        c = k % cols;
+        r = Math.floor(k / cols);
+        if (!taken.has(`${c},${r}`)) break;
+      }
+      taken.add(`${c},${r}`);
+      out[it.id] = { x: pad + c * (cw + gap), y: y0 + r * (ch + gap), w: cw, h: ch, r: 0, z: i + 1, frame: it.kind === "image" ? "keskin" : "yok", font: it.layout?.font ?? "serif" };
+    });
+  } else if (t === "spiral") {
+    // spiral: ortadan dışa açılan sarmal; ilk parça ortada en büyük, sonrakiler dışarı doğru küçülür ve az üst üste biner
+    const n = Math.max(list.length, 1);
+    const cx = BW / 2;
+    const cy = (top + bottom) / 2;
+    const rx = BW / 2 - pad - 120;
+    const ry = (bottom - top) / 2 - 140;
+    list.forEach((it, i) => {
+      const k = n === 1 ? 0 : i / (n - 1);
+      const ang = k * Math.PI * 2.5 - Math.PI / 2;
+      const rr = i === 0 ? 0 : 0.3 + 0.7 * k;
+      const size = (wide ? 0.8 : 1) * Math.max(170, 360 - 170 * k);
+      const a = Math.min(1.35, Math.max(0.6, aspectOf(it, natural)));
+      const w = it.kind === "word" ? size * 1.5 : size;
+      const h = it.kind === "word" ? w * 0.36 : size * a;
+      out[it.id] = { x: cx + Math.cos(ang) * rx * rr - w / 2, y: cy + Math.sin(ang) * ry * rr - h / 2, w, h, r: ((i * 17) % 9) - 4, z: n - i, frame: it.kind === "image" ? "beyaz" : "yok", font: it.layout?.font ?? "serif" };
+    });
+  } else if (t === "merdiven") {
+    // merdiven: sol üstten sağ alta inen, birbirinin üstüne basan kartlar
+    const n = Math.max(list.length, 1);
+    const w = Math.min(wide ? 420 : 560, (BW - pad * 2) * (n > 5 ? 0.5 : 0.62));
+    const stepX = n === 1 ? 0 : (BW - pad * 2 - w) / (n - 1);
+    list.forEach((it, i) => {
+      const a = Math.min(1.35, Math.max(0.5, aspectOf(it, natural)));
+      const h = it.kind === "word" ? w * 0.36 : w * a;
+      const stepY = n === 1 ? 0 : (bottom - top - h) / (n - 1);
+      out[it.id] = { x: pad + stepX * i, y: top + stepY * i, w, h, r: 0, z: i + 1, frame: it.kind === "image" ? "beyaz" : "yok", font: it.layout?.font ?? "serif" };
+    });
+  } else if (t === "cerceve") {
+    // çerçeve: fotoğraflar panonun kenarlarını dolaşır, kelimeler ortada
+    const words = list.filter((i) => i.kind === "word");
+    const photos = list.filter((i) => i.kind === "image");
+    const n = Math.max(photos.length, 1);
+    const per = 2 * (BW - pad * 2) + 2 * (bottom - top);
+    const size = Math.max(150, Math.min(wide ? 260 : 330, (per / n) * 0.95));
+    const iw = BW - pad * 2 - size;
+    const ih = bottom - top - size;
+    const loop = 2 * iw + 2 * ih;
+    photos.forEach((it, i) => {
+      let d = (loop * i) / n;
+      let x = 0;
+      let y = 0;
+      if (d < iw) [x, y] = [d, 0];
+      else if ((d -= iw) < ih) [x, y] = [iw, d];
+      else if ((d -= ih) < iw) [x, y] = [iw - d, ih];
+      else [x, y] = [0, ih - (d - iw)];
+      out[it.id] = { x: pad + x, y: top + y, w: size, h: size, r: ((i * 19) % 7) - 3, z: i + 1, frame: "beyaz", font: "serif" };
+    });
+    const cx = BW / 2;
+    const cy = (top + bottom) / 2;
+    words.forEach((it, i) => {
+      const w = Math.min(560, iw - 40);
+      out[it.id] = { x: cx - w / 2, y: cy - 70 + (i - (words.length - 1) / 2) * 160, w, h: 140, r: 0, z: 100 + i, frame: "yok", font: it.layout?.font ?? "kaligrafi" };
+    });
+  } else if (t === "masa") {
+    // dağınık masa: büyükçe, eğik, üst üste binen fotoğraflar; masaya rastgele bırakılmış gibi
+    const n = Math.max(list.length, 1);
+    const cols = wide ? Math.min(n, 4) : n > 4 ? 2 : 1;
+    const rows = Math.ceil(n / cols);
+    const cellW = (BW - pad * 2) / cols;
+    const cellH = (bottom - top) / rows;
+    list.forEach((it, i) => {
+      const a = Math.min(1.35, Math.max(0.5, aspectOf(it, natural)));
+      const c = i % cols;
+      const r = Math.floor(i / cols);
+      const w = Math.min(cellW * 1.25, (cellH * 1.3) / a, cols === 1 ? BW * 0.7 : 9999);
+      const h = it.kind === "word" ? w * 0.36 : w * a;
+      const jx = (((i * 53) % 21) - 10) * 5;
+      const jy = (((i * 31) % 17) - 8) * 5;
+      out[it.id] = { x: pad + c * cellW + (cellW - w) / 2 + jx, y: top + r * cellH + (cellH - h) / 2 + jy, w, h, r: (((i * 29) % 25) - 12), z: i + 1, frame: it.kind === "image" ? (i % 3 === 1 ? "polaroid" : "beyaz") : "yok", font: it.layout?.font ?? (it.kind === "word" ? "el" : "serif") };
+    });
+  } else if (t === "zigzag") {
+    // zikzak: parçalar sağa sola sekerek iner (yatayda: yukarı aşağı sekerek ilerler)
+    const n = Math.max(list.length, 1);
+    if (wide) {
+      const gap = 16;
+      const w = Math.min(360, (BW - pad * 2 - gap * (n - 1)) / n + 60);
+      const step = n === 1 ? 0 : (BW - pad * 2 - w) / (n - 1);
+      list.forEach((it, i) => {
+        const a = Math.min(1.3, Math.max(0.5, aspectOf(it, natural)));
+        const h = Math.min(it.kind === "word" ? w * 0.36 : w * a, (bottom - top) * 0.62);
+        const y = i % 2 ? bottom - h : top;
+        out[it.id] = { x: pad + step * i, y, w, h, r: i % 2 ? 3 : -3, z: i + 1, frame: it.kind === "image" ? "beyaz" : "yok", font: it.layout?.font ?? "serif" };
+      });
+    } else {
+      const w = (BW - pad * 2) * 0.56;
+      const step = (bottom - top) / Math.max(n, 1);
+      list.forEach((it, i) => {
+        const a = Math.min(1.3, Math.max(0.5, aspectOf(it, natural)));
+        const h = Math.min(it.kind === "word" ? w * 0.36 : w * a, step * 2.1);
+        const ww = it.kind === "word" ? w : h / a;
+        const x = i % 2 ? BW - pad - ww - 20 : pad + 20;
+        const y = n === 1 ? (top + bottom - h) / 2 : top + ((bottom - top - h) * i) / (n - 1);
+        out[it.id] = { x, y, w: ww, h, r: i % 2 ? 4 : -4, z: i + 1, frame: it.kind === "image" ? "beyaz" : "yok", font: it.layout?.font ?? "serif" };
+      });
+    }
   } else {
     // odak: ilk fotoğraf büyük, diğerleri altta küçük şerit
     const first = list.find((i) => i.kind === "image") ?? list[0];
@@ -344,6 +477,25 @@ export function applyTemplate(items: VisionItem[], t: TemplateId, f: FormatDef, 
         out[it.id] = { x: pad + (i % cols) * (cw + gap), y: y0 + Math.floor(i / cols) * (ch + gap), w: cw, h: ch, r: 0, z: i + 2, frame: "yok", font: it.layout?.font ?? "serif" };
       });
     }
+  }
+  // son kontrol: hiçbir parça panodan, saatin ya da alttaki düğmelerin altına taşmasın
+  const m = pad * 0.5;
+  for (const id in out) {
+    const l = out[id];
+    if (l.w > BW - m * 2) {
+      const s = (BW - m * 2) / l.w;
+      l.w *= s;
+      l.h *= s;
+    }
+    if (l.h > bottom - top) {
+      const s = (bottom - top) / l.h;
+      l.w *= s;
+      l.h *= s;
+    }
+    // döndürülmüş parçanın köşeleri için küçük pay
+    const slack = Math.abs(Math.sin(((l.r ?? 0) * Math.PI) / 180)) * Math.min(l.w, l.h) * 0.5;
+    l.x = Math.min(Math.max(l.x, m + slack), BW - m - l.w - slack);
+    l.y = Math.min(Math.max(l.y, top + slack), bottom - l.h - slack);
   }
   const k = f.W / BW;
   for (const id in out) {

@@ -11,7 +11,8 @@ import { cn } from "@/lib/utils";
 
 export type MoonPosterHandle = {
   merge: (to: boolean) => void;
-  exportAs: (id: (typeof EXPORTS)[number]["id"]) => Promise<void>;
+  /** only: çiftte sadece bir kişinin Ay'ı; caption: isim, tarih ve evre yazısı */
+  exportAs: (id: (typeof EXPORTS)[number]["id"], opts?: { only?: "a" | "b"; caption?: boolean }) => Promise<void>;
 };
 
 /**
@@ -111,7 +112,7 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
     // ilk açılışta bir kez birleş
     const played = useRef(false);
     useEffect(() => {
-      if (!ready || !autoMerge || played.current) return;
+      if (!ready || !autoMerge || !payload.b || played.current) return;
       played.current = true;
       const t = setTimeout(() => animateTo(1), 900);
       return () => clearTimeout(t);
@@ -128,23 +129,27 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
 
     useImperativeHandle(ref, () => ({
       merge: (to) => animateTo(to ? 1 : 0),
-      async exportAs(id) {
+      async exportAs(id, opts) {
         const spec = EXPORTS.find((e) => e.id === id)!;
+        const p: MoonPayload = opts?.only && payload.b ? { a: payload[opts.only]!, b: null } : payload;
         const tex = await loadMoonTexture(MOON_4K);
         const c = document.createElement("canvas");
         c.width = spec.w;
         c.height = spec.h;
-        const imgs = buildMoons(tex, payload, spec.w, spec.h);
-        const sky = await skyFor(payload, spec.w, spec.h);
-        drawPoster(c.getContext("2d")!, spec.w, spec.h, payload, imgs, progRef.current > 0.5 ? 1 : 0, sky ? { layers: sky } : null);
+        const imgs = buildMoons(tex, p, spec.w, spec.h);
+        const sky = await skyFor(p, spec.w, spec.h);
+        drawPoster(c.getContext("2d")!, spec.w, spec.h, p, imgs, progRef.current > 0.5 ? 1 : 0, sky ? { layers: sky } : null, opts?.caption ? captionFor(p) : null);
         const blob = await new Promise<Blob | null>((r) => c.toBlob(r, "image/png"));
         if (!blob) throw new Error("png");
-        const names = `${payload.a.name}-${payload.b.name}`.toLocaleLowerCase("tr").replace(/[^a-z0-9çğıöşü-]+/g, "-");
-        await shareOrDownload(blob, `aeternum-iki-ay-${names}-${spec.id}.png`, "İki Ay");
+        const names = [p.a.name, p.b?.name].filter(Boolean).join("-").toLocaleLowerCase("tr").replace(/[^a-z0-9çğıöşü-]+/g, "-");
+        await shareOrDownload(blob, `aeternum-ay-${names}-${spec.id}.png`, "Doğduğun gecenin Ay'ı");
       },
     }));
 
-    const label = `${payload.a.name} doğduğu gece Ay: ${phaseLabel(payload.a.phaseAngle)}, yüzde ${Math.round(payload.a.fraction * 100)} aydınlık. ${payload.b.name} doğduğu gece Ay: ${phaseLabel(payload.b.phaseAngle)}, yüzde ${Math.round(payload.b.fraction * 100)} aydınlık.`;
+    const label = [payload.a, payload.b]
+      .filter((m): m is NonNullable<typeof m> => !!m)
+      .map((m) => `${m.name} doğduğu gece Ay: ${phaseLabel(m.phaseAngle)}, yüzde ${Math.round(m.fraction * 100)} aydınlık.`)
+      .join(" ");
 
     return (
       <div ref={wrapRef} className={cn("relative w-full", className)} style={{ aspectRatio: "9 / 16" }}>
@@ -154,7 +159,7 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 rounded-[22px] bg-paper-3 p-6 text-center">
             {/* yedek: dokusuz basit diskler */}
             <div className="flex gap-6">
-              {[payload.a, payload.b].map((m) => (
+              {[payload.a, payload.b].filter((m): m is NonNullable<typeof m> => !!m).map((m) => (
                 <svg key={m.name} viewBox="-1 -1 2 2" className="h-24 w-24" aria-hidden>
                   <circle r="1" fill="#1a2238" />
                   <PhaseMask angle={m.phaseAngle} />
@@ -162,7 +167,10 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
               ))}
             </div>
             <p className="text-sm text-ink-soft">
-              {payload.a.name}: {phaseLabel(payload.a.phaseAngle)} {pct(payload.a.fraction)} · {payload.b.name}: {phaseLabel(payload.b.phaseAngle)} {pct(payload.b.fraction)}
+              {[payload.a, payload.b]
+                .filter((m): m is NonNullable<typeof m> => !!m)
+                .map((m) => `${m.name}: ${phaseLabel(m.phaseAngle)} ${pct(m.fraction)}`)
+                .join(" · ")}
             </p>
           </div>
         )}
@@ -170,6 +178,12 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
     );
   },
 );
+
+export function captionFor(p: MoonPayload) {
+  const ph = (m: NonNullable<MoonPayload["b"]>) => `${phaseLabel(m.phaseAngle).replace(/ \(.*\)/, "")} · %${Math.round(m.fraction * 100)} aydınlık`;
+  if (!p.b) return { title: p.a.name, lines: [p.a.dateText, ph(p.a)].filter(Boolean) };
+  return { title: `${p.a.name} & ${p.b.name}`, lines: [`${p.a.name}: ${ph(p.a)}`, `${p.b.name}: ${ph(p.b)}`] };
+}
 
 /** O gece Ay'ın etrafındaki gerçek yıldızlar (yön yoksa Ay'ın ortalama yolu üzerinde bir yer) */
 async function skyFor(p: MoonPayload, W: number, H: number): Promise<SkyLayers | null> {

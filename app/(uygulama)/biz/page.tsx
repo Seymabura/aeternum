@@ -9,14 +9,14 @@ export const metadata = { title: "Biz" };
 const FEATURES = [
   {
     href: "/biz/iki-ay",
-    title: "İki Ay",
-    text: "İkinizin doğduğu gecenin Ay'ı; gerçek gökbilim hesabı, NASA'nın 4K Ay görüntüsü ve o gece Ay'ın etrafındaki gerçek yıldızlarla. Yan yana durur, sonra tek bir Ay'da birleşir.",
+    title: "Doğduğun gecenin Ay'ı",
+    text: "Tek başına ya da sevgilinle: doğduğunuz gecenin Ay'ı, gerçek gökbilim hesabı, NASA'nın 4K Ay görüntüsü ve o gece Ay'ın etrafındaki gerçek yıldızlarla. İki Ay yan yana durur, sonra tek bir Ay'da birleşir.",
     img: "/showcase/biz-ay.webp",
   },
   {
     href: "/biz/gokyuzu",
-    title: "Tanıştığınız gecenin gökyüzü",
-    text: "O tarih, saat ve şehirden görünen 40.000 gerçek yıldız ve Samanyolu; bir gece fotoğrafı gibi, ekranın tamamını kaplayan 4K duvar kağıdı.",
+    title: "Bir gecenin gökyüzü",
+    text: "Doğduğun gece, tanıştığınız gece ya da unutmak istemediğin herhangi bir gece: o tarih, saat ve şehirden görünen 40.000 gerçek yıldız; ekranın tamamını kaplayan 4K duvar kağıdı.",
     img: "/showcase/biz-gok.webp",
   },
 ] as const;

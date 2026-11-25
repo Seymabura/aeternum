@@ -112,7 +112,7 @@ export function TaskForm({
         {task.kind === "do" && (
           <>
             <div className="rounded-[14px] border border-champagne/15 bg-[rgba(14,13,18,0.55)] p-4 text-sm text-ink-soft">
-              Yaptığında aşağıdaki düğmeye bas; Aralık takımyıldızında bu günün yıldızı yanacak.
+              Yaptığında aşağıdaki düğmeye bas; yeni yıla 31 adımından biri daha tamamlanacak.
             </div>
             {task.ask && (
               <div>
@@ -238,7 +238,7 @@ function Celebration({ day, title, gift, days, onClose }: { day: number; title: 
         <h2 className="display mt-4 text-[2.5rem] sm:text-[3rem]">
           Bugün <em className="gold-shine italic">tamam.</em>
         </h2>
-        <p className="num mt-4 text-ink-soft">{all.length}/31 gün. Takımyıldızında bir yıldız daha yandı.</p>
+        <p className="num mt-4 text-ink-soft">{all.length}/31 adım. Yeni yıla bir adım daha yaklaştın.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button type="button" className="btn btn-primary" onClick={share} disabled={sharing}>
             {sharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" strokeWidth={1.5} />} Hikâye olarak paylaş

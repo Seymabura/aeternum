@@ -8,12 +8,12 @@ import { StarRoadHost } from "@/components/star-road-host";
 import { todayIndexLocal } from "@/lib/day";
 
 const TOOLS = [
-  { href: "/biz/iki-ay", name: "İki Ay", hint: "Doğduğunuz gecelerin Ay'ı, tek bir Ay'da", icon: Moon, nar: true },
-  { href: "/biz/gokyuzu", name: "Gökyüzümüz", hint: "Bir gecenin gerçek yıldızları", icon: Sparkles },
+  { href: "/biz/iki-ay", name: "Doğduğun gecenin Ay'ı", hint: "Tek başına ya da sevgilinle", icon: Moon },
+  { href: "/biz/gokyuzu", name: "Bir gecenin gökyüzü", hint: "O gecenin gerçek yıldızları", icon: Sparkles },
   { href: "/mektup", name: "2027'ye mektup", hint: "Mühürle, bir yıl sonra aç", icon: Mail },
   { href: "/vision", name: "Vision board", hint: "Gelecek yılını kur", icon: Images },
   { href: "/biz/defter", name: "Ortak defter", hint: "30 gün, 30 soru, ikiniz", icon: BookHeart },
-  { href: "/takvim", name: "31 gün", hint: "Aralık'a özel görevler", icon: CalendarDays },
+  { href: "/takvim", name: "Yeni yıla 31 adım", hint: "Aralık'ta her gün bir adım", icon: CalendarDays },
 ] as const;
 
 export default function Home() {
@@ -33,26 +33,20 @@ export default function Home() {
           <span className="mask-line"><span style={{ animationDelay: "370ms" }}>kaldığı yer.</span></span>
         </h1>
         <p className="rise mx-auto mt-8 max-w-[34rem] text-[1.05rem] leading-relaxed text-ink-soft lg:ml-auto lg:mr-0" style={{ animationDelay: "600ms" }}>
-          Doğduğun gecenin Ay&apos;ı, tanıştığınız gecenin gökyüzü, bir yıl sonra açılacak bir mektup. Saklamak istediğin anlar için küçük dijital hatıralar. Üyelik yok.
+          Doğduğun gecenin Ay&apos;ı, unutmak istemediğin bir gecenin gökyüzü, bir yıl sonra açılacak bir mektup. Saklamak istediğin anlar için küçük dijital hatıralar. Üyelik yok.
         </p>
         </div>
 
         <nav aria-label="Araçlar" className="rise mx-auto grid w-full max-w-[56rem] grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:order-1 lg:mx-0 lg:max-w-none lg:grid-cols-2" style={{ animationDelay: "760ms" }}>
-          {TOOLS.map(({ href, name, hint, icon: Icon, ...rest }) => {
-            const nar = "nar" in rest;
+          {TOOLS.map(({ href, name, hint, icon: Icon }) => {
             return (
               <Link
                 key={href}
                 href={href}
                 prefetch={false}
-                className={
-                  "tool-card group relative flex items-center gap-3 overflow-hidden rounded-[18px] border px-4 py-3.5 text-left backdrop-blur-md transition-[border-color,background-color,transform] duration-500 sm:flex-col sm:items-start sm:gap-2 sm:px-5 sm:py-5 " +
-                  (nar
-                    ? "border-nar-soft/45 bg-[rgba(74,11,22,0.42)] shadow-[0_0_40px_-18px_rgba(210,70,92,.8)] hover:border-nar-soft/80"
-                    : "border-white/[.08] bg-[rgba(8,7,11,0.5)] hover:border-nar-soft/40 hover:shadow-[0_0_36px_-20px_rgba(210,70,92,.9)]")
-                }
+                className="tool-card group relative flex items-center gap-3 overflow-hidden rounded-[18px] border border-nar-soft/45 bg-[rgba(74,11,22,0.42)] px-4 py-3.5 text-left shadow-[0_0_40px_-18px_rgba(210,70,92,.8)] backdrop-blur-md transition-[border-color,background-color,transform] duration-500 hover:-translate-y-0.5 hover:border-nar-soft/80 hover:bg-[rgba(94,14,28,0.5)] sm:flex-col sm:items-start sm:gap-2 sm:px-5 sm:py-5"
               >
-                <Icon className={"h-5 w-5 shrink-0 transition-transform duration-500 group-hover:-translate-y-0.5 " + (nar ? "text-[#ff9aab]" : "text-champagne")} strokeWidth={1.5} />
+                <Icon className="h-5 w-5 shrink-0 text-[#ff9aab] transition-transform duration-500 group-hover:-translate-y-0.5" strokeWidth={1.5} />
                 <span className="min-w-0">
                   <span className="block text-[0.9rem] font-medium leading-tight text-ink sm:text-[0.95rem]">{name}</span>
                   <span className="mt-0.5 block text-xs leading-snug text-ink-soft">{hint}</span>
@@ -69,10 +63,10 @@ export default function Home() {
         <p className="mt-5 max-w-md text-ink-soft">Gerçek gökyüzü hesabıyla çizilir. Yazısız, 4K, telefonuna duvar kağıdı olur.</p>
 
         <div className="mt-16 grid gap-14 md:grid-cols-2 md:gap-10 lg:mx-auto lg:max-w-4xl">
-          <Moment href="/biz/iki-ay" title="İki Ay" text="İkinizin doğduğu gecelerin Ay'ı, tek bir Ay'da buluşur." cta="Ayınızı oluşturun" className="md:mt-0">
-            <Image src="/showcase/biz-ay.webp" alt="Siyah gökyüzünde birleşen iki Ay" fill sizes="(min-width:768px) 30vw, 90vw" className="object-cover" />
+          <Moment href="/biz/iki-ay" title="Doğduğun gecenin Ay'ı" text="Tek başına ya da sevgilinle. İki Ay yan yana durur, sonra tek bir Ay'da buluşur." cta="Ay'ını bul" className="md:mt-0" nar>
+            <Image src="/showcase/biz-ay.webp" alt="Siyah gökyüzünde iki kişinin doğduğu gecelerin Ay'ı" fill sizes="(min-width:768px) 30vw, 90vw" className="object-cover" />
           </Moment>
-          <Moment href="/biz/gokyuzu" title="Gökyüzümüz" text="Tanıştığınız gece, o şehrin üstündeki yıldızlar." cta="O geceyi çizin" className="md:mt-20">
+          <Moment href="/biz/gokyuzu" title="Bir gecenin gökyüzü" text="Doğduğun gece ya da tanıştığınız gece, o şehrin üstündeki gerçek yıldızlar." cta="O geceyi çiz" className="md:mt-20" nar>
             <Image src="/showcase/biz-gok.webp" alt="Yıldızlarla dolu gerçekçi gece gökyüzü" fill sizes="(min-width:768px) 30vw, 90vw" className="object-cover" />
           </Moment>
         </div>

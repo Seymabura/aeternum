@@ -33,14 +33,14 @@ import {
   X,
 } from "lucide-react";
 import { addVision, createBoard, deleteBoard, deleteVision, duplicateBoard, updateBoard, updateVision, type BoardFormat, type VisionBoard, type VisionFont, type VisionItem, type VisionLayout } from "@/app/actions/extras";
-import { isSticker, VISION_CATS, VISION_LIBRARY, type VisionCat } from "@/lib/vision-library";
-import { applyTemplate, BG_GROUPS, BGS, clockSafe, FONT_CSS, FONT_LABEL, FORMATS, fmtOf, fontStyle, TEXT_COLORS, maxZ, photoMeta, renderBoard, TEMPLATES, TONES, unit, wordFontSize, type FormatDef } from "@/lib/vision/board";
+import { isSticker, matchesQuery, POPULAR_TAGS, VISION_CATS, VISION_COLORS, VISION_LIBRARY, type VisionCat, type VisionColor } from "@/lib/vision-library";
+import { applyTemplate, BG_GROUPS, BGS, bottomSafe, clockSafe, FONT_CSS, FONT_LABEL, FORMATS, fmtOf, fontStyle, TEXT_COLORS, maxZ, photoMeta, renderBoard, TEMPLATES, TONES, unit, wordFontSize, type FormatDef } from "@/lib/vision/board";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/image";
 import { shareOrDownload } from "@/lib/share";
 import { cn } from "@/lib/utils";
 
-type Tab = "foto" | "sus" | "yazi" | "arka" | "duzen";
+type Tab = "foto" | "yazi" | "arka" | "duzen";
 type Gesture =
   | { kind: "move"; id: string; sx: number; sy: number; l0: VisionLayout }
   | { kind: "scale"; id: string; cx: number; cy: number; d0: number; l0: VisionLayout; free: boolean }
@@ -66,6 +66,9 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
   const BW = f.W;
   const BH = f.H;
   const CLOCK_SAFE = clockSafe(f);
+  const BOTTOM_SAFE = bottomSafe(f);
+  // kilit ekranı önizlemesi (telefon panolarında varsayılan açık)
+  const [lockPreview, setLockPreview] = useState(true);
   const U = unit(f);
   // düzeni olmayan eski parçalar kolaja yerleşir
   const [items, setItems] = useState<VisionItem[]>(() => {
@@ -154,6 +157,11 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
     flushSoon();
     if (record) commit(before);
   }
+  /** Döndürme düğmesi: her dokunuş 3°, basılı tutunca sürekli döner; geçmişe tek adım yazılır */
+  function rotateBy(id: string, deg: number, first: boolean) {
+    const cur = itemsRef.current.find((i) => i.id === id)?.layout?.r ?? 0;
+    patch(id, { r: Math.round(cur + deg) }, first);
+  }
   function undo() {
     const prev = hist.past.at(-1);
     if (!prev) return;
@@ -201,43 +209,6 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
     const m = photoMeta(src);
     const sticker = isSticker(src);
     void add({ kind: "image", src, size: "s", layout: placeFor(aspect ?? (m ? m.h / m.w : 1.3), sticker ? 300 : 540, sticker ? "yok" : "beyaz") }, at);
-  }
-  // kendi süsünü yükle: şeffaf PNG ya da WebP, en fazla 5 MB
-  const stickerRef = useRef<HTMLInputElement>(null);
-  const [stickers, setStickers] = useState<{ path: string; url: string; aspect: number }[] | null>(null);
-  const loadStickers = useCallback(async () => {
-    const sb = createClient();
-    const { data } = await sb.storage.from("uploads").list(`${userId}/sus`, { limit: 100, sortBy: { column: "created_at", order: "desc" } });
-    const paths = ((data ?? []) as { name: string }[]).filter((o) => o.name && !o.name.startsWith(".")).map((o) => `${userId}/sus/${o.name}`);
-    if (!paths.length) return setStickers([]);
-    const { data: signed } = await sb.storage.from("uploads").createSignedUrls(paths, 60 * 60 * 6);
-    const list = ((signed ?? []) as { path: string | null; signedUrl: string }[]).filter((x) => x.signedUrl && x.path).map((x) => ({ path: x.path!, url: x.signedUrl, aspect: 1 }));
-    setUrls((u) => ({ ...Object.fromEntries(list.map((x) => [x.path, x.url])), ...u }));
-    setStickers(list);
-  }, [userId]);
-  async function uploadSticker(file?: File) {
-    if (!file) return;
-    if (!["image/png", "image/webp"].includes(file.type)) return void toast.error("Süs için arka planı şeffaf bir PNG ya da WebP seç.");
-    if (file.size > 5 * 1024 * 1024) return void toast.error("Dosya 5 MB'tan küçük olmalı.");
-    setBusy("Süs yükleniyor");
-    try {
-      const bmp = await createImageBitmap(file);
-      const aspect = bmp.height / bmp.width;
-      bmp.close();
-      const path = `${userId}/sus/${crypto.randomUUID()}.${file.type === "image/webp" ? "webp" : "png"}`;
-      const { error } = await createClient().storage.from("uploads").upload(path, file, { contentType: file.type });
-      if (error) throw error;
-      const url = URL.createObjectURL(file);
-      setUrls((u) => ({ ...u, [path]: url }));
-      setStickers((s) => [{ path, url, aspect }, ...(s ?? [])]);
-      addPhoto(path, undefined, aspect);
-      setSheet(false);
-    } catch {
-      toast.error("Süs yüklenemedi. Tekrar dene.");
-    } finally {
-      setBusy(null);
-      if (stickerRef.current) stickerRef.current.value = "";
-    }
   }
   async function upload(f?: File) {
     if (!f) return;
@@ -460,7 +431,11 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
   }
 
   // panonun ekrandaki en geniş hâli: dikeyler dar, yataylar geniş; yükseklik ekranın %74'ünü geçmesin
-  const stageMax = f.W >= f.H ? `min(100%, 900px, calc(74vh * ${(f.W / f.H).toFixed(3)}))` : `min(${f.id === "telefon" ? 460 : 560}px, 100%, calc(86vh * ${(f.W / f.H).toFixed(3)}))`;
+  // pano ekrana sığsın: telefonda üstteki ve alttaki araç çubukları için yer bırakılır, kaydırmadan tamamı görünür
+  const stageMax = f.W >= f.H ? `min(100%, 900px, calc(74dvh * ${(f.W / f.H).toFixed(3)}))` : `min(${f.id === "telefon" ? 420 : 560}px, 100%, calc((100dvh - 15.5rem) * ${(f.W / f.H).toFixed(3)}))`;
+  // bir parça saat/widget bölgesine ya da alttaki düğmelere taşıyor mu
+  const underClock = f.clock ? items.some((i) => i.layout && i.layout.y < CLOCK_SAFE - 8) : false;
+  const underButtons = f.clock ? items.some((i) => i.layout && i.layout.y + i.layout.h > BH - BOTTOM_SAFE + 8) : false;
 
   async function shareAs(kind: "x" | "story") {
     setBusy("Görsel hazırlanıyor");
@@ -513,13 +488,6 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
         setSheet(false);
       }}
       f={f}
-      stickers={stickers}
-      onLoadStickers={loadStickers}
-      onUploadSticker={() => stickerRef.current?.click()}
-      onSticker={(st) => {
-        addPhoto(st.path, undefined, st.aspect);
-        setSheet(false);
-      }}
       onUpload={() => fileRef.current?.click()}
       editing={items.find((i) => i.id === editId && i.kind === "word") ?? null}
       onNewWord={() => setEditId(null)}
@@ -560,7 +528,7 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
       <section className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <h1 className="display text-[2.75rem] leading-[1] sm:text-[4rem]">Vision board</h1>
-          <p className="mt-4 max-w-lg text-ink-soft">Gelecek yılını fotoğraflarla ve kelimelerle kur. Parçaları sürükle, köşeden büyüt, üstteki noktadan döndür.</p>
+          <p className="mt-4 max-w-lg text-ink-soft">Gelecek yılını fotoğraflarla ve kelimelerle kur. Parçaları sürükle, köşeden büyüt. Döndürmek için alttaki döndür düğmelerine dokun ya da basılı tut.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <ShareMenu disabled={!!busy || items.length === 0} onPick={shareAs} />
@@ -604,11 +572,33 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
           >
             <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: f.radius, background: BGS[bg]?.css }}>
             {BGS[bg]?.stars && <div aria-hidden className="night-stars pointer-events-none absolute inset-0 opacity-70" />}
-            {/* kilit ekranı saati alanı */}
-            {f.clock && <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 flex flex-col items-center pt-[7%] opacity-[.18]" style={{ height: `${(CLOCK_SAFE / BH) * 100}%`, color: ink }}>
-              <span className="text-[calc(var(--s)*40px)]">Cuma 1 Ocak</span>
-              <span className="font-semibold leading-none tracking-tight text-[calc(var(--s)*230px)]">9:41</span>
-            </div>}
+            {/* kilit ekranı önizlemesi: saat, tarih, widget'lar ve alttaki düğmeler gerçek telefondaki yerlerinde */}
+            {f.clock && lockPreview && (
+              <div aria-hidden className="pointer-events-none absolute inset-0" style={{ zIndex: 9990, color: ink }}>
+                <div
+                  className={cn("absolute inset-x-0 top-0 flex flex-col items-center transition-colors", underClock ? "bg-nar/25" : "bg-black/[.06]")}
+                  style={{ height: `${(CLOCK_SAFE / BH) * 100}%`, paddingTop: "13%" }}
+                >
+                  <span className="font-medium opacity-80" style={{ fontSize: "calc(var(--s) * 52px)" }}>
+                    Cuma 1 Ocak
+                  </span>
+                  <span className="font-semibold leading-[0.9] tracking-tight opacity-80" style={{ fontSize: "calc(var(--s) * 300px)" }}>
+                    9:41
+                  </span>
+                  <span className="mt-[3%] flex gap-[4%]" style={{ width: "70%" }}>
+                    {[0, 1, 2, 3].map((k) => (
+                      <span key={k} className="aspect-square flex-1 rounded-full border border-current opacity-40" />
+                    ))}
+                  </span>
+                  <span className={cn("absolute inset-x-0 bottom-0 border-b border-dashed", underClock ? "border-nar-soft" : "border-current opacity-40")} />
+                </div>
+                <div className={cn("absolute inset-x-0 bottom-0 transition-colors", underButtons ? "bg-nar/25" : "")} style={{ height: `${(BOTTOM_SAFE / BH) * 100}%` }}>
+                  <span className="absolute rounded-full bg-current opacity-25" style={{ left: "12%", top: "18%", width: "13%", aspectRatio: "1" }} />
+                  <span className="absolute rounded-full bg-current opacity-25" style={{ right: "12%", top: "18%", width: "13%", aspectRatio: "1" }} />
+                  <span className="absolute bottom-[14%] left-1/2 h-[5%] w-[36%] -translate-x-1/2 rounded-full bg-current opacity-40" />
+                </div>
+              </div>
+            )}
             {items.length === 0 && (
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-10 text-center" style={{ color: ink }}>
                 <p className="display text-[1.8rem] italic">Panon boş</p>
@@ -676,6 +666,20 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
             )}
           </div>
 
+          {f.clock && (
+            <div style={{ maxWidth: stageMax }} className="mt-4 flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs">
+              <label className="flex cursor-pointer items-center gap-2 text-ink-soft">
+                <input type="checkbox" className="h-4 w-4 accent-[#d2465c]" checked={lockPreview} onChange={(e) => setLockPreview(e.target.checked)} />
+                Kilit ekranını göster
+              </label>
+              {(underClock || underButtons) && (
+                <span role="status" className="text-[#ff9aab]">
+                  {underClock ? "Saatin altında kalan parça var" : "Alttaki düğmelerin altında parça var"}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* seçili parça araçları */}
           <div style={{ maxWidth: stageMax }} className="mt-5 flex min-h-12 w-full flex-wrap items-center justify-center gap-1 rounded-full border border-white/[.08] bg-[rgba(14,13,18,0.6)] p-1 backdrop-blur-xl">
             {selected ? (
@@ -686,12 +690,15 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
                 <IconBtn label="Arkaya gönder" onClick={() => layer(selected.id, -1)}>
                   <SendToBack className="h-4 w-4" />
                 </IconBtn>
-                <IconBtn label="Sola döndür" onClick={() => patch(selected.id, { r: Math.round((selected.layout?.r ?? 0) - 10) })}>
+                <HoldBtn label="Sola döndür" onStep={(first) => rotateBy(selected.id, -3, first)}>
                   <RotateCcw className="h-4 w-4" />
-                </IconBtn>
-                <IconBtn label="Sağa döndür" onClick={() => patch(selected.id, { r: Math.round((selected.layout?.r ?? 0) + 10) })}>
+                </HoldBtn>
+                <span className="num min-w-[2.6rem] text-center text-xs text-ink-soft" aria-live="polite">
+                  {Math.round(((((selected.layout?.r ?? 0) + 180) % 360) + 360) % 360 - 180)}°
+                </span>
+                <HoldBtn label="Sağa döndür" onStep={(first) => rotateBy(selected.id, 3, first)}>
                   <RotateCw className="h-4 w-4" />
-                </IconBtn>
+                </HoldBtn>
                 {selected.kind === "image" ? (
                   isSticker(selected.src) ? null : (
                     <TextBtn
@@ -728,11 +735,10 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
           </div>
 
           {/* telefon: panel düğmeleri */}
-          <div style={{ maxWidth: stageMax }} className="mt-4 grid w-full grid-cols-5 gap-1.5 lg:hidden">
+          <div style={{ maxWidth: stageMax }} className="mt-4 grid w-full grid-cols-4 gap-1.5 lg:hidden">
             {(
               [
                 { t: "foto", label: "Fotoğraf", icon: Library },
-                { t: "sus", label: "Süs", icon: Sparkles },
                 { t: "yazi", label: "Yazı", icon: Type },
                 { t: "arka", label: "Tema", icon: Palette },
                 { t: "duzen", label: "Düzen", icon: LayoutGrid },
@@ -758,7 +764,6 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
       </div>
 
       <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => upload(e.target.files?.[0])} />
-      <input ref={stickerRef} type="file" accept="image/png,image/webp" hidden onChange={(e) => uploadSticker(e.target.files?.[0])} />
 
       {sheet && (
         <div className="fixed inset-0 z-[70] flex items-end bg-[rgba(2,2,3,0.6)] backdrop-blur-sm lg:hidden" onClick={() => setSheet(false)}>
@@ -845,16 +850,8 @@ function StudioPanel({
   onBg,
   onTemplate,
   f,
-  stickers,
-  onLoadStickers,
-  onUploadSticker,
-  onSticker,
 }: {
   f: FormatDef;
-  stickers: { path: string; url: string; aspect: number }[] | null;
-  onLoadStickers: () => void;
-  onUploadSticker: () => void;
-  onSticker: (s: { path: string; url: string; aspect: number }) => void;
   tab: Tab;
   setTab: (t: Tab) => void;
   onPhoto: (src: string) => void;
@@ -868,11 +865,10 @@ function StudioPanel({
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="mb-4 grid shrink-0 grid-cols-5 gap-1 rounded-full border border-white/[.08] bg-black/30 p-1" role="tablist">
+      <div className="mb-4 grid shrink-0 grid-cols-4 gap-1 rounded-full border border-white/[.08] bg-black/30 p-1" role="tablist">
         {(
           [
             ["foto", "Fotoğraf"],
-            ["sus", "Süs"],
             ["yazi", "Yazı"],
             ["arka", "Tema"],
             ["duzen", "Düzen"],
@@ -891,7 +887,6 @@ function StudioPanel({
       </div>
       <div className="-mx-1 min-h-0 flex-1 overflow-y-auto overscroll-contain px-1 pb-2">
       {tab === "foto" && <PhotoTab onPhoto={onPhoto} onUpload={onUpload} />}
-      {tab === "sus" && <StickerTab stickers={stickers} onLoad={onLoadStickers} onUpload={onUploadSticker} onPick={onSticker} />}
       {tab === "yazi" && <WordTab key={editing?.id ?? "yeni"} onWord={onWord} editing={editing} onNew={onNewWord} bg={bg} />}
       {tab === "arka" && (
         <div className="space-y-6">
@@ -969,55 +964,141 @@ function TemplateGlyph({ id, f }: { id: (typeof TEMPLATES)[number]["id"]; f: For
 
 function PhotoTab({ onPhoto, onUpload }: { onPhoto: (src: string) => void; onUpload: () => void }) {
   const [cat, setCat] = useState<VisionCat | "hepsi">("hepsi");
+  const [color, setColor] = useState<VisionColor | null>(null);
   const [q, setQ] = useState("");
+  // kategori sayıları seçili renge göre, renk sayıları seçili kategoriye göre
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
-    VISION_LIBRARY.forEach((v) => (c[v.cat] = (c[v.cat] ?? 0) + 1));
+    VISION_LIBRARY.forEach((v) => (!color || v.color === color) && (c[v.cat] = (c[v.cat] ?? 0) + 1));
     return c;
-  }, []);
-  const list = VISION_LIBRARY.filter((v) => (cat === "hepsi" || v.cat === cat) && (!q.trim() || v.alt.toLocaleLowerCase("tr").includes(q.trim().toLocaleLowerCase("tr")) || VISION_CATS[v.cat].toLocaleLowerCase("tr").includes(q.trim().toLocaleLowerCase("tr"))));
+  }, [color]);
+  const colorCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    VISION_LIBRARY.forEach((v) => (cat === "hepsi" || v.cat === cat) && (c[v.color] = (c[v.color] ?? 0) + 1));
+    return c;
+  }, [cat]);
+  const list = useMemo(() => VISION_LIBRARY.filter((v) => (cat === "hepsi" || v.cat === cat) && (!color || v.color === color) && matchesQuery(v, q)), [cat, color, q]);
+  const pickTag = (t: string) => {
+    setCat("hepsi");
+    setColor(null);
+    setQ(t);
+  };
+  const total = color ? VISION_LIBRARY.filter((v) => v.color === color).length : VISION_LIBRARY.length;
   return (
     <div>
       <button onClick={onUpload} className="btn btn-ghost btn-sm mb-4 w-full">
         <ImagePlus className="h-4 w-4" /> Kendi fotoğrafını yükle
       </button>
-      <label className="relative mb-3 block">
+      <label className="relative mb-2 block">
         <span className="sr-only">Fotoğraf ara</span>
         <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-mute" />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ara: Paris, çiçek, mezuniyet..." className="field !pl-10 !py-2.5 text-sm" />
+        <input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Ara: pilot, mezuniyet, araba..."
+          enterKeyHint="search"
+          className="field !pl-10 !pr-10 !py-2.5 text-sm [&::-webkit-search-cancel-button]:hidden"
+        />
+        {q && (
+          <button type="button" onClick={() => setQ("")} aria-label="Aramayı temizle" className="absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-ink-mute hover:bg-white/5 hover:text-ink">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
       </label>
+      {!q && (
+        <div className="mb-3 flex flex-wrap gap-1.5" aria-label="Popüler etiketler">
+          {POPULAR_TAGS.map((t) => (
+            <button key={t} type="button" onClick={() => pickTag(t)} className="rounded-full bg-white/[.04] px-2.5 py-1 text-[0.72rem] text-ink-soft transition-colors hover:bg-nar/20 hover:text-ink">
+              #{t}
+            </button>
+          ))}
+        </div>
+      )}
+      {/* renk filtresi */}
+      <div role="radiogroup" aria-label="Renge göre" className="no-scrollbar -mx-1 mb-3 flex items-center gap-1.5 overflow-x-auto px-1 py-1">
+        {(Object.keys(VISION_COLORS) as VisionColor[]).map((k) => {
+          const [label, hex] = VISION_COLORS[k];
+          const on = color === k;
+          const n = colorCounts[k] ?? 0;
+          return (
+            <button
+              key={k}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              aria-label={`${label} (${n})`}
+              title={`${label} · ${n}`}
+              disabled={!n && !on}
+              onClick={() => setColor(on ? null : k)}
+              className={cn(
+                "grid h-8 w-8 shrink-0 place-items-center rounded-full border transition-[transform,box-shadow] disabled:opacity-25",
+                on ? "scale-110 border-white shadow-[0_0_0_2px_rgba(210,70,92,.9)]" : "border-white/20 hover:scale-105",
+              )}
+              style={{ background: hex }}
+            >
+              {on && <Check className={cn("h-3.5 w-3.5", k === "beyaz" || k === "sari" || k === "bej" || k === "pembe" ? "text-black/70" : "text-white")} />}
+            </button>
+          );
+        })}
+        {color && (
+          <button type="button" onClick={() => setColor(null)} className="ml-1 shrink-0 text-xs text-ink-soft underline-offset-4 hover:underline">
+            {VISION_COLORS[color][0]} · temizle
+          </button>
+        )}
+      </div>
       <div className="no-scrollbar -mx-1 mb-4 flex gap-1.5 overflow-x-auto px-1 pb-1">
         {(["hepsi", ...Object.keys(VISION_CATS)] as (VisionCat | "hepsi")[]).map((c) => (
           <button
             key={c}
             onClick={() => setCat(c)}
             aria-pressed={cat === c}
-            className={cn("min-h-9 shrink-0 rounded-full border px-3.5 text-[0.8rem] transition-colors", cat === c ? "border-champagne/60 bg-champagne/10 text-gold" : "border-white/10 text-ink-soft hover:text-ink")}
+            className={cn("min-h-9 shrink-0 rounded-full border px-3.5 text-[0.8rem] transition-colors", cat === c ? "border-nar-soft/60 bg-nar/15 text-[#ffd6dc]" : "border-white/10 text-ink-soft hover:text-ink")}
           >
-            {c === "hepsi" ? "Hepsi" : VISION_CATS[c]} <span className="num text-ink-mute">{c === "hepsi" ? VISION_LIBRARY.length : counts[c]}</span>
+            {c === "hepsi" ? "Hepsi" : VISION_CATS[c]} <span className="num text-ink-mute">{c === "hepsi" ? total : (counts[c] ?? 0)}</span>
           </button>
         ))}
       </div>
-      <div className="columns-3 gap-2 [&>*]:mb-2">
+      {(q || color) && (
+        <p className="mb-3 text-xs text-ink-mute" aria-live="polite">
+          {[q && `“${q}”`, color && VISION_COLORS[color][0].toLocaleLowerCase("tr")].filter(Boolean).join(", ")} için {list.length} fotoğraf
+        </p>
+      )}
+      <div className="columns-2 gap-2.5 [&>*]:mb-3">
         {list.map((v) => (
-          <button
-            key={v.src}
-            draggable
-            onDragStart={(e) => e.dataTransfer.setData("text/vision", v.src)}
-            onClick={() => onPhoto(v.src)}
-            className="group relative block w-full overflow-hidden rounded-[12px] border border-white/[.06]"
-            style={{ aspectRatio: `${v.w} / ${v.h}` }}
-            title={v.alt}
-          >
-            <Image src={v.src} alt={v.alt} fill sizes="130px" className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
-            <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-5 text-left text-[0.65rem] text-white/90 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-              Panoya ekle
-            </span>
-          </button>
+          <figure key={v.src} className="break-inside-avoid">
+            <button
+              draggable
+              onDragStart={(e) => e.dataTransfer.setData("text/vision", v.src)}
+              onClick={() => onPhoto(v.src)}
+              className="group relative block w-full overflow-hidden rounded-[12px] border border-white/[.06]"
+              style={{ aspectRatio: `${v.w} / ${v.h}` }}
+              title={v.alt}
+            >
+              <Image src={v.src} alt={v.alt} fill sizes="180px" className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-5 text-left text-[0.65rem] text-white/90 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                Panoya ekle
+              </span>
+            </button>
+            <figcaption className="mt-1.5 flex flex-wrap gap-x-1.5 gap-y-0.5">
+              {v.tags.slice(0, 3).map((t) => (
+                <button key={t} type="button" onClick={() => pickTag(t)} className="text-[0.68rem] leading-5 text-ink-mute transition-colors hover:text-[#ff9aab]">
+                  #{t}
+                </button>
+              ))}
+            </figcaption>
+          </figure>
         ))}
       </div>
-      {list.length === 0 && <p className="py-8 text-center text-sm text-ink-mute">Bu aramayla eşleşen fotoğraf yok.</p>}
-      <p className="mt-3 text-center text-xs text-ink-mute">Fotoğrafı panoya sürükleyebilir ya da dokunarak ekleyebilirsin.</p>
+      {list.length === 0 && (
+        <div className="py-8 text-center text-sm text-ink-mute">
+          <p>Bu aramayla eşleşen fotoğraf yok.</p>
+          <button type="button" onClick={() => (setQ(""), setCat("hepsi"), setColor(null))} className="link-line mt-2 text-ink-soft">
+            Tüm fotoğrafları göster
+          </button>
+        </div>
+      )}
+      <p className="mt-3 text-center text-xs text-ink-mute">Fotoğrafı panoya sürükleyebilir ya da dokunarak ekleyebilirsin. Etikete dokununca benzerleri gelir.</p>
     </div>
   );
 }
@@ -1159,54 +1240,6 @@ function WordTab({ onWord, editing, onNew, bg }: { onWord: (w: WordSpec) => Prom
   );
 }
 
-function StickerTab({
-  stickers,
-  onLoad,
-  onUpload,
-  onPick,
-}: {
-  stickers: { path: string; url: string; aspect: number }[] | null;
-  onLoad: () => void;
-  onUpload: () => void;
-  onPick: (s: { path: string; url: string; aspect: number }) => void;
-}) {
-  useEffect(() => {
-    if (stickers === null) onLoad();
-  }, [stickers, onLoad]);
-  return (
-    <div>
-      <button onClick={onUpload} className="btn btn-ghost btn-sm w-full">
-        <Upload className="h-4 w-4" /> Kendi süsünü ekle
-      </button>
-      <p className="mt-2 text-xs text-ink-mute">Arka planı şeffaf bir PNG ya da WebP seç (en fazla 5 MB). Süsler çerçevesiz eklenir; büyütüp döndürebilirsin.</p>
-      <p className="mb-2.5 mt-6 text-xs text-ink-mute">Süslerim</p>
-      {stickers === null ? (
-        <div className="grid grid-cols-4 gap-2">
-          {Array.from({ length: 4 }, (_, i) => (
-            <span key={i} className="shimmer aspect-square rounded-[14px]" />
-          ))}
-        </div>
-      ) : stickers.length === 0 ? (
-        <p className="rounded-[14px] border border-dashed border-white/10 px-4 py-6 text-center text-sm text-ink-soft">Henüz süs yüklemedin. Yüklediğin süsler burada durur, istediğin panoda tekrar kullanırsın.</p>
-      ) : (
-        <div className="grid grid-cols-4 gap-2">
-          {stickers.map((st) => (
-            <button
-              key={st.path}
-              onClick={() => onPick(st)}
-              aria-label="Bu süsü panoya ekle"
-              className="grid aspect-square place-items-center rounded-[14px] border border-white/[.06] bg-[repeating-conic-gradient(#ffffff0d_0_25%,transparent_0_50%)] bg-[length:14px_14px] p-2 transition-colors hover:border-champagne/40"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={st.url} alt="" className="h-full w-full object-contain" draggable={false} />
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function ExportMenu({ f, disabled, onPick }: { f: FormatDef; disabled: boolean; onPick: (spec: { id: string; w: number; h: number }) => void }) {
   const [open, setOpen] = useState(false);
   return (
@@ -1259,6 +1292,48 @@ function ShareMenu({ disabled, onPick }: { disabled: boolean; onPick: (k: "x" | 
         </div>
       )}
     </div>
+  );
+}
+
+/** Dokununca bir adım, basılı tutunca hızlanarak tekrarlayan düğme (telefonda döndürme için) */
+function HoldBtn({ label, onStep, children }: { label: string; onStep: (first: boolean) => void; children: React.ReactNode }) {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stop = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+  };
+  useEffect(() => stop, []);
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      className="grid h-10 w-10 touch-none select-none place-items-center rounded-full text-ink-soft transition-colors hover:bg-white/[.06] hover:text-ink active:bg-nar/25"
+      onPointerDown={(e) => {
+        e.preventDefault();
+        stop();
+        onStep(true);
+        let delay = 380;
+        const tick = () => {
+          onStep(false);
+          delay = Math.max(45, delay * 0.8);
+          timer.current = setTimeout(tick, delay);
+        };
+        timer.current = setTimeout(tick, delay);
+      }}
+      onPointerUp={stop}
+      onPointerLeave={stop}
+      onPointerCancel={stop}
+      onContextMenu={(e) => e.preventDefault()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onStep(true);
+        }
+      }}
+    >
+      {children}
+    </button>
   );
 }
 

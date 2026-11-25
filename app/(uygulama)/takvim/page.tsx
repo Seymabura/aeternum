@@ -46,7 +46,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/takvim"
           )}
         </div>
       )}
-      {/* ------------------------------------------------------------ üst: bugün + takımyıldızı */}
+      {/* ------------------------------------------------------------ üst: bugün + 31 adım halkası */}
       <section className="grid items-stretch gap-5 lg:grid-cols-[1.35fr_1fr]">
         <div className="sheet spot rise relative flex flex-col justify-between overflow-hidden p-7 sm:p-10" style={{ borderColor: "rgba(220,199,161,.22)" }}>
           <div
@@ -62,7 +62,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/takvim"
                   Aralık seni <em className="gold-shine italic">bekliyor.</em>
                 </h1>
                 <p className="mt-5 max-w-md text-ink-soft">
-                  1 Aralık&apos;tan itibaren her gün kendin için küçük bir şey yapacaksın. İlk kutu{" "}
+                  Yeni yıla 31 adım: 1 Aralık&apos;tan itibaren her gece 00:00&apos;da bir kutu açılır, içinden kendin için küçük bir adım çıkar. İlk kutu{" "}
                   <Countdown mode="december" className="text-ink" /> sonra açılıyor.
                 </p>
                 <div className="mt-8 border-t border-champagne/10 pt-6">
@@ -82,7 +82,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/takvim"
                   )}
                 </h1>
                 <p className="mt-5 max-w-md text-ink-soft">
-                  {todayDone ? "Takımyıldızında bir yıldız daha yandı. Yeni kutu " : todayTask.hint + " Yeni kutu "}
+                  {todayDone ? "Yeni yıla bir adım daha yaklaştın. Yeni kutu " : todayTask.hint + " Yeni kutu "}
                   <Countdown mode="midnight" className="text-ink" /> sonra.
                 </p>
                 {!todayDone && (
@@ -105,7 +105,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/takvim"
               {done.length}
               <span className="text-xl text-ink-mute">/31</span>
             </span>
-            <span className="mt-2 text-xs text-ink-soft">Aralık takımyıldızın</span>
+            <span className="mt-2 text-xs text-ink-soft">yeni yıla 31 adım</span>
           </ProgressRing>
           <dl className="mt-auto grid grid-cols-3 border-t border-champagne/10 pt-4 text-center">
             {[

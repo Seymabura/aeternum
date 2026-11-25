@@ -13,7 +13,7 @@ export function SharedSky({ input }: { input: SkyInput }) {
       <Logo />
       <SkyView ref={view} input={input} onSpin={setSpin} className="mt-8 shadow-[0_40px_90px_-30px_rgba(0,0,0,.95)]" />
       <h1 className="display mt-8 text-center text-[2.25rem]">
-        {input.meta.names[0]} <span className="gold-shine italic">&</span> {input.meta.names[1]}
+        {input.meta.names.filter(Boolean).length ? input.meta.names.filter(Boolean).join(" & ") : input.meta.dateText.split(",")[0]}
       </h1>
       <p className="mt-2 text-center text-ink-soft">
         {input.meta.dateText} · {input.meta.place}

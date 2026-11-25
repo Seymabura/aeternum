@@ -30,7 +30,7 @@ export default function Privacy() {
       </p>
       <h2>Biz bölümü (sevgililer)</h2>
       <ul>
-        <li>İki Ay ve gökyüzü haritası için girdiğin doğum tarihleri, saatler ve şehirler <b>sadece cihazında hesaplanır, kaydedilmez</b>.</li>
+        <li>Doğduğun gecenin Ay'ı ve gökyüzü haritası için girdiğin tarihler, saatler ve şehirler <b>sadece cihazında hesaplanır, kaydedilmez</b>.</li>
                 <li>
           <b>Bağlantı oluştur</b> dediğinde ve açıkça onay verdiğinde, yalnızca görselleştirme için gereken en az bilgi (isimler,
           görünen tarih metni, Ay ve yıldız hesap sonuçları) bağlantıyı bilen herkesin

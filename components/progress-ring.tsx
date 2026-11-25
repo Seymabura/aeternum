@@ -1,4 +1,4 @@
-/** Aralık takımyıldızı: 31 gün bir halkada; tamamlanan günler parlar, bugün nar ile işaretlenir. */
+/** Yeni yıla 31 adım: 31 gün bir halkada; tamamlanan günler parlar, bugün nar ile işaretlenir. */
 export function ProgressRing({ done, today, fresh, className, children }: { done: number[]; today?: number; fresh?: number; className?: string; children?: React.ReactNode }) {
   const set = new Set(done);
   const pts = Array.from({ length: 31 }, (_, i) => {

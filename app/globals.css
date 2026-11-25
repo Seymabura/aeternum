@@ -415,7 +415,8 @@ body {
 /* ------------------------------------------------------------ sonsuzluk */
 /* "sonsuza" kelimesi: harf aralığı çok yavaşça açılıp kapanır */
 .mask-line > .infinite-word, .infinite-word {
-  background: linear-gradient(100deg, #f3eee6 0%, #ecdfc4 40%, #fff8ea 50%, #dcc7a1 60%, #f3eee6 100%);
+  /* nar kırmızısı: koyu yakuttan açık nar tanesine akan ışık */
+  background: linear-gradient(100deg, #b8304a 0%, #d2465c 38%, #f39aaa 50%, #d2465c 62%, #b8304a 100%);
   background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;

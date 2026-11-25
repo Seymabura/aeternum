@@ -115,7 +115,7 @@ function Stars({ count, reduced }: { count: number; reduced: boolean }) {
 }
 
 function Moon() {
-  const tex = useLoader(THREE.TextureLoader, "/moon/full-520.png");
+  const tex = useLoader(THREE.TextureLoader, "/moon/full-520.webp");
   const ref = useRef<THREE.Group>(null);
   const glow = useMemo(() => {
     const c = document.createElement("canvas");

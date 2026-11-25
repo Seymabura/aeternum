@@ -61,7 +61,7 @@ export function YearStory({ data }: { data: StoryData }) {
             <Big>
               <span className="num gold-shine">{data.count}</span> kez zaman ayırdın.
             </Big>
-            <p className="mt-6 text-ink-soft">31 günün {data.count} tanesi. Her biri Aralık takımyıldızında bir yıldız oldu.</p>
+            <p className="mt-6 text-ink-soft">31 adımın {data.count} tanesi. Her biri yeni yıla atılmış bir adım.</p>
           </>
         ),
       },

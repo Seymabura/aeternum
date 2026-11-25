@@ -7,7 +7,7 @@ import { phaseLabel } from "@/lib/astro/moon";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "İki Ay";
+export const alt = "Doğduğun gecenin Ay'ı";
 
 export default async function OG({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -21,7 +21,7 @@ export default async function OG({ params }: { params: Promise<{ token: string }
       <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "radial-gradient(ellipse at 50% 40%, #111a36, #04060c 75%)", color: "#f2eee6", fontFamily: "serif" }}>
         {p ? (
           <div style={{ display: "flex", alignItems: "center", gap: 70 }}>
-            {[p.a, p.b].map((m, i) => (
+            {[p.a, p.b].filter((m): m is NonNullable<typeof m> => !!m).map((m, i) => (
               <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <div style={{ position: "relative", width: 230, height: 230, display: "flex" }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -36,7 +36,7 @@ export default async function OG({ params }: { params: Promise<{ token: string }
             ))}
           </div>
         ) : (
-          <div style={{ fontSize: 60 }}>İki Ay</div>
+          <div style={{ fontSize: 60 }}>Doğduğun gecenin Ay&apos;ı</div>
         )}
         <div style={{ position: "absolute", bottom: 34, fontSize: 18, letterSpacing: 6, color: "rgba(220,199,161,.7)", fontFamily: "sans-serif" }}>✦ AETERNUM</div>
       </div>
