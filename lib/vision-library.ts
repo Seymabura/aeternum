@@ -1,5 +1,5 @@
 /** Vision board kütüphanesi: site sahibinin arşivinden fotoğraflar (ART_LICENSES.md). */
-export const VISION_CATS = {"kariyer": "Meslekler", "okul": "Okul ve mezuniyet", "para": "Para ve bolluk", "stil": "Alışveriş ve stil", "guzellik": "Güzellik ve bakım", "sevgi": "Aşk ve evlilik", "seyahat": "Seyahat", "luks": "Araba ve ev", "saglik": "Spor ve sağlık", "cicek": "Çiçekler", "doga": "Doğa ve hayvanlar", "sanat": "Sanat, müzik, kitap", "soz": "Sözler ve semboller"} as const;
+export const VISION_CATS = {"kariyer": "Meslekler", "okul": "Okul ve mezuniyet", "dil": "Yabancı dil", "para": "Para ve bolluk", "stil": "Alışveriş ve stil", "guzellik": "Güzellik ve bakım", "sevgi": "Aşk ve evlilik", "seyahat": "Seyahat", "luks": "Araba ve ev", "saglik": "Spor ve sağlık", "cicek": "Çiçekler", "doga": "Doğa ve hayvanlar", "sanat": "Sanat, müzik, kitap", "soz": "Sözler ve semboller"} as const;
 
 export type VisionCat = keyof typeof VISION_CATS;
 
@@ -444,6 +444,397 @@ export const VISION_LIBRARY: VisionPhoto[] = [
   "color": "pembe"
  },
  {
+  "src": "/vision/okul-k1.webp",
+  "cat": "okul",
+  "alt": "Dua eden iki kız ve 'Akademik başarı' yazısı",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 735,
+  "tags": [
+   "akademik başarı",
+   "ders",
+   "sınav",
+   "dua"
+  ],
+  "color": "siyah"
+ },
+ {
+  "src": "/vision/okul-k2.webp",
+  "cat": "okul",
+  "alt": "Boğaziçi Üniversitesi kapısı",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "üniversite",
+   "boğaziçi",
+   "kampüs",
+   "istanbul"
+  ],
+  "color": "mavi"
+ },
+ {
+  "src": "/vision/okul-k3.webp",
+  "cat": "okul",
+  "alt": "Ege Üniversitesi tabelası",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1102,
+  "tags": [
+   "üniversite",
+   "ege",
+   "kampüs",
+   "izmir"
+  ],
+  "color": "mavi"
+ },
+ {
+  "src": "/vision/okul-k4.webp",
+  "cat": "okul",
+  "alt": "'Academic girl era' yazılı, ders çalışan kadın",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 686,
+  "tags": [
+   "ders",
+   "akademik",
+   "not",
+   "motivasyon"
+  ],
+  "color": "kirmizi"
+ },
+ {
+  "src": "/vision/okul-k5.webp",
+  "cat": "okul",
+  "alt": "Üniversite kampüsü girişi",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "üniversite",
+   "kampüs",
+   "giriş",
+   "sonbahar"
+  ],
+  "color": "mavi"
+ },
+ {
+  "src": "/vision/okul-k6.webp",
+  "cat": "okul",
+  "alt": "'120 TYT 80 AYT' net hedefi",
+  "credit": "Kullanıcı arşivi",
+  "w": 530,
+  "h": 344,
+  "tags": [
+   "yks",
+   "tyt",
+   "ayt",
+   "sınav",
+   "net"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/okul-k7.webp",
+  "cat": "okul",
+  "alt": "Gece Yıldız Teknik Üniversitesi kapısı",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "üniversite",
+   "ytü",
+   "kampüs",
+   "mühendislik"
+  ],
+  "color": "siyah"
+ },
+ {
+  "src": "/vision/okul-k8.webp",
+  "cat": "okul",
+  "alt": "Matematik 40 doğru 0 yanlış",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 428,
+  "tags": [
+   "matematik",
+   "sınav",
+   "yks",
+   "net"
+  ],
+  "color": "beyaz"
+ },
+ {
+  "src": "/vision/okul-k9.webp",
+  "cat": "okul",
+  "alt": "Galatasaray Üniversitesi kapısı",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1308,
+  "tags": [
+   "üniversite",
+   "galatasaray",
+   "kampüs",
+   "istanbul"
+  ],
+  "color": "mavi"
+ },
+ {
+  "src": "/vision/okul-k10.webp",
+  "cat": "okul",
+  "alt": "Gün batımında üniversite binası",
+  "credit": "Kullanıcı arşivi",
+  "w": 718,
+  "h": 1276,
+  "tags": [
+   "üniversite",
+   "kampüs",
+   "gün batımı",
+   "mezuniyet"
+  ],
+  "color": "turuncu"
+ },
+ {
+  "src": "/vision/okul-k11.webp",
+  "cat": "okul",
+  "alt": "Koç Üniversitesi tabelası",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 294,
+  "tags": [
+   "üniversite",
+   "koç",
+   "kampüs",
+   "istanbul"
+  ],
+  "color": "beyaz"
+ },
+ {
+  "src": "/vision/okul-k12.webp",
+  "cat": "okul",
+  "alt": "Dokuz Eylül Üniversitesi logosu",
+  "credit": "Kullanıcı arşivi",
+  "w": 590,
+  "h": 540,
+  "tags": [
+   "üniversite",
+   "dokuz eylül",
+   "deü",
+   "izmir"
+  ],
+  "color": "beyaz"
+ },
+ {
+  "src": "/vision/okul-k13.webp",
+  "cat": "okul",
+  "alt": "İstanbul Teknik Üniversitesi logosu",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1030,
+  "tags": [
+   "üniversite",
+   "itü",
+   "mühendislik",
+   "istanbul"
+  ],
+  "color": "beyaz"
+ },
+ {
+  "src": "/vision/okul-k14.webp",
+  "cat": "okul",
+  "alt": "Boğaziçi Üniversitesi logosu",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 736,
+  "tags": [
+   "üniversite",
+   "boğaziçi",
+   "istanbul",
+   "kampüs"
+  ],
+  "color": "mavi"
+ },
+ {
+  "src": "/vision/okul-k15.webp",
+  "cat": "okul",
+  "alt": "Ankara Üniversitesi logosu",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 736,
+  "tags": [
+   "üniversite",
+   "ankara",
+   "kampüs",
+   "hukuk"
+  ],
+  "color": "beyaz"
+ },
+ {
+  "src": "/vision/okul-k16.webp",
+  "cat": "okul",
+  "alt": "İstanbul Üniversitesi logosu",
+  "credit": "Kullanıcı arşivi",
+  "w": 300,
+  "h": 300,
+  "tags": [
+   "üniversite",
+   "istanbul üniversitesi",
+   "istanbul",
+   "tıp"
+  ],
+  "color": "yesil"
+ },
+ {
+  "src": "/vision/okul-k17.webp",
+  "cat": "okul",
+  "alt": "Marmara Üniversitesi logosu",
+  "credit": "Kullanıcı arşivi",
+  "w": 250,
+  "h": 253,
+  "tags": [
+   "üniversite",
+   "marmara",
+   "istanbul",
+   "kampüs"
+  ],
+  "color": "mavi"
+ },
+ {
+  "src": "/vision/okul-k18.webp",
+  "cat": "okul",
+  "alt": "Gazi Üniversitesi logosu",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 736,
+  "tags": [
+   "üniversite",
+   "gazi",
+   "ankara",
+   "kampüs"
+  ],
+  "color": "mavi"
+ },
+ {
+  "src": "/vision/dil-k1.webp",
+  "cat": "dil",
+  "alt": "Rusya bayrağı ve C1 C2 seviyesi",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 414,
+  "tags": [
+   "rusça",
+   "dil",
+   "yabancı dil",
+   "c1"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/dil-k2.webp",
+  "cat": "dil",
+  "alt": "ABD bayrağı ve C1 C2 seviyesi",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 414,
+  "tags": [
+   "ingilizce",
+   "dil",
+   "yabancı dil",
+   "c1"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/dil-k3.webp",
+  "cat": "dil",
+  "alt": "İngiltere bayrağı ve B2/C1 seviyesi",
+  "credit": "Kullanıcı arşivi",
+  "w": 735,
+  "h": 490,
+  "tags": [
+   "ingilizce",
+   "dil",
+   "yabancı dil",
+   "b2"
+  ],
+  "color": "beyaz"
+ },
+ {
+  "src": "/vision/dil-k4.webp",
+  "cat": "dil",
+  "alt": "İspanya bayrağı ve C1 C2 seviyesi",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 736,
+  "tags": [
+   "ispanyolca",
+   "dil",
+   "yabancı dil",
+   "c1"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/dil-k5.webp",
+  "cat": "dil",
+  "alt": "Fransa bayrağı ve C1 C2 seviyesi",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 414,
+  "tags": [
+   "fransızca",
+   "dil",
+   "yabancı dil",
+   "c1"
+  ],
+  "color": "beyaz"
+ },
+ {
+  "src": "/vision/dil-k6.webp",
+  "cat": "dil",
+  "alt": "Almanya bayrağı ve C1 C2 seviyesi",
+  "credit": "Kullanıcı arşivi",
+  "w": 653,
+  "h": 482,
+  "tags": [
+   "almanca",
+   "dil",
+   "yabancı dil",
+   "c1"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/dil-k7.webp",
+  "cat": "dil",
+  "alt": "Güney Kore bayrağı ve B1-B2 seviyesi",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 736,
+  "tags": [
+   "korece",
+   "dil",
+   "yabancı dil",
+   "b1"
+  ],
+  "color": "beyaz"
+ },
+ {
+  "src": "/vision/dil-k8.webp",
+  "cat": "dil",
+  "alt": "Çin bayrağı ve B1-B2 seviyesi",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 736,
+  "tags": [
+   "çince",
+   "dil",
+   "yabancı dil",
+   "b1"
+  ],
+  "color": "beyaz"
+ },
+ {
   "src": "/vision/para-m1.webp",
   "cat": "para",
   "alt": "Elinde dolar desteleri tutan kadın",
@@ -490,6 +881,21 @@ export const VISION_LIBRARY: VisionPhoto[] = [
    "söz"
   ],
   "color": "pembe"
+ },
+ {
+  "src": "/vision/para-k1.webp",
+  "cat": "para",
+  "alt": "Elde para dolu cüzdan",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "para",
+   "bolluk",
+   "cüzdan",
+   "zenginlik"
+  ],
+  "color": "siyah"
  },
  {
   "src": "/vision/stil-1.webp",
@@ -618,6 +1024,111 @@ export const VISION_LIBRARY: VisionPhoto[] = [
    "hediye"
   ],
   "color": "bej"
+ },
+ {
+  "src": "/vision/stil-k1.webp",
+  "cat": "stil",
+  "alt": "Elde alışveriş poşetleri",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1308,
+  "tags": [
+   "alışveriş",
+   "poşet",
+   "moda",
+   "şehir"
+  ],
+  "color": "beyaz"
+ },
+ {
+  "src": "/vision/stil-k2.webp",
+  "cat": "stil",
+  "alt": "Elde MAC ve Zara poşetleri",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "alışveriş",
+   "poşet",
+   "moda",
+   "makyaj"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/stil-k3.webp",
+  "cat": "stil",
+  "alt": "Gardıropta asılı kıyafetler ve çantalar",
+  "credit": "Kullanıcı arşivi",
+  "w": 720,
+  "h": 1280,
+  "tags": [
+   "gardırop",
+   "kıyafet",
+   "çanta",
+   "moda"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/stil-k4.webp",
+  "cat": "stil",
+  "alt": "Yürüyen merdivende alışveriş poşetleri",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "alışveriş",
+   "poşet",
+   "avm",
+   "moda"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/stil-k5.webp",
+  "cat": "stil",
+  "alt": "Işıklı giyinme odası",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "gardırop",
+   "giyinme odası",
+   "ev",
+   "düzen"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/stil-k6.webp",
+  "cat": "stil",
+  "alt": "Ayakkabılar ve kıyafetlerle dolu gardırop",
+  "credit": "Kullanıcı arşivi",
+  "w": 675,
+  "h": 1200,
+  "tags": [
+   "gardırop",
+   "ayakkabı",
+   "kıyafet",
+   "düzen"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/stil-k7.webp",
+  "cat": "stil",
+  "alt": "Palmiyeler arasında kahve ve alışveriş poşetleri",
+  "credit": "Kullanıcı arşivi",
+  "w": 720,
+  "h": 960,
+  "tags": [
+   "alışveriş",
+   "kahve",
+   "yaz",
+   "poşet"
+  ],
+  "color": "mavi"
  },
  {
   "src": "/vision/guzellik-m1.webp",
@@ -762,6 +1273,411 @@ export const VISION_LIBRARY: VisionPhoto[] = [
    "akşam"
   ],
   "color": "kirmizi"
+ },
+ {
+  "src": "/vision/guzellik-k1.webp",
+  "cat": "guzellik",
+  "alt": "Rafta dizili cilt bakım ürünleri",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "cilt bakımı",
+   "serum",
+   "krem",
+   "bakım rutini"
+  ],
+  "color": "beyaz"
+ },
+ {
+  "src": "/vision/guzellik-k2.webp",
+  "cat": "guzellik",
+  "alt": "Aynanın önünde cilt bakım ve parfüm şişeleri",
+  "credit": "Kullanıcı arşivi",
+  "w": 735,
+  "h": 1040,
+  "tags": [
+   "cilt bakımı",
+   "bakım rutini",
+   "serum",
+   "parfüm"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k3.webp",
+  "cat": "guzellik",
+  "alt": "Masada makyaj ürünleri, ruj ve pudra",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1068,
+  "tags": [
+   "makyaj",
+   "ruj",
+   "pudra",
+   "güzellik"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k4.webp",
+  "cat": "guzellik",
+  "alt": "Sokakta uzun dalgalı sarı saçlar",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "saç",
+   "sarı saç",
+   "dalgalı saç",
+   "uzun saç"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k5.webp",
+  "cat": "guzellik",
+  "alt": "Uzun kirpikli göz yakın çekim",
+  "credit": "Kullanıcı arşivi",
+  "w": 600,
+  "h": 600,
+  "tags": [
+   "kirpik",
+   "göz",
+   "makyaj",
+   "güzellik"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k6.webp",
+  "cat": "guzellik",
+  "alt": "Mumun yanında parfüm şişeleri ve takılar",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "parfüm",
+   "koku",
+   "takı",
+   "lüks"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k7.webp",
+  "cat": "guzellik",
+  "alt": "Ruj ve allık koleksiyonu",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1308,
+  "tags": [
+   "makyaj",
+   "ruj",
+   "allık",
+   "koleksiyon"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/guzellik-k8.webp",
+  "cat": "guzellik",
+  "alt": "Uzun bakımlı tırnaklı el",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "tırnak",
+   "manikür",
+   "el bakımı",
+   "nude"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k9.webp",
+  "cat": "guzellik",
+  "alt": "Parlak ciltli yüz ve küpe",
+  "credit": "Kullanıcı arşivi",
+  "w": 703,
+  "h": 838,
+  "tags": [
+   "cilt",
+   "parlak cilt",
+   "küpe",
+   "bakım"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k10.webp",
+  "cat": "guzellik",
+  "alt": "Sınıfta tokayla toplanmış sarı saçlar",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 946,
+  "tags": [
+   "saç",
+   "sarı saç",
+   "toka",
+   "okul"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k11.webp",
+  "cat": "guzellik",
+  "alt": "Pembe süslü far paleti ve ayna",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1039,
+  "tags": [
+   "makyaj",
+   "far",
+   "pembe",
+   "ayna"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/guzellik-k12.webp",
+  "cat": "guzellik",
+  "alt": "Tepside parfüm şişeleri",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 979,
+  "tags": [
+   "parfüm",
+   "koku",
+   "lüks",
+   "şişe"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k13.webp",
+  "cat": "guzellik",
+  "alt": "Uzun dalgalı kızıl saçlar",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1104,
+  "tags": [
+   "saç",
+   "kızıl saç",
+   "dalgalı saç",
+   "uzun saç"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k14.webp",
+  "cat": "guzellik",
+  "alt": "Pembe makyaj ürünleri",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "makyaj",
+   "pembe",
+   "far",
+   "ruj"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/guzellik-k15.webp",
+  "cat": "guzellik",
+  "alt": "Rafta pembe makyaj koleksiyonu",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 920,
+  "tags": [
+   "makyaj",
+   "pembe",
+   "koleksiyon",
+   "far"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/guzellik-k16.webp",
+  "cat": "guzellik",
+  "alt": "Parlak ve pürüzsüz cilt",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "cilt",
+   "parlak cilt",
+   "bakım",
+   "makyaj"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k17.webp",
+  "cat": "guzellik",
+  "alt": "Uzun düz kahverengi saçlar",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "saç",
+   "kahverengi saç",
+   "düz saç",
+   "uzun saç"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k18.webp",
+  "cat": "guzellik",
+  "alt": "'My skin is so clear' yazılı temiz cilt",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 799,
+  "tags": [
+   "cilt",
+   "temiz cilt",
+   "olumlama",
+   "bakım"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k19.webp",
+  "cat": "guzellik",
+  "alt": "Havluyla yüz maskesi yapan kız",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1308,
+  "tags": [
+   "maske",
+   "cilt bakımı",
+   "bakım rutini",
+   "spa"
+  ],
+  "color": "beyaz"
+ },
+ {
+  "src": "/vision/guzellik-k20.webp",
+  "cat": "guzellik",
+  "alt": "Tabakta dudak parlatıcıları",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 736,
+  "tags": [
+   "makyaj",
+   "dudak",
+   "parlatıcı",
+   "pembe"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/guzellik-k21.webp",
+  "cat": "guzellik",
+  "alt": "Uzun kirpikli göz",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 716,
+  "tags": [
+   "kirpik",
+   "göz",
+   "makyaj",
+   "güzellik"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k22.webp",
+  "cat": "guzellik",
+  "alt": "Parlak pembe dudaklar",
+  "credit": "Kullanıcı arşivi",
+  "w": 735,
+  "h": 459,
+  "tags": [
+   "dudak",
+   "parlatıcı",
+   "makyaj",
+   "pembe"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/guzellik-k23.webp",
+  "cat": "guzellik",
+  "alt": "Bakımlı tırnaklar ve pijama",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "tırnak",
+   "manikür",
+   "el bakımı",
+   "rahat"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k24.webp",
+  "cat": "guzellik",
+  "alt": "Işıklı makyaj masası",
+  "credit": "Kullanıcı arşivi",
+  "w": 735,
+  "h": 1198,
+  "tags": [
+   "makyaj",
+   "makyaj masası",
+   "ayna",
+   "düzen"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k25.webp",
+  "cat": "guzellik",
+  "alt": "Pembe far paleti ve süslü ayna",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "makyaj",
+   "pembe",
+   "far",
+   "ayna"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/guzellik-k26.webp",
+  "cat": "guzellik",
+  "alt": "Cilt bakım ürünleri ve yüz roller",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1104,
+  "tags": [
+   "cilt bakımı",
+   "serum",
+   "bakım rutini",
+   "roller"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/guzellik-k27.webp",
+  "cat": "guzellik",
+  "alt": "Doğal makyajlı yüz ve dudaklar",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 987,
+  "tags": [
+   "dudak",
+   "doğal makyaj",
+   "cilt",
+   "yüz"
+  ],
+  "color": "bej"
  },
  {
   "src": "/vision/sevgi-m1.webp",
@@ -1068,6 +1984,96 @@ export const VISION_LIBRARY: VisionPhoto[] = [
   "color": "bej"
  },
  {
+  "src": "/vision/seyahat-k1.webp",
+  "cat": "seyahat",
+  "alt": "Roma'da Trevi Çeşmesi",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "roma",
+   "italya",
+   "avrupa",
+   "tatil"
+  ],
+  "color": "mavi"
+ },
+ {
+  "src": "/vision/seyahat-k2.webp",
+  "cat": "seyahat",
+  "alt": "Gece Galata Kulesi ve Türk bayrağı",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1308,
+  "tags": [
+   "istanbul",
+   "galata",
+   "gece",
+   "şehir"
+  ],
+  "color": "siyah"
+ },
+ {
+  "src": "/vision/seyahat-k3.webp",
+  "cat": "seyahat",
+  "alt": "Uçak penceresinde pasaport",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1308,
+  "tags": [
+   "pasaport",
+   "uçak",
+   "yolculuk",
+   "tatil"
+  ],
+  "color": "siyah"
+ },
+ {
+  "src": "/vision/seyahat-k4.webp",
+  "cat": "seyahat",
+  "alt": "Gece uçaktan şehir ışıkları",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "uçak",
+   "gece",
+   "şehir",
+   "yolculuk"
+  ],
+  "color": "siyah"
+ },
+ {
+  "src": "/vision/seyahat-k5.webp",
+  "cat": "seyahat",
+  "alt": "Çiçekler arasında Kolezyum",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1104,
+  "tags": [
+   "roma",
+   "italya",
+   "avrupa",
+   "bahar"
+  ],
+  "color": "mavi"
+ },
+ {
+  "src": "/vision/seyahat-k6.webp",
+  "cat": "seyahat",
+  "alt": "Balkondan Eyfel Kulesi",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 974,
+  "tags": [
+   "paris",
+   "fransa",
+   "avrupa",
+   "balkon"
+  ],
+  "color": "bej"
+ },
+ {
   "src": "/vision/luks-1.webp",
   "cat": "luks",
   "alt": "Bilezikli elle BMW direksiyonu",
@@ -1212,6 +2218,81 @@ export const VISION_LIBRARY: VisionPhoto[] = [
   "color": "mavi"
  },
  {
+  "src": "/vision/luks-k1.webp",
+  "cat": "luks",
+  "alt": "Kırmızı kurdeleli siyah araba ve anahtarı",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1332,
+  "tags": [
+   "araba",
+   "hediye",
+   "anahtar",
+   "ehliyet"
+  ],
+  "color": "siyah"
+ },
+ {
+  "src": "/vision/luks-k2.webp",
+  "cat": "luks",
+  "alt": "Elde araba anahtarı, arkada siyah araba",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "araba",
+   "anahtar",
+   "ehliyet",
+   "yeni araba"
+  ],
+  "color": "siyah"
+ },
+ {
+  "src": "/vision/luks-k3.webp",
+  "cat": "luks",
+  "alt": "Kırmızı kurdeleli araba ve anahtar",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1047,
+  "tags": [
+   "araba",
+   "hediye",
+   "anahtar",
+   "yeni araba"
+  ],
+  "color": "siyah"
+ },
+ {
+  "src": "/vision/luks-k4.webp",
+  "cat": "luks",
+  "alt": "Şehir manzaralı evde anahtar",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1104,
+  "tags": [
+   "ev",
+   "anahtar",
+   "yeni ev",
+   "manzara"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/luks-k5.webp",
+  "cat": "luks",
+  "alt": "Gün batımında araba kullanan kız",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 981,
+  "tags": [
+   "araba",
+   "ehliyet",
+   "gün batımı",
+   "yolculuk"
+  ],
+  "color": "turuncu"
+ },
+ {
   "src": "/vision/saglik-7.webp",
   "cat": "saglik",
   "alt": "Avokadolu tost, yumurta ve meyveli kahvaltı tabağı",
@@ -1306,6 +2387,66 @@ export const VISION_LIBRARY: VisionPhoto[] = [
    "sabah rutini"
   ],
   "color": "pembe"
+ },
+ {
+  "src": "/vision/saglik-k1.webp",
+  "cat": "saglik",
+  "alt": "Pilates matında egzersiz yapan kız",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 920,
+  "tags": [
+   "pilates",
+   "spor",
+   "egzersiz",
+   "sağlık"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/saglik-k2.webp",
+  "cat": "saglik",
+  "alt": "Meyveli kase, limonlu su ve bitki çayı",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 1147,
+  "tags": [
+   "sağlıklı beslenme",
+   "kahvaltı",
+   "çay",
+   "sağlık"
+  ],
+  "color": "bej"
+ },
+ {
+  "src": "/vision/saglik-k3.webp",
+  "cat": "saglik",
+  "alt": "Beyaz büstiyerle fit bel ve karın",
+  "credit": "Kullanıcı arşivi",
+  "w": 548,
+  "h": 802,
+  "tags": [
+   "fit",
+   "spor",
+   "pilates",
+   "sağlık"
+  ],
+  "color": "beyaz"
+ },
+ {
+  "src": "/vision/saglik-k4.webp",
+  "cat": "saglik",
+  "alt": "Beyaz atlet ve pembe eşofmanla fit görünüm",
+  "credit": "Kullanıcı arşivi",
+  "w": 736,
+  "h": 920,
+  "tags": [
+   "fit",
+   "spor",
+   "sağlık",
+   "rahat"
+  ],
+  "color": "beyaz"
  },
  {
   "src": "/vision/cicek-m1.webp",
@@ -2344,6 +3485,21 @@ export const VISION_LIBRARY: VisionPhoto[] = [
    "söz",
    "pembe",
    "hedef"
+  ],
+  "color": "pembe"
+ },
+ {
+  "src": "/vision/soz-k1.webp",
+  "cat": "soz",
+  "alt": "Pembe zeminde 'This is my year' yazısı",
+  "credit": "Kullanıcı arşivi",
+  "w": 320,
+  "h": 360,
+  "tags": [
+   "benim yılım",
+   "motivasyon",
+   "yeni yıl",
+   "2027"
   ],
   "color": "pembe"
  }

@@ -115,7 +115,7 @@ export function drawPoster(
   img: MoonImages,
   progress: number,
   sky?: { layers: SkyLayers; t?: number; reveal?: number } | null,
-  caption?: { title: string; lines: string[] } | null,
+  caption?: { title: string; lines: string[]; note?: string } | null,
 ) {
   const { single, merged, cy } = moonLayout(w, h);
   if (!p.b) progress = 1;
@@ -166,18 +166,41 @@ export function drawPoster(
   }
   ctx.globalAlpha = 1;
 
-  // ---------------------------------------------------------------- isteğe bağlı yazı (isim, tarih, evre)
+  // ---------------------------------------------------------------- isteğe bağlı yazı (isim, tarih, evre, kişinin notu)
   if (caption) {
     const { u } = moonLayout(w, h);
-    const top = Math.min(cy + merged * 0.58, h - u * 0.2);
+    // Yazı bloğunun son satırına kadar olan yükseklik (u cinsinden)
+    let end = caption.title ? 0.07 : 0;
+    if (caption.lines.length) end += 0.055 + (caption.lines.length - 1) * 0.045;
+    if (caption.note) end += caption.title || caption.lines.length ? 0.07 : 0.06;
+    const top = Math.min(cy + merged * 0.58, h - u * (end + 0.05));
+    let y = top;
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic";
-    ctx.fillStyle = "rgba(246,239,226,.94)";
-    ctx.font = `400 ${Math.round(u * 0.072)}px ${SERIF}`;
-    ctx.fillText(caption.title, cx, top + u * 0.07);
+    if (caption.title) {
+      y += u * 0.07;
+      ctx.fillStyle = "rgba(246,239,226,.94)";
+      ctx.font = `400 ${Math.round(u * 0.072)}px ${SERIF}`;
+      ctx.fillText(caption.title, cx, y);
+    }
     ctx.font = `400 ${Math.round(u * 0.03)}px ${SANS}`;
     ctx.fillStyle = "rgba(220,199,161,.82)";
-    caption.lines.forEach((l, i) => ctx.fillText(l, cx, top + u * (0.125 + i * 0.045)));
+    caption.lines.forEach((l, i) => {
+      y += u * (i === 0 ? 0.055 : 0.045);
+      ctx.fillText(l, cx, y);
+    });
+    if (caption.note) {
+      y += u * (caption.title || caption.lines.length ? 0.07 : 0.06);
+      // Uzun yazı taşmasın: genişliğe sığana kadar küçült
+      let fs = Math.round(u * 0.05);
+      ctx.font = `italic 400 ${fs}px ${SERIF}`;
+      while (fs > u * 0.026 && ctx.measureText(caption.note).width > w * 0.86) {
+        fs -= 1;
+        ctx.font = `italic 400 ${fs}px ${SERIF}`;
+      }
+      ctx.fillStyle = "rgba(255,214,222,.95)";
+      ctx.fillText(caption.note, cx, y);
+    }
   }
   ctx.restore();
 }

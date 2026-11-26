@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BellRing, Check, Share, Smartphone } from "lucide-react";
 import { toast } from "sonner";
+import { SITE_HOST, SITE_URL } from "@/lib/site";
 
 type BIPEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> };
 let deferred: BIPEvent | null = null;
@@ -40,14 +41,14 @@ function reminderIcs() {
     "END:STANDARD",
     "END:VTIMEZONE",
     "BEGIN:VEVENT",
-    "UID:aeternum-aralik-2026@aeternum-26.netlify.app",
+    `UID:aeternum-aralik-2026@${SITE_HOST}`,
     "DTSTAMP:20261122T000000Z",
     "DTSTART;TZID=Europe/Istanbul:20261201T200000",
     "DURATION:PT10M",
     "RRULE:FREQ=DAILY;COUNT=31",
     "SUMMARY:Aeternum: bugünün kutusu",
-    "DESCRIPTION:Bugünün görevi seni bekliyor. https://aeternum-26.netlify.app/takvim",
-    "URL:https://aeternum-26.netlify.app/takvim",
+    `DESCRIPTION:Bugünün görevi seni bekliyor. ${SITE_URL}/takvim`,
+    `URL:${SITE_URL}/takvim`,
     "BEGIN:VALARM",
     "ACTION:DISPLAY",
     "DESCRIPTION:Bugünün kutusu açık",

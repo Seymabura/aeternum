@@ -10,8 +10,9 @@ import { createInvite, type CoupleState } from "@/app/actions/biz";
 import { answerJournal, startJournal, type JournalDay, type JournalState } from "@/app/actions/defter";
 import { JOURNAL_QUESTIONS } from "@/lib/journal-questions";
 import { cn } from "@/lib/utils";
+import { SITE_HOST, SITE_URL } from "@/lib/site";
 
-const SITE = "https://aeternum-26.netlify.app";
+const SITE = SITE_URL;
 const wa = (text: string) => `https://wa.me/?text=${encodeURIComponent(text)}`;
 
 export function Journal({ couple, journal }: { couple: CoupleState; journal: JournalState }) {
@@ -260,7 +261,7 @@ function reminderIcs(startOn: string, ritual: string) {
     "END:STANDARD",
     "END:VTIMEZONE",
     "BEGIN:VEVENT",
-    `UID:aeternum-defter-${startOn}@aeternum-26.netlify.app`,
+    `UID:aeternum-defter-${startOn}@${SITE_HOST}`,
     `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}Z`,
     `DTSTART;TZID=Europe/Istanbul:${y}${m}${d}T${hh}${mm}00`,
     "DURATION:PT10M",

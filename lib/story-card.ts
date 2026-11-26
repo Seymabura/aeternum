@@ -1,3 +1,4 @@
+import { SITE_HOST } from "@/lib/site";
 /** 1080×1920 hikâye kartları: gece siyahı gökyüzü, 31 adım halkası, gün bilgisi. */
 const W = 1080;
 const H = 1920;
@@ -62,7 +63,7 @@ export function wordmark(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.fillText("Aeternum", w / 2, h - 150);
   ctx.fillStyle = "rgba(244,239,230,0.5)";
   ctx.font = `400 28px ${SANS}`;
-  ctx.fillText("aeternum-26.netlify.app", w / 2, h - 100);
+  ctx.fillText(SITE_HOST, w / 2, h - 100);
 }
 
 /** 31 günlük halka: tamamlananlar altın, son gün nar */

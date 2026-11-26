@@ -3,9 +3,9 @@ import { Toaster } from "sonner";
 import { NewYearNight } from "@/components/new-year-night";
 import { PwaRegister } from "@/components/install-app";
 import { Ambience } from "@/components/ambience";
+import { SITE_URL as SITE } from "@/lib/site";
 import "./globals.css";
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
@@ -48,7 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <PwaRegister />
         <Toaster
           position="bottom-center"
-          offset={96}
+          offset={160}
           icons={{ success: <span className="text-champagne">✦</span>, info: <span className="text-champagne">✦</span> }}
           toastOptions={{
             style: {

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Check, Copy, Loader2, ShieldCheck } from "lucide-react";
 import { createRecoveryCode } from "@/app/actions/recovery";
+import { SITE_HOST } from "@/lib/site";
 
 /** Girişsiz defteri korumak için kurtarma kodu */
 export function RecoveryCard({ has }: { has: boolean }) {
@@ -30,7 +31,7 @@ export function RecoveryCard({ has }: { has: boolean }) {
           <h2 className="display text-[1.6rem]">{ok ? "Defterin korunuyor" : "Defterini koru"}</h2>
           <p className="mt-2 text-sm text-ink-soft">
             Defterin bu tarayıcıda saklanıyor. Telefonunu değiştirir ya da tarayıcı verilerini silersen kaybolmasın diye bir kurtarma kodu al.
-            Başka bir cihazda <span className="text-ink">aeternum-26.netlify.app/kurtar</span> adresine yazınca her şey geri gelir.
+            Başka bir cihazda <span className="text-ink">{SITE_HOST}/kurtar</span> adresine yazınca her şey geri gelir.
           </p>
         </div>
       </div>

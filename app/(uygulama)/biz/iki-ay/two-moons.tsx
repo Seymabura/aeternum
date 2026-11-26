@@ -194,6 +194,7 @@ function Result({ payload, onEdit, onAddPartner }: { payload: MoonPayload; onEdi
   const [busy, setBusy] = useState<string | null>(null);
   const [hideDates, setHideDates] = useState(false);
   const [caption, setCaption] = useState(false);
+  const [note, setNote] = useState("");
   const [which, setWhich] = useState<Which>("ikisi");
   const [sharing, setSharing] = useState(false);
   const [link, setLink] = useState<string | null>(null);
@@ -286,6 +287,24 @@ function Result({ payload, onEdit, onAddPartner }: { payload: MoonPayload; onEdi
           <input type="checkbox" className="h-4 w-4 accent-[#d2465c]" checked={caption} onChange={(e) => setCaption(e.target.checked)} />
           Görselde isim, tarih ve evre yazsın
         </label>
+        <div className="mt-4">
+          <label htmlFor="gorsel-yazi" className="label">
+            Görsele kendi yazını ekle <span className="text-ink-mute">(isteğe bağlı)</span>
+          </label>
+          <input
+            id="gorsel-yazi"
+            className="field"
+            maxLength={60}
+            placeholder="İyi ki doğdun, ilk Ay'ımız…"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            aria-describedby="gorsel-yazi-not"
+          />
+          <p id="gorsel-yazi-not" className="mt-1.5 flex justify-between text-xs text-ink-mute">
+            <span>Ay&apos;ın altına yazılır.</span>
+            <span className="num">{note.length}/60</span>
+          </p>
+        </div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {EXPORTS.map((e) => (
             <button
@@ -294,7 +313,11 @@ function Result({ payload, onEdit, onAddPartner }: { payload: MoonPayload; onEdi
               onClick={async () => {
                 setBusy(e.id);
                 try {
-                  await view.current?.exportAs(e.id, { only: pair && which !== "ikisi" ? which : undefined, caption });
+                  await view.current?.exportAs(e.id, {
+                    only: pair && which !== "ikisi" ? which : undefined,
+                    caption,
+                    note: note.trim() || undefined,
+                  });
                 } catch {
                   toast.error("İndirilemedi. Tekrar dene.");
                 } finally {

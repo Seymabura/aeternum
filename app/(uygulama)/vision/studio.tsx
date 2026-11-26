@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import {
@@ -39,6 +39,7 @@ import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/image";
 import { shareOrDownload } from "@/lib/share";
 import { cn } from "@/lib/utils";
+import { SITE_URL } from "@/lib/site";
 
 type Tab = "foto" | "yazi" | "arka" | "duzen";
 type Gesture =
@@ -461,7 +462,7 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
   }, []);
   const ratio = (f.W / f.H).toFixed(3);
   const stageMax = narrow
-    ? `min(100%, calc((100dvh - ${f.clock ? "20.75rem" : "19rem"}) * ${ratio}))`
+    ? `min(100%, calc((100dvh - ${f.clock ? "25rem" : "23.25rem"}) * ${ratio}))`
     : f.W >= f.H
       ? `min(100%, 900px, calc(74dvh * ${ratio}))`
       : `min(${f.id === "telefon" ? 420 : 560}px, 100%, calc((100dvh - 15.5rem) * ${ratio}))`;
@@ -480,7 +481,7 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
       const spec = f.exports[0];
       const blob = await renderBoard(itemsRef.current, bg, srcOf, spec.w, spec.h, f);
       const text = "2027 vision board'umu hazırladım ✦";
-      const url = "https://aeternum-26.netlify.app";
+      const url = SITE_URL;
       const file = new File([blob], "aeternum-vision.png", { type: "image/png" });
       const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
       const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -763,7 +764,7 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
       </div>
 
       {/* telefon: her zaman ekranda duran araç çubuğu, alt menünün hemen üstünde */}
-      <div className="safe-bottom fixed inset-x-3 bottom-[4.9rem] z-40 lg:hidden md:bottom-4">
+      <div className="safe-bottom fixed inset-x-3 bottom-[9.15rem] z-40 lg:hidden md:bottom-[4.5rem]">
         <div className="mx-auto max-w-md rounded-[22px] border border-white/10 bg-[rgba(10,9,13,0.92)] p-1 shadow-[0_20px_50px_-20px_rgba(0,0,0,.9)] backdrop-blur-xl">
           {selected?.kind === "image" && framesOpen && (
             <div role="radiogroup" aria-label="Çerçeve" className="grid grid-cols-4 gap-1 border-b border-white/[.06] p-1 pb-2">
@@ -859,9 +860,25 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
 
       <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => upload(e.target.files?.[0])} />
 
-      {sheet && (
-        <div className="fixed inset-0 z-[70] flex items-end bg-[rgba(2,2,3,0.6)] backdrop-blur-sm lg:hidden" onClick={() => setSheet(false)}>
-          <div className="safe-bottom flex h-[78dvh] w-full flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-[#0c0b0f] p-5" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Pano araçları">
+      {/* Telefonda araç paneli: kapanınca DOM'dan silinmez, sadece gizlenir. Böylece kategori, arama ve kaydırma yeri bir sonraki açılışta korunur. */}
+      <div
+        className={cn(
+          "fixed inset-0 z-[70] flex items-end transition-[background-color,visibility] duration-300 lg:hidden",
+          sheet ? "visible bg-[rgba(2,2,3,0.6)] backdrop-blur-sm" : "pointer-events-none invisible bg-transparent",
+        )}
+        onClick={() => setSheet(false)}
+        aria-hidden={!sheet}
+        inert={!sheet}
+      >
+          <div
+            className={cn(
+              "safe-bottom flex h-[78dvh] w-full flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-[#0c0b0f] p-5 transition-transform duration-300 ease-[var(--ease-lux)] motion-reduce:transition-none",
+              sheet ? "translate-y-0" : "translate-y-full",
+            )}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-label="Pano araçları"
+          >
             <div className="mb-3 flex justify-end">
               <button onClick={() => setSheet(false)} aria-label="Kapat" className="grid h-10 w-10 place-items-center rounded-full text-ink-soft hover:text-ink">
                 <X className="h-5 w-5" />
@@ -869,8 +886,7 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
             </div>
             {panel}
           </div>
-        </div>
-      )}
+      </div>
 
       {busy && (
         <div className="fixed inset-0 z-[80] flex flex-col items-center justify-center gap-3 bg-[rgba(2,2,3,0.65)] backdrop-blur-sm" role="status">
@@ -1057,6 +1073,7 @@ function TemplateGlyph({ id, f }: { id: (typeof TEMPLATES)[number]["id"]; f: For
 }
 
 function PhotoTab({ onPhoto, onUpload }: { onPhoto: (src: string) => void; onUpload: () => void }) {
+  const uid = useId();
   const [cat, setCat] = useState<VisionCat | "hepsi">("hepsi");
   const [color, setColor] = useState<VisionColor | null>(null);
   const [q, setQ] = useState("");
@@ -1072,12 +1089,41 @@ function PhotoTab({ onPhoto, onUpload }: { onPhoto: (src: string) => void; onUpl
     return c;
   }, [cat]);
   const list = useMemo(() => VISION_LIBRARY.filter((v) => (cat === "hepsi" || v.cat === cat) && (!color || v.color === color) && matchesQuery(v, q)), [cat, color, q]);
+  const groups = useMemo(() => {
+    const m = new Map<VisionCat, typeof list>();
+    list.forEach((v) => m.set(v.cat, [...(m.get(v.cat) ?? []), v]));
+    return (Object.keys(VISION_CATS) as VisionCat[]).filter((c) => m.has(c)).map((c) => [c, m.get(c)!] as const);
+  }, [list]);
   const pickTag = (t: string) => {
     setCat("hepsi");
     setColor(null);
     setQ(t);
   };
   const total = color ? VISION_LIBRARY.filter((v) => v.color === color).length : VISION_LIBRARY.length;
+  const tile = (v: (typeof VISION_LIBRARY)[number]) => (
+    <figure key={v.src} className="break-inside-avoid">
+      <button
+        draggable
+        onDragStart={(e) => e.dataTransfer.setData("text/vision", v.src)}
+        onClick={() => onPhoto(v.src)}
+        className="group relative block w-full overflow-hidden rounded-[12px] border border-white/[.06]"
+        style={{ aspectRatio: `${v.w} / ${v.h}` }}
+        title={v.alt}
+      >
+        <Image src={v.src} alt={v.alt} fill sizes="180px" className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+        <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-5 text-left text-[0.65rem] text-white/90 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+          Panoya ekle
+        </span>
+      </button>
+      <figcaption className="mt-1.5 flex flex-wrap gap-x-1.5 gap-y-0.5">
+        {v.tags.slice(0, 3).map((t) => (
+          <button key={t} type="button" onClick={() => pickTag(t)} className="text-[0.68rem] leading-5 text-ink-mute transition-colors hover:text-[#ff9aab]">
+            #{t}
+          </button>
+        ))}
+      </figcaption>
+    </figure>
+  );
   return (
     <div>
       <button onClick={onUpload} className="btn btn-ghost btn-sm mb-4 w-full">
@@ -1158,32 +1204,20 @@ function PhotoTab({ onPhoto, onUpload }: { onPhoto: (src: string) => void; onUpl
           {[q && `“${q}”`, color && VISION_COLORS[color][0].toLocaleLowerCase("tr")].filter(Boolean).join(", ")} için {list.length} fotoğraf
         </p>
       )}
-      <div className="columns-2 gap-2.5 [&>*]:mb-3">
-        {list.map((v) => (
-          <figure key={v.src} className="break-inside-avoid">
-            <button
-              draggable
-              onDragStart={(e) => e.dataTransfer.setData("text/vision", v.src)}
-              onClick={() => onPhoto(v.src)}
-              className="group relative block w-full overflow-hidden rounded-[12px] border border-white/[.06]"
-              style={{ aspectRatio: `${v.w} / ${v.h}` }}
-              title={v.alt}
-            >
-              <Image src={v.src} alt={v.alt} fill sizes="180px" className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
-              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-5 text-left text-[0.65rem] text-white/90 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-                Panoya ekle
-              </span>
-            </button>
-            <figcaption className="mt-1.5 flex flex-wrap gap-x-1.5 gap-y-0.5">
-              {v.tags.slice(0, 3).map((t) => (
-                <button key={t} type="button" onClick={() => pickTag(t)} className="text-[0.68rem] leading-5 text-ink-mute transition-colors hover:text-[#ff9aab]">
-                  #{t}
-                </button>
-              ))}
-            </figcaption>
-          </figure>
-        ))}
-      </div>
+      {cat === "hepsi" ? (
+        // Hepsi görünümünde fotoğraflar kategori kategori gelir; sütunlar karışmasın diye her kategori ayrı blok
+        groups.map(([c, items]) => (
+          <section key={c} aria-labelledby={`${uid}-${c}`} data-vk={c} className="mb-2">
+            <h3 id={`${uid}-${c}`} className="sticky top-0 z-10 -mx-1 mb-2 flex items-baseline justify-between bg-[#0e0d12]/95 px-1 py-2 text-[0.8rem] text-ink backdrop-blur">
+              {VISION_CATS[c]}
+              <span className="num text-xs text-ink-mute">{items.length}</span>
+            </h3>
+            <div className="columns-2 gap-2.5 [&>*]:mb-3">{items.map(tile)}</div>
+          </section>
+        ))
+      ) : (
+        <div className="columns-2 gap-2.5 [&>*]:mb-3">{list.map(tile)}</div>
+      )}
       {list.length === 0 && (
         <div className="py-8 text-center text-sm text-ink-mute">
           <p>Bu aramayla eşleşen fotoğraf yok.</p>

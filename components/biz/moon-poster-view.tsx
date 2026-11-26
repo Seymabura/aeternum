@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 export type MoonPosterHandle = {
   merge: (to: boolean) => void;
   /** only: çiftte sadece bir kişinin Ay'ı; caption: isim, tarih ve evre yazısı */
-  exportAs: (id: (typeof EXPORTS)[number]["id"], opts?: { only?: "a" | "b"; caption?: boolean }) => Promise<void>;
+  exportAs: (id: (typeof EXPORTS)[number]["id"], opts?: { only?: "a" | "b"; caption?: boolean; note?: string }) => Promise<void>;
 };
 
 /**
@@ -138,7 +138,7 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
         c.height = spec.h;
         const imgs = buildMoons(tex, p, spec.w, spec.h);
         const sky = await skyFor(p, spec.w, spec.h);
-        drawPoster(c.getContext("2d")!, spec.w, spec.h, p, imgs, progRef.current > 0.5 ? 1 : 0, sky ? { layers: sky } : null, opts?.caption ? captionFor(p) : null);
+        drawPoster(c.getContext("2d")!, spec.w, spec.h, p, imgs, progRef.current > 0.5 ? 1 : 0, sky ? { layers: sky } : null, captionFor(p, !!opts?.caption, opts?.note));
         const blob = await new Promise<Blob | null>((r) => c.toBlob(r, "image/png"));
         if (!blob) throw new Error("png");
         const names = [p.a.name, p.b?.name].filter(Boolean).join("-").toLocaleLowerCase("tr").replace(/[^a-z0-9çğıöşü-]+/g, "-");
@@ -179,10 +179,13 @@ export const MoonPosterView = forwardRef<MoonPosterHandle, { payload: MoonPayloa
   },
 );
 
-export function captionFor(p: MoonPayload) {
-  const ph = (m: NonNullable<MoonPayload["b"]>) => `${phaseLabel(m.phaseAngle).replace(/ \(.*\)/, "")} · %${Math.round(m.fraction * 100)} aydınlık`;
-  if (!p.b) return { title: p.a.name, lines: [p.a.dateText, ph(p.a)].filter(Boolean) };
-  return { title: `${p.a.name} & ${p.b.name}`, lines: [`${p.a.name}: ${ph(p.a)}`, `${p.b.name}: ${ph(p.b)}`] };
+/** Görselin altındaki yazı: isteğe bağlı isim/tarih/evre ve kişinin kendi notu. İkisi de yoksa yazı yok. */
+export function captionFor(p: MoonPayload, info: boolean, note?: string) {
+  const n = note?.trim() || undefined;
+  if (!info) return n ? { title: "", lines: [], note: n } : null;
+  const ph = (x: NonNullable<MoonPayload["b"]>) => `${phaseLabel(x.phaseAngle).replace(/ \(.*\)/, "")} · %${Math.round(x.fraction * 100)} aydınlık`;
+  if (!p.b) return { title: p.a.name, lines: [p.a.dateText, ph(p.a)].filter(Boolean), note: n };
+  return { title: `${p.a.name} & ${p.b.name}`, lines: [`${p.a.name}: ${ph(p.a)}`, `${p.b.name}: ${ph(p.b)}`], note: n };
 }
 
 /** O gece Ay'ın etrafındaki gerçek yıldızlar (yön yoksa Ay'ın ortalama yolu üzerinde bir yer) */
