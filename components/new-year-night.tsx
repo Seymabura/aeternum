@@ -67,7 +67,7 @@ export function NewYearNight() {
       {!open && !hidden && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-[calc(152px+env(safe-area-inset-bottom))] left-1/2 z-[70] -translate-x-1/2 rounded-full border border-champagne/30 bg-black/80 px-5 py-2.5 text-sm text-ink shadow-[0_10px_40px_rgba(0,0,0,.6)] backdrop-blur-md md:bottom-[4.5rem]"
+          className="fixed bottom-[calc(84px+env(safe-area-inset-bottom))] left-1/2 z-[70] -translate-x-1/2 rounded-full border border-champagne/30 bg-black/80 px-5 py-2.5 text-sm text-ink shadow-[0_10px_40px_rgba(0,0,0,.6)] backdrop-blur-md md:bottom-6"
         >
           {arrived ? (
             "2027'ye hoş geldin ✦"

@@ -25,7 +25,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-[1240px] flex-1 px-5 pb-52 pt-10 sm:px-8 md:pb-28">{children}</main>
+      <main className="mx-auto w-full max-w-[1240px] flex-1 px-5 pb-36 pt-10 sm:px-8 md:pb-20">{children}</main>
       <BottomNav />
     </div>
   );

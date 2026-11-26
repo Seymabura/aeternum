@@ -462,7 +462,7 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
   }, []);
   const ratio = (f.W / f.H).toFixed(3);
   const stageMax = narrow
-    ? `min(100%, calc((100dvh - ${f.clock ? "25rem" : "23.25rem"}) * ${ratio}))`
+    ? `min(100%, calc((100dvh - ${f.clock ? "20.75rem" : "19rem"}) * ${ratio}))`
     : f.W >= f.H
       ? `min(100%, 900px, calc(74dvh * ${ratio}))`
       : `min(${f.id === "telefon" ? 420 : 560}px, 100%, calc((100dvh - 15.5rem) * ${ratio}))`;
@@ -764,7 +764,7 @@ function BoardEditor({ board, initial, urls: initialUrls, userId, onItems, onBg,
       </div>
 
       {/* telefon: her zaman ekranda duran araç çubuğu, alt menünün hemen üstünde */}
-      <div className="safe-bottom fixed inset-x-3 bottom-[9.15rem] z-40 lg:hidden md:bottom-[4.5rem]">
+      <div className="safe-bottom fixed inset-x-3 bottom-[4.9rem] z-40 lg:hidden md:bottom-4">
         <div className="mx-auto max-w-md rounded-[22px] border border-white/10 bg-[rgba(10,9,13,0.92)] p-1 shadow-[0_20px_50px_-20px_rgba(0,0,0,.9)] backdrop-blur-xl">
           {selected?.kind === "image" && framesOpen && (
             <div role="radiogroup" aria-label="Çerçeve" className="grid grid-cols-4 gap-1 border-b border-white/[.06] p-1 pb-2">

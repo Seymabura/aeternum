@@ -48,7 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <PwaRegister />
         <Toaster
           position="bottom-center"
-          offset={160}
+          offset={96}
           icons={{ success: <span className="text-champagne">✦</span>, info: <span className="text-champagne">✦</span> }}
           toastOptions={{
             style: {
